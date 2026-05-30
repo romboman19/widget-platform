@@ -122,6 +122,9 @@ export default function SiteEditor() {
 
   if (!site) return <div className="text-slate-400">Завантаження...</div>;
 
+  // Filter active widgets for display
+  const activeWidgets = widgets.filter(w => w.enabled);
+
   return (
     <div>
       <Link to="/" className="text-sm text-slate-400 hover:text-slate-600 flex items-center gap-1 mb-4">
@@ -179,7 +182,7 @@ export default function SiteEditor() {
 
       {/* Widgets */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-slate-700">Віджети ({widgets.length})</h3>
+        <h3 className="text-lg font-semibold text-slate-700">Віджети ({activeWidgets.length} активних з {widgets.length})</h3>
       </div>
 
       {/* Add widget buttons */}

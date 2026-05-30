@@ -3,7 +3,7 @@ export default async function siteRoutes(app) {
   app.get('/', { preHandler: [app.authenticate] }, async (request) => {
     const sites = await app.prisma.site.findMany({
       where: { userId: request.user.id },
-      include: { _count: { select: { widgets: true } } },
+      include: { _count: { select: { widgets: { where: { enabled: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
     return sites;
