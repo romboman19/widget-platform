@@ -4,7 +4,7 @@
 
 ## Можливості
 
-- **5 типів віджетів**: Floating меню, Popup зворотній дзвінок, Popup банер, Sticky bar, Side tab
+- **5 типів віджетів**: FLOATING_MENU, POPUP_CALLBACK, POPUP_BANNER, STICKY_BAR, SIDE_TAB
 - **11+ каналів**: Телефон, Telegram, Viber, WhatsApp, Email, Instagram, Facebook, TikTok, Chatwoot, Callback, кастомні
 - **Мультисайтовість**: один інстанс — необмежена кількість сайтів
 - **Правила показу**: фільтр за URL (contains/exact/regex), пристроєм (desktop/mobile)
@@ -17,10 +17,10 @@
 
 | Компонент | Технологія |
 |-----------|-----------|
-| API | Node.js + Fastify + Prisma ORM |
+| API | Node.js 20 + Fastify + Prisma ORM |
 | БД | PostgreSQL 16 |
-| Адмінка | React + Tailwind + Recharts |
-| Віджет | Vanilla JS (IIFE) |
+| Адмінка | React 18 + Tailwind + Recharts |
+| Віджет | Vanilla JS (IIFE), ~26kb |
 | Деплой | Docker Compose + Nginx |
 
 ## Швидкий старт
@@ -29,8 +29,10 @@
 
 ```bash
 cd /opt
-git clone <repo> widget-platform
+git clone https://github.com/romboman19/widget-platform.git widget-platform
 cd widget-platform
+# Оновити до останньої версії
+git pull origin main
 ```
 
 ### 2. Налаштувати .env
@@ -50,7 +52,11 @@ nano .env
 ### 3. Запустити
 
 ```bash
+# Перший запуск — зі збіркою образів
 docker compose up -d --build
+
+# Повне перебудування (після оновлень)
+docker compose up -d --build --force-recreate --remove-orphans
 ```
 
 ### 4. Відкрити адмінку
@@ -164,21 +170,36 @@ widget-platform/
 ## Корисні команди
 
 ```bash
-# Перезапуск
-docker compose restart
+# Перевірити оновлення в репозиторії
+git fetch origin && git log HEAD..origin/main --oneline
 
-# Логи
+# Оновити код і перезапустити
+git pull origin main && docker compose up -d --build --force-recreate
+
+# Логи API
 docker compose logs -f api
 
+# Логи всіх сервісів
+docker compose logs -f
+
 # Повне перебудування
-docker compose up -d --build --force-recreate
+docker compose up -d --build --force-recreate --remove-orphans
 
 # Backup БД
 docker compose exec postgres pg_dump -U widget widget_platform > backup.sql
 
-# Відновлення
+# Відновлення БД
 cat backup.sql | docker compose exec -T postgres psql -U widget widget_platform
+
+# Очистити невикористовувані образи
+docker system prune -af
 ```
+
+## Відомі обмеження та баги
+
+- Лічильник віджетів показує тільки активні (`enabled: true`)
+- При першій збірці може знадобитися до 2-3 хвилин на `npm install` та генерацію Prisma client
+- Admin panel потребує окремої збірки (Vite build) — не включена в базовий docker-compose
 
 ## Ліцензія
 
