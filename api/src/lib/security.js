@@ -85,3 +85,9 @@ export function createRateLimiter(maxRequests, windowMs) {
     }
   };
 }
+
+// ─── Widget type validation ───
+const ALLOWED_WIDGET_TYPES = ['floating_menu', 'popup_callback', 'popup_banner', 'sticky_bar', 'side_tab'];
+export function isValidWidgetType(type) {
+  return typeof type === 'string' && ALLOWED_WIDGET_TYPES.includes(type);
+}
