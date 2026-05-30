@@ -87,7 +87,7 @@ export function createRateLimiter(maxRequests, windowMs) {
 }
 
 // ─── Widget type validation ───
-const ALLOWED_WIDGET_TYPES = ['floating_menu', 'popup_callback', 'popup_banner', 'sticky_bar', 'side_tab'];
+const ALLOWED_WIDGET_TYPES = ['FLOATING_MENU', 'POPUP_CALLBACK', 'POPUP_BANNER', 'STICKY_BAR', 'SIDE_TAB'];
 export function isValidWidgetType(type) {
   return typeof type === 'string' && ALLOWED_WIDGET_TYPES.includes(type);
 }
