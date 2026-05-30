@@ -2,11 +2,12 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy package.json and prisma schema BEFORE npm install
 COPY package.json ./
-RUN npm install
-
 COPY prisma ./prisma/
-RUN npx prisma generate
+
+# Now npm install can run postinstall (prisma generate)
+RUN npm install
 
 COPY src ./src/
 
