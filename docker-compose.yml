@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: widget_platform
+      POSTGRES_USER: widget
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U widget -d widget_platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend            # Only API can reach postgres
+    # No ports exposed — only accessible from backend network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://widget:${DB_PASSWORD:-changeme}@postgres:5432/widget_platform
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@yourdomain.ua}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /home/node/.npm
+    networks:
+      - backend
+      - frontend           # Nginx reaches API through frontend
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    networks:
+      - frontend           # Only nginx can reach admin
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-8090}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./widget/dist:/usr/share/nginx/widget:ro
+    depends_on:
+      - api
+      - admin
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    networks:
+      - frontend
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+    driver: bridge
+    internal: true         # No external access — isolated
+  frontend:
+    driver: bridge

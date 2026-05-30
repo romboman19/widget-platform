@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sites     Site[]
+}
+
+model Site {
+  id        String   @id @default(cuid())
+  slug      String   @unique  // used in ?site=slug
+  name      String
+  domain    String   // for CORS validation
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  widgets   Widget[]
+  analytics AnalyticsEvent[]
+}
+
+model Widget {
+  id        String     @id @default(cuid())
+  siteId    String
+  site      Site       @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  type      WidgetType
+  name      String
+  enabled   Boolean    @default(true)
+  config    Json       // all widget-specific settings
+  rules     Json?      // URL rules, device rules
+  position  Json?      // placement settings
+  triggers  Json?      // popup triggers
+  priority  Int        @default(0)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  analytics AnalyticsEvent[]
+}
+
+enum WidgetType {
+  FLOATING_MENU
+  POPUP_CALLBACK
+  POPUP_BANNER
+  STICKY_BAR
+  SIDE_TAB
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  widgetId  String?
+  widget    Widget?  @relation(fields: [widgetId], references: [id], onDelete: SetNull)
+  event     String   // 'view', 'click', 'submit', 'open', 'close'
+  channel   String?  // 'telegram', 'viber', 'phone', etc.
+  page      String?  // page URL
+  device    String?  // 'desktop' or 'mobile'
+  ip        String?
+  userAgent String?
+  meta      Json?    // extra data
+  createdAt DateTime @default(now())
+
+  @@index([siteId, createdAt])
+  @@index([widgetId, event])
+}
