@@ -33,6 +33,17 @@ await app.register(cors, {
   credentials: false,
 });
 
+// ─── Allow empty JSON body for DELETE and duplicate requests ───
+app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+  if (!body || body.length === 0) return done(null, {});
+  try {
+    done(null, JSON.parse(body));
+  } catch (err) {
+    err.statusCode = 400;
+    done(err, undefined);
+  }
+});
+
 await app.register(jwt, {
   secret: process.env.JWT_SECRET || 'dev-secret',
   sign: {
