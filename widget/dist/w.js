@@ -71,8 +71,13 @@
 
   function matchRules(rules) {
     if (!rules) return true;
+
+    // Schedule check
+    if (rules.schedule && !checkSchedule(rules.schedule)) return false;
+
     // Device filter
     if (rules.devices && !rules.devices.includes(DEVICE)) return false;
+
     // URL filter
     if (rules.urlRules?.length) {
       const url = location.href;
@@ -85,6 +90,66 @@
       });
     }
     return true;
+  }
+
+  // ─── Schedule utilities ───
+  function checkSchedule(schedule) {
+    const now = new Date();
+    const currentDay = now.getDay(); // 0 = Sunday
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute; // minutes since midnight
+
+    // Check enabled
+    if (schedule.enabled === false) return true; // schedule disabled = always show
+
+    // Check date range
+    if (schedule.startDate || schedule.endDate) {
+      const today = now.toISOString().split('T')[0]; // YYYY-MM-DD
+      if (schedule.startDate && today < schedule.startDate) return false;
+      if (schedule.endDate && today > schedule.endDate) return false;
+    }
+
+    // Check days of week
+    if (schedule.daysOfWeek?.length) {
+      // Convert Sunday=0 to Sunday=7 for easier comparison if needed
+      const dayIndex = currentDay === 0 ? 7 : currentDay;
+      const daysMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
+      const allowedDays = schedule.daysOfWeek.map(d => typeof d === 'string' ? daysMap[d.toLowerCase()] : d);
+      if (!allowedDays.includes(currentDay)) return false;
+    }
+
+    // Check time range
+    if (schedule.timeRanges?.length) {
+      const inTimeRange = schedule.timeRanges.some(range => {
+        const start = parseTime(range.start);
+        const end = parseTime(range.end);
+        if (start === null || end === null) return true;
+        return currentTime >= start && currentTime <= end;
+      });
+      if (!inTimeRange) return false;
+    }
+
+    // Check excluded dates (holidays)
+    if (schedule.excludedDates?.length) {
+      const today = now.toISOString().split('T')[0];
+      if (schedule.excludedDates.includes(today)) return false;
+    }
+
+    // Check timezone offset (basic validation)
+    if (schedule.timezone) {
+      // Simple check: if timezone specified, we assume browser is in correct timezone
+      // For production, consider using Intl.DateTimeFormat
+    }
+
+    return true;
+  }
+
+  function parseTime(timeStr) {
+    if (!timeStr) return null;
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return null;
+    return hours * 60 + minutes;
   }
 
   function getCookie(name) {
