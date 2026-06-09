@@ -13,194 +13,43 @@
     }
     
     body {
-      min-height: 100vh;
-      position: relative;
       background: #ffffff;
-    }
-    
-    /* Site screenshot as background */  
-    #site-screenshot {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: auto;
-      min-height: 100%;
-    }
-    
-    /* Fallback when no screenshot */  
-    .no-screenshot {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-    
-    .no-screenshot h2 {
-      font-size: 24px;
-      margin-bottom: 12px;
-      opacity: 0.9;
-    }
-    
-    .no-screenshot p {
-      font-size: 14px;
-      opacity: 0.7;
-    }
-    
-    /* Loading indicator */  
-    #loading {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #666;
-      font-size: 14px;
-      z-index: 9999;
-      background: rgba(255,255,255,0.9);
-      padding: 12px 24px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    /* Error message */  
-    .error-message {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      color: #dc2626;
-      padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      z-index: 10000;
-      max-width: 90%;
-      word-break: break-word;
+      min-height: 100vh;
     }
   </style>
 </head>
 <body>
-  <div id="loading">Завантаження...</div>
-  <div id="site-container"></div>
-
   <script>
-    // Debug: log all params
-    console.log('Preview params:', window.location.search);
-    
-    // Get params from URL
+    // Get widget config from URL
     const params = new URLSearchParams(window.location.search);
     const configParam = params.get('config');
-    const device = params.get('device') || 'desktop';
-    let screenshotUrl = params.get('screenshot');
-    
-    // Handle "null" or "undefined" strings
-    if (screenshotUrl === 'null' || screenshotUrl === 'undefined' || screenshotUrl === '') {
-      screenshotUrl = null;
-    }
-    
-    console.log('Screenshot URL:', screenshotUrl);
-    console.log('Config param exists:', !!configParam);
-    
-    const container = document.getElementById('site-container');
-    
-    // Show screenshot or fallback
-    if (screenshotUrl) {
-      console.log('Loading screenshot:', screenshotUrl);
-      const img = document.createElement('img');
-      img.id = 'site-screenshot';
-      img.src = screenshotUrl;
-      img.alt = 'Site preview';
-      img.style.opacity = '0';
-      img.style.transition = 'opacity 0.3s';
-      
-      img.onload = () => {
-        console.log('Screenshot loaded successfully');
-        img.style.opacity = '1';
-        document.getElementById('loading').style.display = 'none';
-      };
-      
-      img.onerror = (e) => {
-        console.error('Screenshot failed to load:', e);
-        showFallback('Не вдалося завантажити скриншот сайту');
-      };
-      
-      container.appendChild(img);
-    } else {
-      console.log('No screenshot URL, showing fallback');
-      showFallback('Скриншот сайту ще не створено');
-      document.getElementById('loading').style.display = 'none';
-    }
-    
-    function showFallback(message) {
-      container.innerHTML = `
-        <div class="no-screenshot">
-          <h2>🌐 Ваш сайт</h2>
-          <p>${message}<br/>Збережіть сайт в налаштуваннях</p>
-        </div>
-      `;
-    }
-    
-    // Parse and inject widget config
-    let widgetConfig = null;
     
     if (configParam) {
       try {
         const jsonStr = decodeURIComponent(escape(atob(configParam)));
-        widgetConfig = JSON.parse(jsonStr);
-        console.log('Widget config parsed:', widgetConfig);
+        const widgetConfig = JSON.parse(jsonStr);
+        
+        // Disable triggers - show immediately
+        if (widgetConfig.widgets && widgetConfig.widgets[0]) {
+          widgetConfig.widgets[0].triggers = null;
+          widgetConfig.widgets[0].enabled = true;
+        }
+        
+        window.__WIDGET_PREVIEW__ = widgetConfig;
+        
+        // Load w.js
+        const script = document.createElement('script');
+        script.src = '/w.js?preview=1';
+        script.async = true;
+        document.head.appendChild(script);
       } catch (e) {
-        console.error('Failed to parse config:', e);
-        showError('Помилка завантаження конфігу віджета');
+        console.error('Failed to load widget:', e);
       }
     }
     
-    if (widgetConfig) {
-      // Disable triggers for preview - show immediately
-      if (widgetConfig.widgets && widgetConfig.widgets[0]) {
-        widgetConfig.widgets[0].triggers = null;
-        widgetConfig.widgets[0].enabled = true;
-      }
-      
-      window.__WIDGET_PREVIEW__ = widgetConfig;
-      
-      // Load w.js
-      console.log('Loading w.js...');
-      const script = document.createElement('script');
-      script.src = '/w.js?preview=1';
-      script.async = true;
-      script.onload = () => {
-        console.log('w.js loaded');
-      };
-      script.onerror = (e) => {
-        console.error('Failed to load w.js:', e);
-        showError('Не вдалося завантажити w.js');
-      };
-      document.head.appendChild(script);
-    } else {
-      console.log('No widget config');
-    }
-    
-    function showError(msg) {
-      const div = document.createElement('div');
-      div.className = 'error-message';
-      div.textContent = msg;
-      document.body.appendChild(div);
-    }
-    
-    // Listen for config updates
+    // Listen for updates from editor
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'UPDATE_WIDGET_CONFIG') {
-        console.log('Received config update');
         window.__WIDGET_PREVIEW__ = event.data.config;
         if (window.__WIDGET_REINIT__) {
           window.__WIDGET_REINIT__();

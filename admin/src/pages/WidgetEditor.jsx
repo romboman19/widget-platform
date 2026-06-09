@@ -190,7 +190,7 @@ export default function WidgetEditor() {
         <div className="lg:col-span-1">
           <div className="sticky top-6">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Попередній перегляд</h3>
-            <PreviewPane widget={widget} siteId={siteId} screenshotUrl={site?.screenshotUrl} />
+            <PreviewPane widget={widget} siteId={siteId} />
           </div>
         </div>
       </div>
@@ -883,22 +883,20 @@ function IconPicker({ value, onChange }) {
 }
 
 // ─── PREVIEW PANE ───
-function PreviewPane({ widget, siteId, screenshotUrl }) {
-  const [device, setDevice] = useState('desktop'); // desktop | mobile
-  const [configVersion, setConfigVersion] = useState(0);
+function PreviewPane({ widget, siteId }) {
+  const [device, setDevice] = useState('desktop');
   const iframeRef = useRef(null);
 
   // Send updated config to iframe via postMessage
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (iframeRef.current && iframeRef.current.contentWindow && widget) {
-        // Prepare preview config
+      if (iframeRef.current?.contentWindow && widget) {
         const previewConfig = {
           siteId: siteId,
           widgets: [{
             ...widget,
             enabled: true,
-            triggers: null, // Disable triggers for preview - show immediately
+            triggers: null,
           }]
         };
         
@@ -906,15 +904,13 @@ function PreviewPane({ widget, siteId, screenshotUrl }) {
           type: 'UPDATE_WIDGET_CONFIG',
           config: previewConfig
         }, '*');
-        
-        setConfigVersion(v => v + 1);
       }
-    }, 300); // 300ms debounce
+    }, 300);
     
     return () => clearTimeout(timer);
   }, [widget, siteId]);
 
-  // Build iframe URL with encoded widget config and screenshot
+  // Build iframe URL
   const buildPreviewUrl = () => {
     if (!widget) return '/preview.html';
     
@@ -930,23 +926,17 @@ function PreviewPane({ widget, siteId, screenshotUrl }) {
     const configStr = JSON.stringify(previewConfig);
     const configB64 = btoa(unescape(encodeURIComponent(configStr)));
     
-    let url = `/preview.html?config=${encodeURIComponent(configB64)}&device=${device}&v=${configVersion}`;
-    
-    if (screenshotUrl) {
-      url += `&screenshot=${encodeURIComponent(screenshotUrl)}`;
-    }
-    
-    return url;
+    return `/preview.html?config=${encodeURIComponent(configB64)}&device=${device}`;
   };
   
-  // Device frame styling  
+  // Device frame
   const frameClass = device === 'mobile' 
-    ? 'rounded-[40px] border-[8px] border-slate-800 shadow-2xl' 
+    ? 'rounded-[32px] border-[6px] border-slate-800 shadow-2xl' 
     : 'rounded-lg border border-slate-300 shadow-lg';
   
   const iframeStyle = device === 'mobile'
-    ? { width: 375, height: 667, borderRadius: 32 }
-    : { width: '100%', height: 500, minWidth: 320 };
+    ? { width: 375, height: 667 }
+    : { width: '100%', height: 500 };
 
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
@@ -961,7 +951,6 @@ function PreviewPane({ widget, siteId, screenshotUrl }) {
                 ? 'bg-white text-blue-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-700'
             }`}
-            title="Desktop"
           >
             <Monitor size={14} />
             Desktop
@@ -973,7 +962,6 @@ function PreviewPane({ widget, siteId, screenshotUrl }) {
                 ? 'bg-white text-blue-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-700'
             }`}
-            title="Mobile"
           >
             <Smartphone size={14} />
             Mobile
@@ -981,7 +969,7 @@ function PreviewPane({ widget, siteId, screenshotUrl }) {
         </div>
       </div>
 
-      {/* Preview iframe - site screenshot + widget overlay */}
+      {/* Preview iframe */}
       <div className={`relative bg-slate-100 flex items-center justify-center p-4 ${device === 'mobile' ? 'py-8' : ''}`}>
         <div className={`overflow-hidden ${frameClass}`} style={iframeStyle}>
           <iframe
