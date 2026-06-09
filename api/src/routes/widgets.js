@@ -155,4 +155,100 @@ export default async function widgetRoutes(app) {
 
     return { success: true };
   });
+
+  // ─── Templates: list global templates ───
+  app.get('/templates', async (request, reply) => {
+    const templates = await app.prisma.template.findMany({
+      orderBy: { usageCount: 'desc' },
+      take: 50,
+    });
+    return templates;
+  });
+
+  // ─── Templates: list user templates ───
+  app.get('/:siteId/templates', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const site = await verifySite(request, reply);
+    if (!site) return;
+
+    const templates = await app.prisma.template.findMany({
+      where: {
+        OR: [
+          { userId: request.user.id },
+          { isGlobal: true },
+        ],
+      },
+      orderBy: [
+        { isGlobal: 'desc' },
+        { usageCount: 'desc' },
+      ],
+      take: 100,
+    });
+    return templates;
+  });
+
+  // ─── Templates: create from widget ───
+  app.post('/:siteId/widgets/:widgetId/template', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const widget = await verifyWidget(request, reply);
+    if (!widget) return;
+
+    const { name, description, isGlobal } = request.body || {};
+
+    const template = await app.prisma.template.create({
+      data: {
+        userId: request.user.id,
+        name: (name || widget.name).slice(0, 100),
+        description: (description || '').slice(0, 500),
+        type: widget.type,
+        config: widget.config || {},
+        position: widget.position,
+        triggers: widget.triggers,
+        rules: widget.rules,
+        isGlobal: !!isGlobal,
+      },
+    });
+
+    return template;
+  });
+
+  // ─── Templates: create widget from template ───
+  app.post('/:siteId/widgets/from-template/:templateId', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const site = await verifySite(request, reply);
+    if (!site) return;
+
+    const { templateId } = request.params;
+    const template = await app.prisma.template.findFirst({
+      where: {
+        id: templateId,
+        OR: [
+          { userId: request.user.id },
+          { isGlobal: true },
+        ],
+      },
+    });
+
+    if (!template) {
+      return reply.status(404).send({ error: 'Template not found' });
+    }
+
+    // Increment usage count
+    await app.prisma.template.update({
+      where: { id: templateId },
+      data: { usageCount: { increment: 1 } },
+    });
+
+    const widget = await app.prisma.widget.create({
+      data: {
+        siteId: site.id,
+        type: template.type,
+        name: `${template.name} (from template)`.slice(0, 200),
+        config: template.config || {},
+        position: template.position,
+        triggers: template.triggers,
+        rules: template.rules,
+        enabled: true,
+      },
+    });
+
+    return widget;
+  });
 }

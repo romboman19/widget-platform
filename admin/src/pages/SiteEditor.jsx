@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { Plus, BarChart3, Pencil, ChevronLeft } from 'lucide-react';
+import { Plus, BarChart3, Pencil, ChevronLeft, Layout } from 'lucide-react';
 import DragDropBuilder from '../components/DragDropBuilder.jsx';
+import TemplatesGallery from '../components/TemplatesGallery.jsx';
 
 const WIDGET_TYPE_LABELS = {
   FLOATING_MENU: '💬 Floating меню',
@@ -63,6 +64,7 @@ export default function SiteEditor() {
   const [widgets, setWidgets] = useState([]);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: '', domain: '' });
+  const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => { load(); }, [siteId]);
 
@@ -203,7 +205,13 @@ export default function SiteEditor() {
         <h3 className="text-lg font-semibold text-slate-700">Віджети ({activeWidgets.length} активних з {widgets.length})</h3>
       </div>
 
+      {/* Add widget buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
+        <button onClick={() => setShowTemplates(true)}
+          className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors">
+          <Layout size={14} /> З шаблону
+        </button>
+        <div className="w-px h-8 bg-slate-200 mx-1"></div>
         {WIDGET_TYPES.map(type => (
           <button key={type} onClick={() => addWidget(type)}
             className="flex items-center gap-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors">
@@ -211,6 +219,18 @@ export default function SiteEditor() {
           </button>
         ))}
       </div>
+
+      {/* Templates Gallery Modal */}
+      {showTemplates && (
+        <TemplatesGallery
+          siteId={siteId}
+          onClose={() => setShowTemplates(false)}
+          onSelect={(widget) => {
+            setShowTemplates(false);
+            navigate(`/sites/${siteId}/widgets/${widget.id}`);
+          }}
+        />
+      )}
 
       <DragDropBuilder
         widgets={widgets}

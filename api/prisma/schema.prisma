@@ -15,6 +15,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   sites     Site[]
+  templates Template[]
 }
 
 model Site {
@@ -72,4 +73,24 @@ model AnalyticsEvent {
 
   @@index([siteId, createdAt])
   @@index([widgetId, event])
+}
+
+model Template {
+  id          String     @id @default(cuid())
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String     // Template name
+  description String?    // Description of what this template does
+  type        WidgetType
+  config      Json       // Widget configuration
+  position    Json?      // Default position
+  triggers    Json?      // Default triggers
+  rules       Json?      // Default rules
+  isGlobal    Boolean    @default(false)  // Available to all users
+  usageCount  Int        @default(0)      // How many times used
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([isGlobal, usageCount])
+  @@index([userId])
 }
