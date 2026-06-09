@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { Plus, Copy, Trash2, ToggleLeft, ToggleRight, GripVertical, BarChart3, Pencil, ChevronLeft } from 'lucide-react';
+import { Plus, BarChart3, Pencil, ChevronLeft } from 'lucide-react';
+import DragDropBuilder from '../components/DragDropBuilder.jsx';
 
 const WIDGET_TYPE_LABELS = {
   FLOATING_MENU: '💬 Floating меню',
@@ -104,9 +105,18 @@ export default function SiteEditor() {
     navigate(`/sites/${siteId}/widgets/${widget.id}`);
   }
 
-  async function toggleWidget(widgetId, enabled) {
-    await api(`/sites/${siteId}/widgets/${widgetId}`, { method: 'PUT', body: { enabled: !enabled } });
-    await load();
+  async function reorderWidgets(newWidgets) {
+    setWidgets(newWidgets);
+    // Update priorities based on new order
+    const updates = newWidgets.map((w, index) => ({
+      id: w.id,
+      priority: index + 1,
+    }));
+    
+    await api(`/sites/${siteId}/widgets/reorder`, {
+      method: 'POST',
+      body: { updates },
+    });
   }
 
   async function duplicateWidget(widgetId) {
@@ -118,6 +128,10 @@ export default function SiteEditor() {
     if (!confirm(`Видалити віджет "${name}"?`)) return;
     await api(`/sites/${siteId}/widgets/${widgetId}`, { method: 'DELETE' });
     await load();
+  }
+
+  function handleEdit(widget) {
+    navigate(`/sites/${siteId}/widgets/${widget.id}`);
   }
 
   if (!site) return <div className="text-slate-400">Завантаження...</div>;
@@ -195,45 +209,19 @@ export default function SiteEditor() {
         ))}
       </div>
 
-      {/* Widget list */}
-      <div className="space-y-2">
-        {widgets.map(w => (
-          <div key={w.id} className={`bg-white rounded-xl p-4 border flex items-center gap-3 transition-colors ${w.enabled ? 'border-slate-200' : 'border-slate-100 opacity-60'}`}>
-            <div className="text-slate-300 cursor-move"><GripVertical size={18} /></div>
-            <div className="flex-1 min-w-0">
-              <Link to={`/sites/${siteId}/widgets/${w.id}`} className="font-medium text-slate-700 hover:text-blue-600 text-sm">
-                {w.name}
-              </Link>
-              <div className="text-xs text-slate-400 mt-0.5">
-                {WIDGET_TYPE_LABELS[w.type]} · {w.enabled ? '✅ Активний' : '⏸ Вимкнений'}
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={() => toggleWidget(w.id, w.enabled)} title={w.enabled ? 'Вимкнути' : 'Увімкнути'}
-                className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600">
-                {w.enabled ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} />}
-              </button>
-              <Link to={`/sites/${siteId}/widgets/${w.id}`}
-                className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-blue-600">
-                <Pencil size={16} />
-              </Link>
-              <button onClick={() => duplicateWidget(w.id)} title="Дублювати"
-                className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600">
-                <Copy size={16} />
-              </button>
-              <button onClick={() => deleteWidget(w.id, w.name)} title="Видалити"
-                className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-red-500">
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
-        {widgets.length === 0 && (
-          <div className="text-center py-8 text-slate-400 text-sm">
-            Віджетів поки немає. Натисніть кнопку вище, щоб додати перший.
-          </div>
-        )}
-      </div>
+      {/* Widget list with Drag & Drop */}
+      <DragDropBuilder
+        widgets={widgets}
+        onReorder={reorderWidgets}
+        onEdit={handleEdit}
+        onDelete={(w) => deleteWidget(w.id, w.name)}
+        onDuplicate={(w) => duplicateWidget(w.id)}
+      />
+      {widgets.length === 0 && (
+        <div className="text-center py-8 text-slate-400 text-sm">
+          Віджетів поки немає. Натисніть кнопку вище, щоб додати перший.
+        </div>
+      )}
     </div>
   );
 }

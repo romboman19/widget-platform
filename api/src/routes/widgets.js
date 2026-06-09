@@ -122,4 +122,37 @@ export default async function widgetRoutes(app) {
     });
     return duplicate;
   });
+
+  // ─── Reorder widgets ───
+  app.post('/:siteId/widgets/reorder', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const site = await verifySite(request, reply);
+    if (!site) return;
+
+    const { updates } = request.body || {};
+    if (!Array.isArray(updates)) {
+      return reply.status(400).send({ error: 'Updates must be an array' });
+    }
+
+    // Validate all widget IDs belong to this site
+    const widgetIds = updates.map(u => u.id);
+    const widgets = await app.prisma.widget.findMany({
+      where: { id: { in: widgetIds }, siteId: site.id },
+      select: { id: true },
+    });
+    const validIds = new Set(widgets.map(w => w.id));
+
+    // Update priorities in transaction
+    const transactions = updates
+      .filter(u => validIds.has(u.id))
+      .map(u =>
+        app.prisma.widget.update({
+          where: { id: u.id },
+          data: { priority: Math.max(0, Math.min(parseInt(u.priority) || 0, 999)) },
+        })
+      );
+
+    await app.prisma.$transaction(transactions);
+
+    return { success: true };
+  });
 }
