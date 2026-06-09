@@ -1,20 +1,70 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone } from 'lucide-react';
+import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone, Phone, Mail, MessageCircle, Link2 } from 'lucide-react';
 
+// Brand SVG Icons
+const TelegramIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.697.064-1.226-.46-1.901-.902-1.056-.692-1.653-1.123-2.678-1.799-.931-.615-.327-.953.203-1.506.277-.29.574-.797.766-1.222.09-.198.169-.412.19-.644a.49.49 0 0 0-.025-.247c-.044-.12-.132-.247-.22-.295-.184-.104-1.06-.602-1.502-.854a2.995 2.995 0 0 1-.613-.413c-.39-.332-.455-.478-.455-.646 0-.24.115-.448.345-.583.23-.134.552-.144.896-.028.45.15 1.77.64 2.357.848.587.208.44.347.666-.095.225-.442.29-.72.434-1.17.144-.45.09-.848-.22-1.035-.312-.187-.776-.127-1.27.055-1.166.418-2.835.92-3.726 1.19-.892.27-2.03.523-2.445.59a7.29 7.29 0 0 0-.72.138c-.36.098-.66.198-.89.335-.23.137-.4.335-.51.583a1.6 1.6 0 0 0-.08.662c.06.372.252.76.53 1.095.28.335.663.62 1.1.83.438.21.966.327 1.555.327.59 0 1.22-.138 1.82-.362.6-.224 1.17-.51 1.67-.804.5-.293.92-.578 1.24-.836.32-.258.52-.468.57-.558.05-.09.01-.18-.06-.26-.07-.08-.19-.15-.33-.18-.14-.03-.3-.03-.47.01z"/>
+  </svg>
+);
+
+const ViberIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M12 0C5.373 0 0 5.373 0 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-6.627-5.373-12-12-12zm6.638 14.88c-.624 1.11-3.137 2.367-4.088 2.628-.951.26-1.63.47-2.227-.41-.598-.88-1.01-1.49-1.69-1.98-.68-.49-1.36-.37-2.04.02-.68.39-.99 1.28-1.36 1.77-.37.49-2.37.53-3.21-.2-.84-.73-2.23-2.21-2.23-5.33 0-3.12 2.23-4.77 2.64-5.14.41-.37 3.07-4.64 6.8-2.5 3.73 2.14 3.52 5.36 3.43 5.88-.09.52-.27 1.03-.04 1.38z"/>
+  </svg>
+);
+
+const WhatsAppIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.004c6.55 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+);
+
+const InstagramIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const TikTokIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.07-1.86-.57-2.56-1.31-.72-.77-1.14-1.8-1.17-2.83.11-.84.52-1.62 1.14-2.16.8-.71 1.97-1.08 3.03-.87z"/>
+  </svg>
+);
+
+const ChatwootIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.175L2 22l4.825-1.438A9.944 9.944 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2zm0 18c-1.58 0-3.06-.38-4.365-1.058l-.623-.327-2.812.836.836-2.812-.327-.623A7.95 7.95 0 014 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8z"/>
+  </svg>
+);
+
+const CallbackIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 00-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1.01A11.36 11.36 0 018.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM5.03 5h1.5c.07.88.22 1.75.45 2.58l-1.2 1.21c-.4-1.21-.66-2.47-.75-3.79zM19 18.97c-1.32-.09-2.59-.35-3.8-.76l1.2-1.2c.85.24 1.72.39 2.6.45v1.51zM17 8.5c0-.83-.67-1.5-1.5-1.5h-2v2h2v2h-2v6h2c.83 0 1.5-.67 1.5-1.5v-7z"/>
+  </svg>
+);
+
+// Channel types with SVG icons
 const CHANNEL_TYPES = [
-  { value: 'phone', label: '📞 Телефон' },
-  { value: 'telegram', label: '✈️ Telegram' },
-  { value: 'viber', label: '💜 Viber' },
-  { value: 'whatsapp', label: '💚 WhatsApp' },
-  { value: 'email', label: '📧 Email' },
-  { value: 'instagram', label: '📸 Instagram' },
-  { value: 'facebook', label: '👤 Facebook' },
-  { value: 'tiktok', label: '🎵 TikTok' },
-  { value: 'chatwoot', label: '💬 Chatwoot' },
-  { value: 'callback', label: '📲 Зворотній дзвінок' },
-  { value: 'custom', label: '🔗 Кастомне посилання' },
+  { value: 'phone', label: 'Телефон', icon: Phone },
+  { value: 'telegram', label: 'Telegram', icon: TelegramIcon },
+  { value: 'viber', label: 'Viber', icon: ViberIcon },
+  { value: 'whatsapp', label: 'WhatsApp', icon: WhatsAppIcon },
+  { value: 'email', label: 'Email', icon: Mail },
+  { value: 'instagram', label: 'Instagram', icon: InstagramIcon },
+  { value: 'facebook', label: 'Facebook', icon: FacebookIcon },
+  { value: 'tiktok', label: 'TikTok', icon: TikTokIcon },
+  { value: 'chatwoot', label: 'Chatwoot', icon: ChatwootIcon },
+  { value: 'callback', label: 'Зворотній дзвінок', icon: CallbackIcon },
+  { value: 'custom', label: 'Кастомне посилання', icon: Link2 },
 ];
 
 const CORNERS = [
@@ -45,6 +95,29 @@ function Select({ value, onChange, options }) {
       className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
+  );
+}
+
+// Channel Select with SVG icons
+function ChannelSelect({ value, onChange }) {
+  const selected = CHANNEL_TYPES.find(c => c.value === value);
+  const Icon = selected?.icon;
+  
+  return (
+    <div className="relative">
+      <select 
+        value={value || ''} 
+        onChange={e => onChange(e.target.value)}
+        className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white appearance-none"
+      >
+        {CHANNEL_TYPES.map(c => (
+          <option key={c.value} value={c.value}>{c.label}</option>
+        ))}
+      </select>
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+        {Icon && <Icon />}
+      </div>
+    </div>
   );
 }
 
@@ -293,8 +366,7 @@ function FloatingMenuConfig({ cfg, pos, update }) {
             <div key={i} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
               <div className="flex-1 space-y-2">
                 <div className="grid grid-cols-3 gap-2">
-                  <Select value={ch.type} onChange={v => updateChannel(i, 'type', v)}
-                    options={CHANNEL_TYPES} />
+                  <ChannelSelect value={ch.type} onChange={v => updateChannel(i, 'type', v)} />
                   <Input value={ch.label} onChange={v => updateChannel(i, 'label', v)} placeholder="Підпис" />
                   <Input value={ch.iconClass} onChange={v => updateChannel(i, 'iconClass', v)} placeholder="fa-brands fa-telegram (FontAwesome)" />
                 </div>
