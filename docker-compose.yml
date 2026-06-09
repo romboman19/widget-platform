@@ -29,6 +29,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-change-this-secret}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@yourdomain.ua}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8090}
       NODE_ENV: production
       PORT: 3000
     depends_on:
