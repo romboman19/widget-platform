@@ -608,12 +608,6 @@
         }, cfg.callbackButton || 'Зателефонуйте мені'),
       ]),
     ]);
-      el('button', {
-        class: 'wp-form-submit',
-        style: { background: color },
-        onClick: () => submitCallback(widget, overlay),
-      }, cfg.callbackButton || 'Зателефонуйте мені'),
-    ]);
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
