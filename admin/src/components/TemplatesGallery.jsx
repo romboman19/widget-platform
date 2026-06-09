@@ -6,8 +6,8 @@ import { useAuth } from '../hooks/useAuth.jsx';
 const DEFAULT_TEMPLATES = [
   {
     id: 'default-floating',
-    name: 'Меншe зв\'язку',
-    description: 'Плаваюче менше з кнопками дзвінка, Telegram та Viber',
+    name: 'Меню зв\'язку',
+    description: 'Плаваюче меню з кнопками дзвінка, Telegram та Viber',
     type: 'FLOATING_MENU',
     isGlobal: true,
     usageCount: 0,
@@ -79,7 +79,7 @@ const DEFAULT_TEMPLATES = [
     usageCount: 0,
     config: {
       color: '#1f93ff',
-      text: "Зв'язатися з нами",
+      text: "Зв\'язатися з нами",
       action: 'callback',
       url: '',
     },
