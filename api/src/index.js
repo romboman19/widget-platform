@@ -20,7 +20,7 @@ const app = Fastify({
 
 // ─── Plugins ───
 await app.register(cors, {
-  origin: true, // Allow all origins for widget API
+  origin: false, // CORS handled by nginx
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
