@@ -20,15 +20,7 @@ const app = Fastify({
 
 // ─── Plugins ───
 await app.register(cors, {
-  origin: (origin, cb) => {
-    // Allow requests from admin (same-origin, no Origin header)
-    if (!origin) return cb(null, true);
-    // Allow localhost for dev
-    if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) return cb(null, true);
-    // Allow registered site domains (for widget API calls)
-    // In production, validate against DB — for now allow all with origin echo
-    cb(null, true);
-  },
+  origin: true, // Allow all origins for widget API
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
