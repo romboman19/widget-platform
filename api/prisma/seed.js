@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+import { PrismaClient } from '@prisma/client';
 
 const DEFAULT_TEMPLATES = [
   {
@@ -94,7 +94,7 @@ const DEFAULT_TEMPLATES = [
   },
 ];
 
-async function seedTemplates(prisma) {
+export async function seedTemplates(prisma) {
   console.log('🌱 Seeding global templates...');
 
   for (const template of DEFAULT_TEMPLATES) {
@@ -124,10 +124,8 @@ async function main() {
   await prisma.$disconnect();
 }
 
-module.exports = { seedTemplates };
-
 // Run if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch((e) => {
     console.error('❌ Seed error:', e);
     process.exit(1);
