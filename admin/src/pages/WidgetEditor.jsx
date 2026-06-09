@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone } from 'lucide-react';
@@ -873,60 +873,76 @@ function IconPicker({ value, onChange }) {
 function PreviewPane({ widget, siteId }) {
   const [iframeKey, setIframeKey] = useState(0);
   const [device, setDevice] = useState('desktop'); // desktop | mobile
+  const iframeRef = useRef(null);
 
   // Reload iframe when widget changes (debounced)
   useEffect(() => {
     const timer = setTimeout(() => {
+      // Try postMessage first, if fails use key change
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage('refresh-preview', '*');
+      }
       setIframeKey(k => k + 1);
     }, 500); // 500ms debounce
     return () => clearTimeout(timer);
   }, [widget]);
 
   const previewUrl = `/api/widget/preview/${siteId}/${widget.id}`;
-  // Use relative path for preview.html (copied from public/ to dist/ by Vite)
-  const publicUrl = '';
-
-  // Device dimensions
-  const dimensions = device === 'mobile'
-    ? { width: 375, height: 667 }
-    : { width: '100%', height: 400 };
+  
+  // Device frame styling
+  const frameClass = device === 'mobile' 
+    ? 'rounded-[40px] border-[8px] border-slate-800 shadow-2xl' 
+    : 'rounded-lg border border-slate-300 shadow-lg';
+  
+  const iframeStyle = device === 'mobile'
+    ? { width: 375, height: 667, borderRadius: 32 }
+    : { width: '100%', height: 500, minWidth: 320 };
 
   return (
-    <div className="bg-slate-100 rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
       {/* Device toggle */}
       <div className="flex items-center justify-between p-3 bg-white border-b border-slate-200">
         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Live Preview</span>
-        <div className="flex gap-1">
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-lg">
           <button
             onClick={() => setDevice('desktop')}
-            className={`p-1.5 rounded ${device === 'desktop' ? 'bg-blue-100 text-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              device === 'desktop' 
+                ? 'bg-white text-blue-600 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
             title="Desktop"
           >
-            <Monitor size={16} />
+            <Monitor size={14} />
+            Desktop
           </button>
           <button
             onClick={() => setDevice('mobile')}
-            className={`p-1.5 rounded ${device === 'mobile' ? 'bg-blue-100 text-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+              device === 'mobile' 
+                ? 'bg-white text-blue-600 shadow-sm' 
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
             title="Mobile"
           >
-            <Smartphone size={16} />
+            <Smartphone size={14} />
+            Mobile
           </button>
         </div>
       </div>
 
       {/* Preview iframe */}
-      <div className="relative bg-slate-50 flex items-center justify-center p-4" style={{ height: 450 }}>
-        <iframe
-          key={iframeKey}
-          src={`${publicUrl}/preview.html?apiUrl=${encodeURIComponent(previewUrl)}&device=${device}`}
-          className="bg-white rounded-lg shadow-lg border border-slate-200"
-          style={{
-            width: dimensions.width,
-            height: dimensions.height,
-            maxWidth: '100%',
-          }}
-          title="Widget Preview"
-        />
+      <div className={`relative bg-slate-100 flex items-center justify-center p-4 ${device === 'mobile' ? 'py-8' : ''}`}>
+        <div className={`overflow-hidden bg-white ${frameClass}`} style={iframeStyle}>
+          <iframe
+            ref={iframeRef}
+            key={iframeKey}
+            src={`/preview.html?apiUrl=${encodeURIComponent(previewUrl)}&device=${device}`}
+            className="w-full h-full"
+            style={{ border: 'none', display: 'block' }}
+            title="Widget Preview"
+          />
+        </div>
       </div>
     </div>
   );
