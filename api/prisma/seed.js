@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const DEFAULT_TEMPLATES = [
   {
     type: 'FLOATING_MENU',
-    name: 'Плаваюче мену зв\'язку',
+    name: 'Плаваюче меню зв\'язку',
     description: 'Класичне плаваюче меню з кнопками зв\'язку',
     config: {
       color: '#1f93ff',
@@ -94,24 +94,44 @@ const DEFAULT_TEMPLATES = [
   },
 ];
 
+async function waitForDb(prisma, maxAttempts = 10) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      return true;
+    } catch (e) {
+      console.log(`⏳ Waiting for DB... attempt ${i + 1}/${maxAttempts}`);
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+  throw new Error('Database not available after retries');
+}
+
 export async function seedTemplates(prisma) {
   console.log('🌱 Seeding global templates...');
 
-  for (const template of DEFAULT_TEMPLATES) {
-    const existing = await prisma.template.findFirst({
-      where: {
-        type: template.type,
-        isGlobal: true,
-      },
-    });
+  // Wait for DB to be ready
+  await waitForDb(prisma);
 
-    if (!existing) {
-      await prisma.template.create({
-        data: template,
+  for (const template of DEFAULT_TEMPLATES) {
+    try {
+      const existing = await prisma.template.findFirst({
+        where: {
+          type: template.type,
+          isGlobal: true,
+        },
       });
-      console.log(`✅ Created template: ${template.name}`);
-    } else {
-      console.log(`⏭️  Template already exists: ${template.name}`);
+
+      if (!existing) {
+        await prisma.template.create({
+          data: template,
+        });
+        console.log(`✅ Created template: ${template.name}`);
+      } else {
+        console.log(`⏭️  Template already exists: ${template.name}`);
+      }
+    } catch (e) {
+      console.error(`❌ Error seeding template ${template.name}:`, e.message);
     }
   }
 

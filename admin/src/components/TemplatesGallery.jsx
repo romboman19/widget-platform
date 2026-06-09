@@ -111,6 +111,23 @@ export default function TemplatesGallery({ siteId, onClose, onSelect }) {
 
   async function createFromTemplate(template) {
     try {
+      // For inline templates (default-*), create widget directly
+      if (template.id.startsWith('default-')) {
+        const widget = await api(`/sites/${siteId}/widgets`, {
+          method: 'POST',
+          body: {
+            type: template.type,
+            name: template.name,
+            config: template.config,
+            position: template.position,
+            triggers: template.triggers,
+          },
+        });
+        onSelect(widget);
+        return;
+      }
+      
+      // For DB templates, use from-template endpoint
       const widget = await api(`/sites/${siteId}/widgets/from-template/${template.id}`, {
         method: 'POST',
       });

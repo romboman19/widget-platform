@@ -177,7 +177,7 @@ export default function WidgetEditor() {
         <div className="lg:col-span-1">
           <div className="sticky top-6">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Попередній перегляд</h3>
-            <PreviewPane widget={widget} />
+            <PreviewPane widget={widget} siteId={siteId} />
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ COPY package.json ./
 COPY prisma ./prisma/
 RUN npm install
 COPY src ./src/
+COPY prisma/seed.js ./prisma/seed.js
 
 EXPOSE 3000
 
