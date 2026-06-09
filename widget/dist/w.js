@@ -92,6 +92,81 @@
   }
 
   function setCookie(name, val, days) {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    document.cookie = `${name}=${val};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+  }
+
+  // ─── Trigger utilities ───
+  function setupExitIntent(widget, showCallback) {
+    const triggers = widget.triggers || {};
+    if (!triggers.exitIntent) return;
+
+    const cookieKey = 'wp_exit_' + widget.id;
+    const cooldownMinutes = triggers.exitCooldown || 0;
+
+    // Check cooldown
+    if (cooldownMinutes > 0) {
+      const lastShown = getCookie(cookieKey + '_time');
+      if (lastShown) {
+        const elapsed = (Date.now() - parseInt(lastShown)) / 1000 / 60;
+        if (elapsed < cooldownMinutes) return;
+      }
+    }
+
+    // Already shown this session
+    if (getCookie(cookieKey)) return;
+
+    let shown = false;
+    const handler = (e) => {
+      if (shown) return;
+      // Detect when mouse leaves viewport toward top
+      if (e.clientY < 10) {
+        shown = true;
+        setCookie(cookieKey, '1', triggers.frequency === 'once' ? 365 : (triggers.frequencyDays || 1));
+        if (cooldownMinutes > 0) {
+          setCookie(cookieKey + '_time', Date.now().toString(), 1);
+        }
+        showCallback();
+      }
+    };
+
+    document.addEventListener('mouseleave', handler);
+  }
+
+  function setupIdleTrigger(widget, showCallback) {
+    const triggers = widget.triggers || {};
+    if (!triggers.idleTimeout || triggers.idleTimeout <= 0) return;
+
+    const cookieKey = 'wp_idle_' + widget.id;
+    if (getCookie(cookieKey)) return;
+
+    const timeoutMs = triggers.idleTimeout * 1000;
+    const resetOnActivity = triggers.idleResetOnActivity !== false;
+    let idleTimer = null;
+    let shown = false;
+
+    const show = () => {
+      if (shown) return;
+      shown = true;
+      setCookie(cookieKey, '1', triggers.frequency === 'once' ? 365 : (triggers.frequencyDays || 1));
+      showCallback();
+    };
+
+    const resetTimer = () => {
+      if (shown || !resetOnActivity) return;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(show, timeoutMs);
+    };
+
+    idleTimer = setTimeout(show, timeoutMs);
+
+    ['mousemove', 'click', 'scroll', 'keydown', 'touchstart'].forEach(evt => {
+      document.addEventListener(evt, resetTimer, { passive: true });
+    });
+  }
+
+  function setCookie(name, val, days) {
     const d = new Date(); d.setDate(d.getDate() + days);
     document.cookie = `${name}=${val};expires=${d.toUTCString()};path=/;SameSite=Lax`;
   }
@@ -308,8 +383,17 @@
       };
       window.addEventListener('scroll', handler, { passive: true });
     }
+
+    // Exit-intent trigger
+    setupExitIntent(widget, show);
+
+    // Idle trigger
+    setupIdleTrigger(widget, show);
+
     // No trigger = show on load
-    if (!triggers.delay && !triggers.scrollPercent) setTimeout(show, 500);
+    if (!triggers.delay && !triggers.scrollPercent && !triggers.exitIntent && !triggers.idleTimeout) {
+      setTimeout(show, 500);
+    }
   }
 
   function renderPopupCallback(widget) {
@@ -331,6 +415,16 @@
         if (pct >= triggers.scrollPercent) { show(); window.removeEventListener('scroll', handler); }
       };
       window.addEventListener('scroll', handler, { passive: true });
+    }
+
+    // Exit-intent trigger
+    setupExitIntent(widget, show);
+
+    // Idle trigger
+    setupIdleTrigger(widget, show);
+
+    if (!triggers.delay && !triggers.scrollPercent && !triggers.exitIntent && !triggers.idleTimeout) {
+      show();
     }
   }
 
