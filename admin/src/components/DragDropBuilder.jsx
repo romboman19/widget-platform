@@ -16,10 +16,10 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Trash2, Copy, Settings } from 'lucide-react';
+import { GripVertical, Trash2, Copy, Settings, ToggleLeft, ToggleRight } from 'lucide-react';
 
 // Sortable widget item
-function SortableWidgetItem({ widget, onEdit, onDelete, onDuplicate }) {
+function SortableWidgetItem({ widget, onEdit, onDelete, onDuplicate, onToggle }) {
   const {
     attributes,
     listeners,
@@ -62,6 +62,13 @@ function SortableWidgetItem({ widget, onEdit, onDelete, onDuplicate }) {
 
       <div className="flex items-center gap-1">
         <button
+          onClick={() => onToggle(widget)}
+          className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-slate-600"
+          title={widget.enabled ? 'Вимкнути' : 'Увімкнути'}
+        >
+          {widget.enabled ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} />}
+        </button>
+        <button
           onClick={() => onDuplicate(widget)}
           className="p-2 rounded-lg hover:bg-slate-50 text-slate-400 hover:text-blue-600"
           title="Дублювати"
@@ -94,6 +101,7 @@ export default function DragDropBuilder({
   onEdit,
   onDelete,
   onDuplicate,
+  onToggle,
 }) {
   const [activeId, setActiveId] = useState(null);
 
@@ -142,6 +150,7 @@ export default function DragDropBuilder({
               onEdit={onEdit}
               onDelete={onDelete}
               onDuplicate={onDuplicate}
+              onToggle={onToggle}
             />
           ))}
         </div>

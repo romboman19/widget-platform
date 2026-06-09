@@ -107,7 +107,6 @@ export default function SiteEditor() {
 
   async function reorderWidgets(newWidgets) {
     setWidgets(newWidgets);
-    // Update priorities based on new order
     const updates = newWidgets.map((w, index) => ({
       id: w.id,
       priority: index + 1,
@@ -117,6 +116,14 @@ export default function SiteEditor() {
       method: 'POST',
       body: { updates },
     });
+  }
+
+  async function handleToggle(widget) {
+    await api(`/sites/${siteId}/widgets/${widget.id}`, {
+      method: 'PUT',
+      body: { enabled: !widget.enabled },
+    });
+    await load();
   }
 
   async function duplicateWidget(widgetId) {
@@ -136,7 +143,6 @@ export default function SiteEditor() {
 
   if (!site) return <div className="text-slate-400">Завантаження...</div>;
 
-  // Filter active widgets for display
   const activeWidgets = widgets.filter(w => w.enabled);
 
   return (
@@ -145,7 +151,6 @@ export default function SiteEditor() {
         <ChevronLeft size={14} /> Назад до дашборду
       </Link>
 
-      {/* Site settings */}
       <div className="bg-white rounded-xl p-5 border border-slate-200 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-slate-800">{site.name}</h2>
@@ -194,12 +199,10 @@ export default function SiteEditor() {
         )}
       </div>
 
-      {/* Widgets */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-700">Віджети ({activeWidgets.length} активних з {widgets.length})</h3>
       </div>
 
-      {/* Add widget buttons */}
       <div className="flex flex-wrap gap-2 mb-4">
         {WIDGET_TYPES.map(type => (
           <button key={type} onClick={() => addWidget(type)}
@@ -209,13 +212,13 @@ export default function SiteEditor() {
         ))}
       </div>
 
-      {/* Widget list with Drag & Drop */}
       <DragDropBuilder
         widgets={widgets}
         onReorder={reorderWidgets}
         onEdit={handleEdit}
         onDelete={(w) => deleteWidget(w.id, w.name)}
         onDuplicate={(w) => duplicateWidget(w.id)}
+        onToggle={handleToggle}
       />
       {widgets.length === 0 && (
         <div className="text-center py-8 text-slate-400 text-sm">
