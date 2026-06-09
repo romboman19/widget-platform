@@ -77,7 +77,7 @@
   function track(event, widgetId, channel, meta) {
     const data = { siteId, widgetId, event, channel, page: location.href, device: DEVICE, meta };
     navigator.sendBeacon?.(BASE_URL + '/api/analytics/track', new Blob([JSON.stringify(data)], { type: 'application/json' }))
-      || fetch(BASE_URL + '/api/analytics/track', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, keepalive: true });
+      || fetch(BASE_URL + '/api/analytics/track', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, keepalive: true, credentials: 'omit' });
   }
 
   function matchRules(rules) {
@@ -641,7 +641,7 @@
     if (!phone) { document.getElementById('wp-cb-phone').style.borderColor = '#e74c3c'; return; }
 
     const data = { siteId, widgetId: widget.id, name, phone, page: location.href, device: DEVICE };
-    fetch(BASE_URL + '/api/analytics/form', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' } });
+    fetch(BASE_URL + '/api/analytics/form', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, credentials: 'omit' });
 
     const box = overlay.querySelector('.wp-popup-box');
     box.innerHTML = '<div class="wp-form-success">✓ Дякуємо! Ми зателефонуємо вам найближчим часом.</div>';
@@ -896,7 +896,7 @@
         return;
       }
       
-      const res = await fetch(BASE_URL + '/api/widget/' + SITE_SLUG);
+      const res = await fetch(BASE_URL + '/api/widget/' + SITE_SLUG, { credentials: 'omit' });
       if (!res.ok) return console.warn('[Widget] Config fetch failed:', res.status);
       siteConfig = await res.json();
       siteId = siteConfig.siteId;
