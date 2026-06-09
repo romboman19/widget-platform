@@ -63,16 +63,29 @@ export default function WidgetEditor() {
   const { api } = useAuth();
   const navigate = useNavigate();
   const [widget, setWidget] = useState(null);
+  const [site, setSite] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => { loadWidget(); }, [widgetId]);
+  useEffect(() => { 
+    loadWidget(); 
+    loadSite();
+  }, [widgetId]);
 
   async function loadWidget() {
     try {
       const data = await api(`/sites/${siteId}/widgets/${widgetId}`);
       setWidget(data);
     } catch { navigate(`/sites/${siteId}`); }
+  }
+
+  async function loadSite() {
+    try {
+      const data = await api(`/sites/${siteId}`);
+      setSite(data);
+    } catch (e) {
+      console.error('Failed to load site:', e);
+    }
   }
 
   const update = useCallback((path, value) => {

@@ -15,7 +15,7 @@
     body {
       min-height: 100vh;
       position: relative;
-      background: #f5f5f5;
+      background: #ffffff;
     }
     
     /* Site screenshot as background */  
@@ -24,9 +24,8 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: top;
+      height: auto;
+      min-height: 100%;
     }
     
     /* Fallback when no screenshot */  
@@ -71,6 +70,23 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    
+    /* Error message */  
+    .error-message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 10000;
+      max-width: 90%;
+      word-break: break-word;
+    }
   </style>
 </head>
 <body>
@@ -78,35 +94,58 @@
   <div id="site-container"></div>
 
   <script>
+    // Debug: log all params
+    console.log('Preview params:', window.location.search);
+    
     // Get params from URL
     const params = new URLSearchParams(window.location.search);
     const configParam = params.get('config');
     const device = params.get('device') || 'desktop';
-    const screenshotUrl = params.get('screenshot');
+    let screenshotUrl = params.get('screenshot');
+    
+    // Handle "null" or "undefined" strings
+    if (screenshotUrl === 'null' || screenshotUrl === 'undefined' || screenshotUrl === '') {
+      screenshotUrl = null;
+    }
+    
+    console.log('Screenshot URL:', screenshotUrl);
+    console.log('Config param exists:', !!configParam);
     
     const container = document.getElementById('site-container');
-    document.getElementById('loading').style.display = 'none';
     
     // Show screenshot or fallback
     if (screenshotUrl) {
+      console.log('Loading screenshot:', screenshotUrl);
       const img = document.createElement('img');
       img.id = 'site-screenshot';
       img.src = screenshotUrl;
       img.alt = 'Site preview';
-      img.onerror = () => {
-        // Fallback on error
-        showFallback();
+      img.style.opacity = '0';
+      img.style.transition = 'opacity 0.3s';
+      
+      img.onload = () => {
+        console.log('Screenshot loaded successfully');
+        img.style.opacity = '1';
+        document.getElementById('loading').style.display = 'none';
       };
+      
+      img.onerror = (e) => {
+        console.error('Screenshot failed to load:', e);
+        showFallback('Не вдалося завантажити скриншот сайту');
+      };
+      
       container.appendChild(img);
     } else {
-      showFallback();
+      console.log('No screenshot URL, showing fallback');
+      showFallback('Скриншот сайту ще не створено');
+      document.getElementById('loading').style.display = 'none';
     }
     
-    function showFallback() {
+    function showFallback(message) {
       container.innerHTML = `
         <div class="no-screenshot">
           <h2>🌐 Ваш сайт</h2>
-          <p>Скриншот сайту ще не створено<br/>Збережіть сайт спочатку</p>
+          <p>${message}<br/>Збережіть сайт в налаштуваннях</p>
         </div>
       `;
     }
@@ -118,8 +157,10 @@
       try {
         const jsonStr = decodeURIComponent(escape(atob(configParam)));
         widgetConfig = JSON.parse(jsonStr);
+        console.log('Widget config parsed:', widgetConfig);
       } catch (e) {
         console.error('Failed to parse config:', e);
+        showError('Помилка завантаження конфігу віджета');
       }
     }
     
@@ -133,16 +174,33 @@
       window.__WIDGET_PREVIEW__ = widgetConfig;
       
       // Load w.js
+      console.log('Loading w.js...');
       const script = document.createElement('script');
       script.src = '/w.js?preview=1';
       script.async = true;
-      script.onerror = () => console.error('Failed to load w.js');
+      script.onload = () => {
+        console.log('w.js loaded');
+      };
+      script.onerror = (e) => {
+        console.error('Failed to load w.js:', e);
+        showError('Не вдалося завантажити w.js');
+      };
       document.head.appendChild(script);
+    } else {
+      console.log('No widget config');
+    }
+    
+    function showError(msg) {
+      const div = document.createElement('div');
+      div.className = 'error-message';
+      div.textContent = msg;
+      document.body.appendChild(div);
     }
     
     // Listen for config updates
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'UPDATE_WIDGET_CONFIG') {
+        console.log('Received config update');
         window.__WIDGET_PREVIEW__ = event.data.config;
         if (window.__WIDGET_REINIT__) {
           window.__WIDGET_REINIT__();
