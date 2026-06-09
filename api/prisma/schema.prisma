@@ -42,17 +42,18 @@ model User {
 }
 
 model Site {
-  id        String   @id @default(cuid())
-  slug      String   @unique  // used in ?site=slug
-  name      String
-  domain    String   // for CORS validation
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  widgets   Widget[]
-  experiments Experiment[]
-  analytics AnalyticsEvent[]
+  id             String   @id @default(cuid())
+  slug           String   @unique  // used in ?site=slug
+  name           String
+  domain         String   // for CORS validation
+  screenshotUrl  String?  // path to screenshot image
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  widgets        Widget[]
+  experiments    Experiment[]
+  analytics      AnalyticsEvent[]
 }
 
 model Widget {

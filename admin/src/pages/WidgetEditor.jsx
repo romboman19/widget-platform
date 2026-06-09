@@ -177,7 +177,7 @@ export default function WidgetEditor() {
         <div className="lg:col-span-1">
           <div className="sticky top-6">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Попередній перегляд</h3>
-            <PreviewPane widget={widget} siteId={siteId} />
+            <PreviewPane widget={widget} siteId={siteId} screenshotUrl={site?.screenshotUrl} />
           </div>
         </div>
       </div>
@@ -870,7 +870,7 @@ function IconPicker({ value, onChange }) {
 }
 
 // ─── PREVIEW PANE ───
-function PreviewPane({ widget, siteId }) {
+function PreviewPane({ widget, siteId, screenshotUrl }) {
   const [device, setDevice] = useState('desktop'); // desktop | mobile
   const [configVersion, setConfigVersion] = useState(0);
   const iframeRef = useRef(null);
@@ -901,7 +901,7 @@ function PreviewPane({ widget, siteId }) {
     return () => clearTimeout(timer);
   }, [widget, siteId]);
 
-  // Build iframe URL with encoded widget config
+  // Build iframe URL with encoded widget config and screenshot
   const buildPreviewUrl = () => {
     if (!widget) return '/preview.html';
     
@@ -917,7 +917,13 @@ function PreviewPane({ widget, siteId }) {
     const configStr = JSON.stringify(previewConfig);
     const configB64 = btoa(unescape(encodeURIComponent(configStr)));
     
-    return `/preview.html?config=${encodeURIComponent(configB64)}&device=${device}&v=${configVersion}`;
+    let url = `/preview.html?config=${encodeURIComponent(configB64)}&device=${device}&v=${configVersion}`;
+    
+    if (screenshotUrl) {
+      url += `&screenshot=${encodeURIComponent(screenshotUrl)}`;
+    }
+    
+    return url;
   };
   
   // Device frame styling  
@@ -962,7 +968,7 @@ function PreviewPane({ widget, siteId }) {
         </div>
       </div>
 
-      {/* Preview iframe - clean white background with widget */}
+      {/* Preview iframe - site screenshot + widget overlay */}
       <div className={`relative bg-slate-100 flex items-center justify-center p-4 ${device === 'mobile' ? 'py-8' : ''}`}>
         <div className={`overflow-hidden ${frameClass}`} style={iframeStyle}>
           <iframe

@@ -117,4 +117,103 @@ export default async function siteRoutes(app) {
 
     return { dailyEvents, topChannels, totals };
   });
+
+  // Take screenshot of site using browserless
+  app.post('/:siteId/screenshot', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const { siteId } = request.params;
+    const site = await app.prisma.site.findFirst({
+      where: { id: siteId, userId: request.user.id },
+    });
+    if (!site) return reply.status(404).send({ error: 'Site not found' });
+
+    const domain = site.domain || site.slug + '.example.com';
+    const url = domain.startsWith('http') ? domain : `https://${domain}`;
+
+    try {
+      // Import puppeteer dynamically
+      const puppeteer = await import('puppeteer-core');
+      
+      // Connect to browserless in docker-dmz
+      const browser = await puppeteer.default.connect({
+        browserWSEndpoint: process.env.BROWSERLESS_URL || 'ws://browserless:3030',
+      });
+
+      const page = await browser.newPage();
+      await page.setViewport({ width: 1200, height: 800 });
+      
+      // Navigate to site with timeout
+      await page.goto(url, { 
+        waitUntil: 'networkidle2',
+        timeout: 30000 
+      });
+
+      // Wait a bit for dynamic content
+      await page.waitForTimeout(2000);
+
+      // Take screenshot
+      const screenshot = await page.screenshot({ 
+        type: 'png',
+        fullPage: false,
+        encoding: 'binary'
+      });
+
+      await browser.close();
+
+      // Save screenshot to uploads
+      const fs = await import('fs');
+      const path = await import('path');
+      const uploadsDir = '/app/uploads/screenshots';
+      
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const filename = `site_${siteId}.png`;
+      const filepath = path.join(uploadsDir, filename);
+      fs.writeFileSync(filepath, screenshot);
+
+      // Update site record with screenshot path
+      await app.prisma.site.update({
+        where: { id: siteId },
+        data: { screenshotUrl: `/uploads/screenshots/${filename}` },
+      });
+
+      return { 
+        success: true, 
+        screenshotUrl: `/uploads/screenshots/${filename}` 
+      };
+
+    } catch (err) {
+      app.log.error('Screenshot failed:', err);
+      return reply.status(500).send({ 
+        error: 'Screenshot failed', 
+        details: err.message 
+      });
+    }
+  });
+
+  // Get screenshot
+  app.get('/:siteId/screenshot', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const { siteId } = request.params;
+    const site = await app.prisma.site.findFirst({
+      where: { id: siteId, userId: request.user.id },
+    });
+    if (!site) return reply.status(404).send({ error: 'Site not found' });
+
+    if (!site.screenshotUrl) {
+      return reply.status(404).send({ error: 'Screenshot not found' });
+    }
+
+    const fs = await import('fs');
+    const filepath = `/app${site.screenshotUrl}`;
+    
+    if (!fs.existsSync(filepath)) {
+      return reply.status(404).send({ error: 'Screenshot file not found' });
+    }
+
+    const image = fs.readFileSync(filepath);
+    reply.header('Content-Type', 'image/png');
+    reply.header('Cache-Control', 'public, max-age=3600');
+    return image;
+  });
 }

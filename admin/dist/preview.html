@@ -12,120 +12,140 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     
-    /* Clean white background */  
     body {
-      background: #ffffff;
       min-height: 100vh;
       position: relative;
+      background: #f5f5f5;
     }
     
-    /* Center indicator for mobile/desktop */  
-    .center-marker {
+    /* Site screenshot as background */  
+    #site-screenshot {
       position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+    }
+    
+    /* Fallback when no screenshot */  
+    .no-screenshot {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .no-screenshot h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+      opacity: 0.9;
+    }
+    
+    .no-screenshot p {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    
+    /* Loading indicator */  
+    #loading {
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 4px;
-      height: 4px;
-      background: #e5e7eb;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    
-    /* Device frame indicator */  
-    .device-indicator {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #f3f4f6;
-      color: #9ca3af;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      pointer-events: none;
-      opacity: 0.7;
+      color: #666;
+      font-size: 14px;
+      z-index: 9999;
+      background: rgba(255,255,255,0.9);
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
   </style>
 </head>
 <body>
-  <div class="center-marker"></div>
-  <div class="device-indicator" id="device-indicator">Desktop</div>
+  <div id="loading">Завантаження...</div>
+  <div id="site-container"></div>
 
   <script>
-    // Get widget config from URL params (base64 encoded JSON)
+    // Get params from URL
     const params = new URLSearchParams(window.location.search);
     const configParam = params.get('config');
     const device = params.get('device') || 'desktop';
+    const screenshotUrl = params.get('screenshot');
     
-    // Update device indicator
-    document.getElementById('device-indicator').textContent = 
-      device === 'mobile' ? 'Mobile (375×667)' : 'Desktop';
+    const container = document.getElementById('site-container');
+    document.getElementById('loading').style.display = 'none';
     
-    // Parse config
+    // Show screenshot or fallback
+    if (screenshotUrl) {
+      const img = document.createElement('img');
+      img.id = 'site-screenshot';
+      img.src = screenshotUrl;
+      img.alt = 'Site preview';
+      img.onerror = () => {
+        // Fallback on error
+        showFallback();
+      };
+      container.appendChild(img);
+    } else {
+      showFallback();
+    }
+    
+    function showFallback() {
+      container.innerHTML = `
+        <div class="no-screenshot">
+          <h2>🌐 Ваш сайт</h2>
+          <p>Скриншот сайту ще не створено<br/>Збережіть сайт спочатку</p>
+        </div>
+      `;
+    }
+    
+    // Parse and inject widget config
     let widgetConfig = null;
     
     if (configParam) {
       try {
-        const jsonStr = atob(configParam);
+        const jsonStr = decodeURIComponent(escape(atob(configParam)));
         widgetConfig = JSON.parse(jsonStr);
       } catch (e) {
         console.error('Failed to parse config:', e);
       }
     }
     
-    // Fallback: check for global preview data
-    if (!widgetConfig && window.__WIDGET_PREVIEW__) {
-      widgetConfig = window.__WIDGET_PREVIEW__;
-    }
-    
     if (widgetConfig) {
-      // Inject preview config for w.js
-      window.__WIDGET_PREVIEW__ = widgetConfig;
-      
-      // Force widget to show immediately (no triggers)
+      // Disable triggers for preview - show immediately
       if (widgetConfig.widgets && widgetConfig.widgets[0]) {
-        const widget = widgetConfig.widgets[0];
-        // Disable triggers for preview
-        widget.triggers = null;
-        // Ensure it's enabled
-        widget.enabled = true;
+        widgetConfig.widgets[0].triggers = null;
+        widgetConfig.widgets[0].enabled = true;
       }
+      
+      window.__WIDGET_PREVIEW__ = widgetConfig;
       
       // Load w.js
       const script = document.createElement('script');
       script.src = '/w.js?preview=1';
       script.async = true;
-      script.onerror = () => {
-        console.error('Failed to load w.js');
-      };
+      script.onerror = () => console.error('Failed to load w.js');
       document.head.appendChild(script);
-    } else {
-      document.body.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#9ca3af;text-align:center;">' +
-        '<p>No widget config</p>' +
-        '</div>';
     }
     
-    // Listen for config updates from parent
+    // Listen for config updates
     window.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'UPDATE_WIDGET_CONFIG') {
-        const newConfig = event.data.config;
-        
-        // Update global config
-        window.__WIDGET_PREVIEW__ = newConfig;
-        
-        // Remove existing widgets
-        document.querySelectorAll('[data-widget-id]').forEach(el => el.remove());
-        
-        // Re-init w.js if loaded, otherwise it will pick up new config on load
+        window.__WIDGET_PREVIEW__ = event.data.config;
         if (window.__WIDGET_REINIT__) {
           window.__WIDGET_REINIT__();
-        } else {
-          // Reload page with new config
-          const newUrl = new URL(window.location.href);
-          const configStr = JSON.stringify(newConfig);
-          newUrl.searchParams.set('config', btoa(configStr));
-          window.location.href = newUrl.toString();
         }
       }
     });
