@@ -7,6 +7,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Experiment {
+  id          String   @id @default(cuid())
+  siteId      String
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  name        String
+  status      ExperimentStatus @default(DRAFT)
+  trafficAllocation Int   @default(50)  // % for variant A
+  variants    Json     // [{ widgetId, weight }]
+  startDate   DateTime?
+  endDate     DateTime?
+  winnerId    String?  // winning variant
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  analytics   AnalyticsEvent[]
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -28,6 +51,7 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   widgets   Widget[]
+  experiments Experiment[]
   analytics AnalyticsEvent[]
 }
 
@@ -57,22 +81,26 @@ enum WidgetType {
 }
 
 model AnalyticsEvent {
-  id        String   @id @default(cuid())
-  siteId    String
-  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  widgetId  String?
-  widget    Widget?  @relation(fields: [widgetId], references: [id], onDelete: SetNull)
-  event     String   // 'view', 'click', 'submit', 'open', 'close'
-  channel   String?  // 'telegram', 'viber', 'phone', etc.
-  page      String?  // page URL
-  device    String?  // 'desktop' or 'mobile'
-  ip        String?
-  userAgent String?
-  meta      Json?    // extra data
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  siteId      String
+  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  widgetId    String?
+  widget      Widget?  @relation(fields: [widgetId], references: [id], onDelete: SetNull)
+  experimentId String?
+  experiment  Experiment? @relation(fields: [experimentId], references: [id], onDelete: SetNull)
+  variantId   String?  // which variant was shown
+  event       String   // 'view', 'click', 'submit', 'open', 'close'
+  channel     String?  // 'telegram', 'viber', 'phone', etc.
+  page        String?  // page URL
+  device      String?  // 'desktop' or 'mobile'
+  ip          String?
+  userAgent   String?
+  meta        Json?    // extra data
+  createdAt   DateTime @default(now())
 
   @@index([siteId, createdAt])
   @@index([widgetId, event])
+  @@index([experimentId, variantId])
 }
 
 model Template {
