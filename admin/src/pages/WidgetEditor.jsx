@@ -929,3 +929,54 @@ function PreviewPane({ widget, siteId }) {
     </div>
   );
 }
+
+// ─── A/B TEST CONFIG ───
+function ABTestConfig({ widget, siteId, update }) {
+  const [experiments, setExperiments] = useState([]);
+  const { api } = useAuth();
+
+  useEffect(() => {
+    loadExperiments();
+  }, []);
+
+  async function loadExperiments() {
+    try {
+      const data = await api(\`/sites/\${siteId}/experiments\`);
+      setExperiments(data.filter(e => e.status === 'RUNNING' || e.status === 'DRAFT'));
+    } catch (e) {
+      console.error('Failed to load experiments:', e);
+    }
+  }
+
+  const currentExp = experiments.find(e => e.id === widget.experimentId);
+
+  return (
+    <Section title="A/B Тестування">
+      <p className="text-xs text-slate-400 mb-3">
+        Призначте цей віджет як варіант A/B тесту
+      </p>
+      
+      <Field label="Експеримент">
+        <Select
+          value={widget.experimentId || ''}
+          onChange={v => update('experimentId', v || null)}
+          options={[
+            { value: '', label: '— Не в експерименті —' },
+            ...experiments.map(e => ({ value: e.id, label: e.name }))
+          ]}
+        />
+      </Field>
+      
+      {currentExp && (
+        <div className="bg-blue-50 rounded-lg p-3 mt-3">
+          <p className="text-sm text-blue-700">
+            <strong>{currentExp.name}</strong>
+          </p>
+          <p className="text-xs text-blue-600 mt-1">
+            Статус: {currentExp.status} | Варіантів: {currentExp.variants?.length || 0}
+          </p>
+        </div>
+      )}
+    </Section>
+  );
+}
