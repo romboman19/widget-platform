@@ -576,7 +576,10 @@ function RulesConfig({ rules, update }) {
 
   return (
     <Section title="Правила відображення">
-      <Field label="Пристрої">
+      <ScheduleConfig rules={rules} update={update} />
+      
+      <div className="border-t border-slate-200 my-4 pt-4">
+        <Field label="Пристрої">
         <div className="flex gap-2">
           {['desktop', 'mobile'].map(d => (
             <button key={d} onClick={() => toggleDevice(d)}
@@ -618,6 +621,187 @@ function RulesConfig({ rules, update }) {
         </button>
       </Field>
     </Section>
+  );
+}
+
+// ─── SCHEDULE CONFIG ───
+const DAYS_OF_WEEK = [
+  { value: 'mon', label: 'Пн', full: 'Понеділок' },
+  { value: 'tue', label: 'Вт', full: 'Вівторок' },
+  { value: 'wed', label: 'Ср', full: 'Середа' },
+  { value: 'thu', label: 'Чт', full: 'Четвер' },
+  { value: 'fri', label: 'Пт', full: "П'ятниця" },
+  { value: 'sat', label: 'Сб', full: 'Субота' },
+  { value: 'sun', label: 'Нд', full: 'Неділя' },
+];
+
+function ScheduleConfig({ rules, update }) {
+  const schedule = rules.schedule || {};
+  const timeRanges = schedule.timeRanges || [{ start: '09:00', end: '18:00' }];
+  const excludedDates = schedule.excludedDates || [];
+
+  function updateSchedule(field, val) {
+    update('rules.schedule', { ...schedule, [field]: val });
+  }
+
+  function toggleDay(day) {
+    const current = schedule.daysOfWeek || [];
+    const next = current.includes(day)
+      ? current.filter(d => d !== day)
+      : [...current, day];
+    updateSchedule('daysOfWeek', next.length > 0 ? next : null);
+  }
+
+  function addTimeRange() {
+    updateSchedule('timeRanges', [...timeRanges, { start: '09:00', end: '18:00' }]);
+  }
+
+  function removeTimeRange(i) {
+    updateSchedule('timeRanges', timeRanges.filter((_, idx) => idx !== i));
+  }
+
+  function updateTimeRange(i, field, val) {
+    const next = [...timeRanges];
+    next[i] = { ...next[i], [field]: val };
+    updateSchedule('timeRanges', next);
+  }
+
+  function addExcludedDate() {
+    const today = new Date().toISOString().split('T')[0];
+    updateSchedule('excludedDates', [...excludedDates, today]);
+  }
+
+  function removeExcludedDate(i) {
+    updateSchedule('excludedDates', excludedDates.filter((_, idx) => idx !== i));
+  }
+
+  function updateExcludedDate(i, val) {
+    const next = [...excludedDates];
+    next[i] = val;
+    updateSchedule('excludedDates', next);
+  }
+
+  return (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <input
+          type="checkbox"
+          checked={schedule.enabled || false}
+          onChange={(e) => updateSchedule('enabled', e.target.checked)}
+          className="w-4 h-4 rounded border-slate-300"
+        />
+        <span className="text-sm font-medium text-slate-700">Планування показу за часом</span>
+      </div>
+
+      {schedule.enabled && (
+        <div className="space-y-4 pl-6">
+          {/* Date range */}
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Дата початку">
+              <Input
+                type="date"
+                value={schedule.startDate || ''}
+                onChange={(v) => updateSchedule('startDate', v || null)}
+              />
+            </Field>
+            <Field label="Дата закінчення">
+              <Input
+                type="date"
+                value={schedule.endDate || ''}
+                onChange={(v) => updateSchedule('endDate', v || null)}
+              />
+            </Field>
+          </div>
+
+          {/* Days of week */}
+          <Field label="Дні тижня">
+            <div className="flex gap-1 flex-wrap">
+              {DAYS_OF_WEEK.map(day => {
+                const selected = (schedule.daysOfWeek || []).includes(day.value);
+                return (
+                  <button
+                    key={day.value}
+                    onClick={() => toggleDay(day.value)}
+                    className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
+                      selected
+                        ? 'bg-blue-50 border-blue-200 text-blue-600'
+                        : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'
+                    }`}
+                    title={day.full}
+                  >
+                    {day.label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
+          {/* Time ranges */}
+          <Field label="Часові інтервали">
+            <div className="space-y-2">
+              {timeRanges.map((range, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Input
+                    type="time"
+                    value={range.start}
+                    onChange={(v) => updateTimeRange(i, 'start', v)}
+                  />
+                  <span className="text-slate-400">—</span>
+                  <Input
+                    type="time"
+                    value={range.end}
+                    onChange={(v) => updateTimeRange(i, 'end', v)}
+                  />
+                  {timeRanges.length > 1 && (
+                    <button
+                      onClick={() => removeTimeRange(i)}
+                      className="p-1 text-slate-400 hover:text-red-500"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={addTimeRange}
+              className="mt-2 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"
+            >
+              <Plus size={14} /> Додати інтервал
+            </button>
+          </Field>
+
+          {/* Excluded dates */}
+          <div className="border-t border-slate-200 pt-3">
+            <Field label="Виключені дати (свята)">
+              <div className="space-y-2">
+                {excludedDates.map((date, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Input
+                      type="date"
+                      value={date}
+                      onChange={(v) => updateExcludedDate(i, v)}
+                    />
+                    <button
+                      onClick={() => removeExcludedDate(i)}
+                      className="p-1 text-slate-400 hover:text-red-500"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={addExcludedDate}
+                className="mt-2 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg"
+              >
+                <Plus size={14} /> Додати дату
+              </button>
+            </Field>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
