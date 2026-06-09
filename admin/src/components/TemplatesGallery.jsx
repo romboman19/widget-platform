@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth.jsx';
 const DEFAULT_TEMPLATES = [
   {
     id: 'default-floating',
-    name: 'Менше зв'язку',
+    name: 'Меншe зв\'язку',
     description: 'Плаваюче менше з кнопками дзвінка, Telegram та Viber',
     type: 'FLOATING_MENU',
     isGlobal: true,
@@ -73,7 +73,7 @@ const DEFAULT_TEMPLATES = [
   {
     id: 'default-sidetab',
     name: 'Бічна вкладка',
-    description: 'Вкладка з правого боку з кнопкою зворотного зв'язку',
+    description: 'Вкладка з правого боку з кнопкою зворотного зв\'язку',
     type: 'SIDE_TAB',
     isGlobal: true,
     usageCount: 0,

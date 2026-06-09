@@ -663,6 +663,7 @@ function RulesConfig({ rules, update }) {
           <Plus size={14} /> Додати правило
         </button>
       </Field>
+      </div>
     </Section>
   );
 }
@@ -941,7 +942,7 @@ function ABTestConfig({ widget, siteId, update }) {
 
   async function loadExperiments() {
     try {
-      const data = await api(\`/sites/\${siteId}/experiments\`);
+      const data = await api(`/sites/${siteId}/experiments`);
       setExperiments(data.filter(e => e.status === 'RUNNING' || e.status === 'DRAFT'));
     } catch (e) {
       console.error('Failed to load experiments:', e);
