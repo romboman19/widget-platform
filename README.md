@@ -2,6 +2,18 @@
 
 Повноцінна self-hosted платформа для керування контактними віджетами на сайтах. Аналог SaaS-сервісів Chaty/Buttonizer, але для власного хостингу.
 
+## Ліцензія
+
+**AGPLv3** — весь проект знаходиться під ліцензією GNU Affero General Public License v3.
+
+Це означає:
+- ✅ Вільне використання
+- ✅ Модифікації дозволені
+- ❗ **Будь-які зміни повинні бути опубліковані** — навіть якщо проект запущено як SaaS
+- ❗ **Посилання на джерело обов'язкове**
+
+Повний текст ліцензії: [LICENSE](LICENSE)
+
 ## Можливості
 
 ### Типи віджетів
@@ -14,29 +26,29 @@
 ### Канали зв'язку
 📞 Телефон | ✈️ Telegram | 💜 Viber | 💚 WhatsApp | 📧 Email | 📸 Instagram | 👤 Facebook | 🎵 TikTok | 💬 Chatwoot | 📲 Callback
 
-### Тригери показу (#5, #6)
+### Тригери показу
 - ⏱️ Затримка N секунд
 - 📜 Скрол до X%
 - 🚪 Exit-intent (покидання сайту)
 - 😴 Idle (бездіяльність N сек)
 - 🔄 Частота: once / every / days
 
-### Анімації (#7)
+### Анімації
 `fade` | `slide-up` | `slide-down` | `slide-left` | `slide-right` | `zoom` | `bounce` | `elastic` | `flip`
 
-### Планування (#8)
+### Планування
 - 📅 Діапазон дат
 - 📆 Дні тижня
 - ⏰ Часові інтервали
 - ❌ Виключені дати
 
-### A/B Тестування (#10)
+### A/B Тестування
 - Створення експериментів з варіантами
 - Weighted traffic allocation
 - Автоматична статистика
 - Winner selection
 
-### Доступність (#11)
+### Доступність
 - ♿ ARIA labels та roles
 - ⌨️ Keyboard navigation
 - 🔍 Screen reader support
@@ -118,7 +130,6 @@ Embed код:
   "exitIntent": true,
   "exitCooldown": 60,
   "idleTimeout": 30,
-  "idleResetOnActivity": true,
   "frequency": "once",
   "frequencyDays": 7
 }
@@ -167,19 +178,22 @@ cat backup.sql | docker compose exec -T postgres psql -U widget widget_platform
 
 ## Історія версій
 
-### v1.0.0 — Issues #1-11
-- ✅ Drag & Drop Builder (#1)
-- ✅ Live Preview (#2)
-- ✅ Embed script прив'язка (#3)
-- ✅ Templates system (#4)
-- ✅ Exit-intent + Idle triggers (#5, #6)
-- ✅ 10+ анімацій (#7)
-- ✅ Scheduling (#8)
-- ✅ FontAwesome icons (#9)
-- ✅ A/B Testing (#10)
-- ✅ Accessibility — ARIA, keyboard (#11)
+### v1.0.0
+- ✅ Drag & Drop Builder
+- ✅ Live Preview
+- ✅ Embed script прив'язка
+- ✅ Templates system
+- ✅ Exit-intent + Idle triggers
+- ✅ 10+ анімацій
+- ✅ Scheduling
+- ✅ FontAwesome icons
+- ✅ A/B Testing
+- ✅ Accessibility — ARIA, keyboard
 
-## Ліцензія
+## Внесок
 
-- **API** (`/api`): [AGPL-3.0](LICENSE)
-- **Admin + Widget** (`/admin`, `/widget`): [MIT](LICENSE-MIT)
+Pull requests вітаються! Переконайтесь що зміни відповідають AGPLv3.
+
+## Контакти
+
+- GitHub: [romboman19/widget-platform](https://github.com/romboman19/widget-platform)
