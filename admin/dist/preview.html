@@ -7,298 +7,126 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
-    body { 
+    html, body { 
+      height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #1a1a2e;
+    }
+    
+    /* Clean white background */  
+    body {
+      background: #ffffff;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      position: relative;
     }
     
-    /* Browser Chrome */
-    .browser-chrome {
-      background: #2d2d44;
-      padding: 8px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border-bottom: 1px solid #3d3d5c;
-    }
-    
-    .browser-dots {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .browser-dot {
-      width: 12px;
-      height: 12px;
+    /* Center indicator for mobile/desktop */  
+    .center-marker {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 4px;
+      background: #e5e7eb;
       border-radius: 50%;
+      pointer-events: none;
     }
     
-    .browser-dot.red { background: #ff5f56; }
-    .browser-dot.yellow { background: #ffbd2e; }
-    .browser-dot.green { background: #27c93f; }
-    
-    .browser-address-bar {
-      flex: 1;
-      background: #1a1a2e;
-      border-radius: 6px;
-      padding: 6px 12px;
-      color: #a0a0b0;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .browser-address-bar .protocol {
+    /* Device frame indicator */  
+    .device-indicator {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f3f4f6;
       color: #9ca3af;
-    }
-    
-    .browser-address-bar .domain {
-      color: #e5e7eb;
-    }
-    
-    .browser-address-bar .path {
-      color: #6b7280;
-    }
-    
-    /* Content Area */
-    .content-area {
-      flex: 1;
-      position: relative;
-      overflow: auto;
-    }
-    
-    /* Simulated Website */
-    .simulated-site {
-      min-height: 100%;
-      background: white;
-      position: relative;
-    }
-    
-    /* Fake website header */
-    .fake-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 60px 40px;
-      text-align: center;
-      color: white;
-    }
-    
-    .fake-header h1 {
-      font-size: 32px;
-      margin-bottom: 16px;
-      font-weight: 700;
-    }
-    
-    .fake-header p {
-      font-size: 18px;
-      opacity: 0.9;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    
-    /* Fake content sections */
-    .fake-section {
-      padding: 60px 40px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    
-    .fake-section h2 {
-      color: #1f2937;
-      margin-bottom: 20px;
-      font-size: 24px;
-    }
-    
-    .fake-section p {
-      color: #6b7280;
-      line-height: 1.7;
-      margin-bottom: 16px;
-    }
-    
-    .fake-button {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    
-    .fake-button:hover {
-      background: #2563eb;
-    }
-    
-    .fake-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 40px;
-    }
-    
-    .fake-card {
-      background: #f9fafb;
-      padding: 24px;
+      padding: 4px 12px;
       border-radius: 12px;
-      border: 1px solid #e5e7eb;
-    }
-    
-    .fake-card h3 {
-      color: #374151;
-      margin-bottom: 12px;
-      font-size: 18px;
-    }
-    
-    .fake-card p {
-      color: #6b7280;
-      font-size: 14px;
-      margin: 0;
-    }
-    
-    /* Loading state */
-    #loading {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #6b7280;
-      font-size: 14px;
-      z-index: 9999;
-    }
-    
-    #error {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #ef4444;
-      text-align: center;
-      padding: 20px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      display: none;
-      z-index: 9999;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
-  <!-- Browser Chrome -->
-  <div class="browser-chrome">
-    <div class="browser-dots">
-      <div class="browser-dot red"></div>
-      <div class="browser-dot yellow"></div>
-      <div class="browser-dot green"></div>
-    </div>
-    <div class="browser-address-bar" id="address-bar">
-      <span class="protocol">https://</span>
-      <span class="domain" id="site-domain">hunter.rv.ua</span>
-      <span class="path">/</span>
-    </div>
-  </div>
-
-  <!-- Content Area -->
-  <div class="content-area">
-    <div id="loading">Завантаження віджета...</div>
-    <div id="error">
-      <h3>Помилка завантаження</h3>
-      <p id="error-message"></p>
-    </div>
-    
-    <!-- Simulated Website -->
-    <div class="simulated-site" id="site-content">
-      <header class="fake-header">
-        <h1>Вітаємо на сайті</h1>
-        <p>Це демонстрація того, як віджет буде виглядати на вашому реальному сайті</p>
-      </header>
-      
-      <section class="fake-section">
-        <h2>Про нас</h2>
-        <p>Тут розміщується контент вашого сайту. Віджет відображається поверх сторінки згідно з налаштуваннями.</p>
-        <p>Ви можете налаштувати позицію, кольори, анімацію та інші параметри віджета в редакторі.</p>
-        
-        <button class="fake-button">Дізнатися більше</button>
-        
-        <div class="fake-grid">
-          <div class="fake-card">
-            <h3>🎯 Ціль</h3>
-            <p>Збільшити конверсію та залучити більше клієнтів</p>
-          </div>
-          <div class="fake-card">
-            <h3>⚡ Швидкість</h3>
-            <p>Легкий вантаж, не сповільнює сайт</p>
-          </div>
-          <div class="fake-card">
-            <h3>🔧 Гнучкість</h3>
-            <p>Повний контроль над виглядом та поведінкою</p>
-          </div>
-        </div>
-      </section>
-      
-      <section class="fake-section" style="background: #f9fafb;">
-        <h2>Контакти</h2>
-        <p>Зв'яжіться з нами будь-яким зручним способом. Ми завжди раді допомогти!</p>
-        <p>Email: info@example.ua | Телефон: +380 XX XXX XX XX</p>
-      </section>
-    </div>
-  </div>
+  <div class="center-marker"></div>
+  <div class="device-indicator" id="device-indicator">Desktop</div>
 
   <script>
-    // Get params from URL
+    // Get widget config from URL params (base64 encoded JSON)
     const params = new URLSearchParams(window.location.search);
-    const apiUrl = params.get('apiUrl');
+    const configParam = params.get('config');
     const device = params.get('device') || 'desktop';
     
-    // Hide loading
-    document.getElementById('loading').style.display = 'none';
+    // Update device indicator
+    document.getElementById('device-indicator').textContent = 
+      device === 'mobile' ? 'Mobile (375×667)' : 'Desktop';
     
-    if (!apiUrl) {
-      document.getElementById('error').style.display = 'block';
-      document.getElementById('error-message').textContent = 'Не вказано apiUrl параметр';
-    } else {
-      // Extract domain from API URL for display
+    // Parse config
+    let widgetConfig = null;
+    
+    if (configParam) {
       try {
-        const urlObj = new URL(apiUrl);
-        const domain = urlObj.hostname.replace(/^www\./, '');
-        document.getElementById('site-domain').textContent = domain;
+        const jsonStr = atob(configParam);
+        widgetConfig = JSON.parse(jsonStr);
       } catch (e) {
-        // Use default
+        console.error('Failed to parse config:', e);
       }
-      
-      // Fetch widget config and inject script
-      fetch(apiUrl)
-        .then(r => {
-          if (!r.ok) throw new Error('HTTP ' + r.status);
-          return r.json();
-        })
-        .then(data => {
-          // Inject widget config
-          window.__WIDGET_PREVIEW__ = data;
-          
-          // Load w.js
-          const script = document.createElement('script');
-          script.src = '/w.js?preview=1';
-          script.async = true;
-          script.onerror = () => {
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error-message').textContent = 'Не вдалося завантажити w.js';
-          };
-          document.head.appendChild(script);
-        })
-        .catch(e => {
-          document.getElementById('error').style.display = 'block';
-          document.getElementById('error-message').textContent = e.message;
-        });
     }
     
-    // Listen for refresh messages from parent
+    // Fallback: check for global preview data
+    if (!widgetConfig && window.__WIDGET_PREVIEW__) {
+      widgetConfig = window.__WIDGET_PREVIEW__;
+    }
+    
+    if (widgetConfig) {
+      // Inject preview config for w.js
+      window.__WIDGET_PREVIEW__ = widgetConfig;
+      
+      // Force widget to show immediately (no triggers)
+      if (widgetConfig.widgets && widgetConfig.widgets[0]) {
+        const widget = widgetConfig.widgets[0];
+        // Disable triggers for preview
+        widget.triggers = null;
+        // Ensure it's enabled
+        widget.enabled = true;
+      }
+      
+      // Load w.js
+      const script = document.createElement('script');
+      script.src = '/w.js?preview=1';
+      script.async = true;
+      script.onerror = () => {
+        console.error('Failed to load w.js');
+      };
+      document.head.appendChild(script);
+    } else {
+      document.body.innerHTML = '<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#9ca3af;text-align:center;">' +
+        '<p>No widget config</p>' +
+        '</div>';
+    }
+    
+    // Listen for config updates from parent
     window.addEventListener('message', (event) => {
-      if (event.data === 'refresh-preview') {
-        location.reload();
+      if (event.data && event.data.type === 'UPDATE_WIDGET_CONFIG') {
+        const newConfig = event.data.config;
+        
+        // Update global config
+        window.__WIDGET_PREVIEW__ = newConfig;
+        
+        // Remove existing widgets
+        document.querySelectorAll('[data-widget-id]').forEach(el => el.remove());
+        
+        // Re-init w.js if loaded, otherwise it will pick up new config on load
+        if (window.__WIDGET_REINIT__) {
+          window.__WIDGET_REINIT__();
+        } else {
+          // Reload page with new config
+          const newUrl = new URL(window.location.href);
+          const configStr = JSON.stringify(newConfig);
+          newUrl.searchParams.set('config', btoa(configStr));
+          window.location.href = newUrl.toString();
+        }
       }
     });
   </script>

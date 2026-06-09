@@ -871,25 +871,56 @@ function IconPicker({ value, onChange }) {
 
 // ─── PREVIEW PANE ───
 function PreviewPane({ widget, siteId }) {
-  const [iframeKey, setIframeKey] = useState(0);
   const [device, setDevice] = useState('desktop'); // desktop | mobile
+  const [configVersion, setConfigVersion] = useState(0);
   const iframeRef = useRef(null);
 
-  // Reload iframe when widget changes (debounced)
+  // Send updated config to iframe via postMessage
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Try postMessage first, if fails use key change
-      if (iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage('refresh-preview', '*');
+      if (iframeRef.current && iframeRef.current.contentWindow && widget) {
+        // Prepare preview config
+        const previewConfig = {
+          siteId: siteId,
+          widgets: [{
+            ...widget,
+            enabled: true,
+            triggers: null, // Disable triggers for preview - show immediately
+          }]
+        };
+        
+        iframeRef.current.contentWindow.postMessage({
+          type: 'UPDATE_WIDGET_CONFIG',
+          config: previewConfig
+        }, '*');
+        
+        setConfigVersion(v => v + 1);
       }
-      setIframeKey(k => k + 1);
-    }, 500); // 500ms debounce
+    }, 300); // 300ms debounce
+    
     return () => clearTimeout(timer);
-  }, [widget]);
+  }, [widget, siteId]);
 
-  const previewUrl = `/api/widget/preview/${siteId}/${widget.id}`;
+  // Build iframe URL with encoded widget config
+  const buildPreviewUrl = () => {
+    if (!widget) return '/preview.html';
+    
+    const previewConfig = {
+      siteId: siteId,
+      widgets: [{
+        ...widget,
+        enabled: true,
+        triggers: null,
+      }]
+    };
+    
+    const configStr = JSON.stringify(previewConfig);
+    const configB64 = btoa(unescape(encodeURIComponent(configStr)));
+    
+    return `/preview.html?config=${encodeURIComponent(configB64)}&device=${device}&v=${configVersion}`;
+  };
   
-  // Device frame styling
+  // Device frame styling  
   const frameClass = device === 'mobile' 
     ? 'rounded-[40px] border-[8px] border-slate-800 shadow-2xl' 
     : 'rounded-lg border border-slate-300 shadow-lg';
@@ -931,15 +962,14 @@ function PreviewPane({ widget, siteId }) {
         </div>
       </div>
 
-      {/* Preview iframe */}
+      {/* Preview iframe - clean white background with widget */}
       <div className={`relative bg-slate-100 flex items-center justify-center p-4 ${device === 'mobile' ? 'py-8' : ''}`}>
-        <div className={`overflow-hidden bg-white ${frameClass}`} style={iframeStyle}>
+        <div className={`overflow-hidden ${frameClass}`} style={iframeStyle}>
           <iframe
             ref={iframeRef}
-            key={iframeKey}
-            src={`/preview.html?apiUrl=${encodeURIComponent(previewUrl)}&device=${device}`}
+            src={buildPreviewUrl()}
             className="w-full h-full"
-            style={{ border: 'none', display: 'block' }}
+            style={{ border: 'none', display: 'block', background: '#ffffff' }}
             title="Widget Preview"
           />
         </div>

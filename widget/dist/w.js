@@ -960,6 +960,14 @@
     }
   }
 
+  // Expose reinit function for preview updates
+  window.__WIDGET_REINIT__ = function() {
+    // Clear existing widgets
+    document.querySelectorAll('[data-widget-id]').forEach(el => el.remove());
+    // Re-init with current config
+    init();
+  };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
