@@ -341,6 +341,25 @@
       .wp-exit-fade { animation: wp-fade-out 0.2s ease forwards; }
       .wp-exit-zoom { animation: wp-zoom 0.2s ease reverse forwards; }
       
+      /* Focus styles for accessibility */
+      .wp-widget button:focus-visible,
+      .wp-widget [role="button"]:focus-visible { outline: 2px solid #1f93ff; outline-offset: 2px; }
+      .wp-widget button:focus:not(:focus-visible),
+      .wp-widget [role="button"]:focus:not(:focus-visible) { outline: none; }
+      
+      /* Screen reader only */
+      .wp-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      
+      /* High contrast mode support */
+      @media (prefers-contrast: high) {
+        .wp-floating-btn, .wp-channel-btn, .wp-popup-box, .wp-sticky-bar, .wp-side-tab { border: 2px solid currentColor; }
+      }
+      
+      /* Reduced motion support */
+      @media (prefers-reduced-motion: reduce) {
+        .wp-widget * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      }
+      
       .wp-widget * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       .wp-floating-btn { position: fixed; z-index: 999999; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
@@ -433,33 +452,75 @@
     if (corner.includes('right')) posStyle.right = (pos.offsetX || 20) + 'px';
     if (corner.includes('left')) posStyle.left = (pos.offsetX || 20) + 'px';
 
-    // Channel buttons
-    const menuEl = el('div', { class: 'wp-widget wp-floating-menu hidden', style: { ...posStyle, [corner.includes('bottom') ? 'bottom' : 'top']: (pos.offsetY || 20) + 66 + 'px' } });
+    // Channel buttons with ARIA
+    const menuEl = el('div', {
+      class: 'wp-widget wp-floating-menu hidden',
+      role: 'menu',
+      'aria-label': 'Канали зв\'язку',
+      'aria-expanded': 'false',
+      style: { ...posStyle, [corner.includes('bottom') ? 'bottom' : 'top']: (pos.offsetY || 20) + 66 + 'px' }
+    });
 
+    const menuItems = [];
     channels.forEach((ch, i) => {
       const color = ch.color || CHANNEL_COLORS[ch.type] || '#333';
-      const btn = el('div', {
+      const btn = el('button', {
         class: 'wp-channel-btn',
+        role: 'menuitem',
+        'aria-label': ch.label || ch.type,
+        tabIndex: -1,
         style: { background: color, transitionDelay: (i * 0.04) + 's' },
         onClick: () => handleChannelClick(ch, widget),
       }, [
-        el('span', {}, ICONS[ch.type] || ICONS.custom),
+        el('span', { 'aria-hidden': 'true' }, ICONS[ch.type] || ICONS.custom),
         el('span', { class: 'wp-tooltip' }, ch.label || ch.type),
       ]);
       menuEl.appendChild(btn);
+      menuItems.push(btn);
     });
 
-    // Main button with animation support
+    // Main button with ARIA
     const mainBtn = el('button', {
       class: 'wp-widget wp-floating-btn',
+      'aria-label': floatingOpen ? 'Закрити меню' : (cfg.greeting || 'Відкрити меню зв\'язку'),
+      'aria-expanded': 'false',
+      'aria-controls': 'wp-floating-menu',
       style: { ...posStyle, background: mainColor },
       onClick: () => {
         floatingOpen = !floatingOpen;
         menuEl.classList.toggle('hidden', !floatingOpen);
+        mainBtn.setAttribute('aria-expanded', floatingOpen);
+        menuEl.setAttribute('aria-expanded', floatingOpen);
+        mainBtn.setAttribute('aria-label', floatingOpen ? 'Закрити меню' : 'Відкрити меню зв\'язку');
         mainBtn.innerHTML = floatingOpen ? ICONS.close : (cfg.icon ? ICONS[cfg.icon] : ICONS.menu);
         if (floatingOpen) {
           track('open', widget.id);
           applyAnimation(menuEl, cfg.menuAnimation || 'fade');
+          // Focus first item
+          if (menuItems[0]) menuItems[0].tabIndex = 0;
+        }
+      },
+      onKeyDown: (e) => {
+        // Keyboard navigation
+        if (!floatingOpen) return;
+        const current = menuItems.findIndex(item => item === document.activeElement);
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+          e.preventDefault();
+          const next = (current + 1) % menuItems.length;
+          menuItems.forEach((item, i) => item.tabIndex = i === next ? 0 : -1);
+          menuItems[next]?.focus();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+          e.preventDefault();
+          const prev = current <= 0 ? menuItems.length - 1 : current - 1;
+          menuItems.forEach((item, i) => item.tabIndex = i === prev ? 0 : -1);
+          menuItems[prev]?.focus();
+        } else if (e.key === 'Escape') {
+          floatingOpen = false;
+          menuEl.classList.add('hidden');
+          mainBtn.setAttribute('aria-expanded', 'false');
+          mainBtn.setAttribute('aria-label', 'Відкрити меню зв\'язку');
+          mainBtn.innerHTML = cfg.icon ? ICONS[cfg.icon] : ICONS.menu;
+          mainBtn.focus();
         }
       },
     }, cfg.icon ? ICONS[cfg.icon] : ICONS.menu);
@@ -528,14 +589,58 @@
     const cfg = widget.config;
     const color = cfg.color || '#1f93ff';
 
-    const overlay = el('div', { class: 'wp-widget wp-popup-overlay', onClick: (e) => { if (e.target === overlay) closePopup(overlay); } });
+    // Create modal with proper ARIA
+    const overlay = el('div', {
+      class: 'wp-widget wp-popup-overlay',
+      role: 'dialog',
+      'aria-modal': 'true',
+      'aria-labelledby': 'wp-cb-title',
+      onClick: (e) => { if (e.target === overlay) closePopup(overlay); },
+      onKeyDown: (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closePopup(overlay);
+        }
+      }
+    });
 
-    const box = el('div', { class: 'wp-popup-box' }, [
-      el('button', { class: 'wp-popup-close', onClick: () => closePopup(overlay) }, ICONS.close),
-      el('h3', { class: 'wp-popup-title' }, cfg.callbackTitle || 'Замовити дзвінок'),
+    const titleId = 'wp-cb-title';
+    const box = el('div', { class: 'wp-popup-box', role: 'document' }, [
+      el('button', {
+        class: 'wp-popup-close',
+        'aria-label': 'Закрити',
+        onClick: () => closePopup(overlay)
+      }, ICONS.close),
+      el('h3', { id: titleId, class: 'wp-popup-title' }, cfg.callbackTitle || 'Замовити дзвінок'),
       el('p', { class: 'wp-popup-text' }, cfg.callbackText || 'Залиште номер і ми зателефонуємо вам'),
-      el('input', { class: 'wp-form-input', type: 'text', placeholder: "Ваше ім'я", id: 'wp-cb-name' }),
-      el('input', { class: 'wp-form-input', type: 'tel', placeholder: 'Телефон', id: 'wp-cb-phone' }),
+      el('form', {
+        onSubmit: (e) => { e.preventDefault(); submitCallback(widget, overlay); }
+      }, [
+        el('label', { class: 'wp-sr-only', for: 'wp-cb-name' }, "Ваше ім'я"),
+        el('input', {
+          id: 'wp-cb-name',
+          class: 'wp-form-input',
+          type: 'text',
+          placeholder: "Ваше ім'я",
+          'aria-required': 'false'
+        }),
+        el('label', { class: 'wp-sr-only', for: 'wp-cb-phone' }, 'Телефон'),
+        el('input', {
+          id: 'wp-cb-phone',
+          class: 'wp-form-input',
+          type: 'tel',
+          placeholder: 'Телефон *',
+          required: true,
+          'aria-required': 'true',
+          pattern: '[+]?[0-9\s\-\(\)]{10,}'
+        }),
+        el('button', {
+          type: 'submit',
+          class: 'wp-form-submit',
+          style: { background: color },
+        }, cfg.callbackButton || 'Зателефонуйте мені'),
+      ]),
+    ]);
       el('button', {
         class: 'wp-form-submit',
         style: { background: color },
@@ -548,6 +653,23 @@
     requestAnimationFrame(() => {
       overlay.classList.add('visible');
       applyAnimation(box, cfg.animation || 'zoom');
+      // Focus trap
+      const focusable = box.querySelectorAll('button, input, [href], select, textarea, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      first?.focus();
+      
+      // Trap focus
+      box.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      });
     });
     track('view', widget.id, 'callback_form');
   }
@@ -585,19 +707,35 @@
         el('button', { class: 'wp-popup-close', onClick: () => closePopup(overlay, cookieKey, triggers) }, ICONS.close),
       ];
 
-      if (cfg.image) children.push(el('img', { class: 'wp-banner-img', src: cfg.image, alt: '' }));
-      if (cfg.title) children.push(el('h3', { class: 'wp-popup-title' }, cfg.title));
+      if (cfg.image) children.push(el('img', { class: 'wp-banner-img', src: cfg.image, alt: cfg.imageAlt || '' }));
+      if (cfg.title) children.push(el('h3', { class: 'wp-popup-title', id: 'wp-banner-title' }, cfg.title));
       if (cfg.text) children.push(el('p', { class: 'wp-popup-text' }, cfg.text));
       if (cfg.buttonText && cfg.buttonUrl) {
         children.push(el('a', {
           href: cfg.buttonUrl,
           target: cfg.buttonTarget || '_self',
+          role: 'button',
           style: { display: 'block', textAlign: 'center', background: color, color: '#fff', padding: '12px', borderRadius: '8px', textDecoration: 'none', fontWeight: '600', fontSize: '15px' },
           onClick: () => track('click', widget.id, 'banner_button'),
         }, cfg.buttonText));
       }
 
-      overlay.appendChild(el('div', { class: 'wp-popup-box' }, children));
+      const bannerBox = el('div', { class: 'wp-popup-box', role: 'document' }, children);
+      const overlay = el('div', {
+        class: 'wp-widget wp-popup-overlay',
+        role: 'dialog',
+        'aria-modal': 'true',
+        'aria-labelledby': 'wp-banner-title',
+        onClick: (e) => { if (e.target === overlay) closePopup(overlay, cookieKey, triggers); },
+        onKeyDown: (e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            closePopup(overlay, cookieKey, triggers);
+          }
+        }
+      });
+
+      overlay.appendChild(bannerBox);
       document.body.appendChild(overlay);
       requestAnimationFrame(() => {
         overlay.classList.add('visible');
