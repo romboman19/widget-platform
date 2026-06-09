@@ -426,6 +426,63 @@ function TriggersConfig({ triggers, update }) {
           <Input type="number" value={triggers.frequencyDays} onChange={v => update('triggers.frequencyDays', parseInt(v) || 1)} />
         </Field>
       )}
+
+      <div className="border-t border-slate-200 my-4 pt-4">
+        <h4 className="text-sm font-medium text-slate-700 mb-3">Exit Intent (покидання сайту)</h4>
+        
+        <Field label="Exit-intent" hint="Показати коли користувач рухає мишу до верхнього краю">
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={triggers.exitIntent || false}
+              onChange={(e) => update('triggers.exitIntent', e.target.checked)}
+              className="w-4 h-4 rounded border-slate-300"
+            />
+            <span className="text-sm text-slate-600">Увімкнути exit-intent</span>
+          </div>
+        </Field>
+
+        {triggers.exitIntent && (
+          <Field label="Cooldown (хвилин)" hint="Не показувати знову протягом N хвилин">
+            <Input
+              type="number"
+              min="0"
+              value={triggers.exitCooldown || 0}
+              onChange={(v) => update('triggers.exitCooldown', parseInt(v) || 0)}
+            />
+          </Field>
+        )}
+      </div>
+
+      <div className="border-t border-slate-200 my-4 pt-4">
+        <h4 className="text-sm font-medium text-slate-700 mb-3">Idle (бездіяльність)</h4>
+        
+        <Field label="Idle timeout (секунд)" hint="Показати після N секунд бездіяльності (0 = вимкнено)">
+          <Input
+            type="number"
+            min="0"
+            value={triggers.idleTimeout || 0}
+            onChange={(v) => {
+              const val = parseInt(v) || 0;
+              update('triggers.idleTimeout', val > 0 ? val : null);
+            }}
+          />
+        </Field>
+
+        {triggers.idleTimeout > 0 && (
+          <Field label="Скидати при активності" hint="При русі миші/кліку таймер скидається">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={triggers.idleResetOnActivity !== false}
+                onChange={(e) => update('triggers.idleResetOnActivity', e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300"
+              />
+              <span className="text-sm text-slate-600">Скидати таймер при активності</span>
+            </div>
+          </Field>
+        )}
+      </div>
     </Section>
   );
 }
