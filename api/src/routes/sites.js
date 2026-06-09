@@ -6,7 +6,12 @@ export default async function siteRoutes(app) {
       include: { _count: { select: { widgets: { where: { enabled: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
-    return sites;
+    // Add embed script to each site
+    return sites.map(site => ({
+      ...site,
+      embedScript: app.getEmbedScript(site.slug),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+    }));
   });
 
   // Get site by id
@@ -16,7 +21,11 @@ export default async function siteRoutes(app) {
       include: { widgets: { orderBy: { priority: 'asc' } } },
     });
     if (!site) return reply.status(404).send({ error: 'Site not found' });
-    return site;
+    return {
+      ...site,
+      embedScript: app.getEmbedScript(site.slug),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+    };
   });
 
   // Create site
@@ -25,7 +34,11 @@ export default async function siteRoutes(app) {
     const site = await app.prisma.site.create({
       data: { name, slug, domain, userId: request.user.id },
     });
-    return site;
+    return {
+      ...site,
+      embedScript: app.getEmbedScript(site.slug),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+    };
   });
 
   // Update site
@@ -40,7 +53,11 @@ export default async function siteRoutes(app) {
       where: { id: request.params.siteId },
       data: { name, domain },
     });
-    return site;
+    return {
+      ...site,
+      embedScript: app.getEmbedScript(site.slug),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+    };
   });
 
   // Delete site

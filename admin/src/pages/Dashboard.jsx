@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { Globe, BarChart3, Settings } from 'lucide-react';
+import { Globe, BarChart3, Settings, Copy, Check, Code } from 'lucide-react';
 
 export default function Dashboard() {
   const { sites } = useOutletContext();
+  const [copiedId, setCopiedId] = useState(null);
+
+  const copyToClipboard = (text, siteId) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(siteId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   return (
     <div>
@@ -25,7 +32,27 @@ export default function Dashboard() {
                   {site._count?.widgets || 0} віджетів
                 </span>
               </div>
-              <p className="text-sm text-slate-400 mb-4">{site.domain}</p>
+              <p className="text-sm text-slate-400 mb-3">{site.domain}</p>
+              
+              {/* Embed Script Section */}
+              <div className="bg-slate-50 rounded-lg p-3 mb-4 border border-slate-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                    <Code size={12} /> Код для вставки
+                  </span>
+                  <button
+                    onClick={() => copyToClipboard(site.embedScript, site.id)}
+                    className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                  >
+                    {copiedId === site.id ? <Check size={12} /> : <Copy size={12} />}
+                    {copiedId === site.id ? 'Скопійовано!' : 'Копіювати'}
+                  </button>
+                </div>
+                <code className="block bg-slate-800 text-green-400 p-2 rounded text-xs overflow-x-auto">
+                  {site.embedScript}
+                </code>
+              </div>
+
               <div className="flex gap-2">
                 <Link to={`/sites/${site.id}`}
                   className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium hover:bg-blue-100">
@@ -36,21 +63,6 @@ export default function Dashboard() {
                   <BarChart3 size={14} /> Аналітика
                 </Link>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {sites.length > 0 && (
-        <div className="mt-8 bg-slate-50 rounded-xl p-5 border border-slate-200">
-          <h3 className="font-semibold text-slate-700 mb-2">Код для вставки на сайт</h3>
-          <p className="text-sm text-slate-500 mb-3">Додайте цей тег перед {'</body>'} на вашому сайті:</p>
-          {sites.map(site => (
-            <div key={site.id} className="mb-2">
-              <span className="text-xs text-slate-400">{site.name}:</span>
-              <code className="block bg-slate-800 text-green-400 p-3 rounded-lg text-sm mt-1 overflow-x-auto">
-                {`<script src="${window.location.origin}/w.js?site=${site.slug}"></script>`}
-              </code>
             </div>
           ))}
         </div>
