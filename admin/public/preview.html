@@ -6,49 +6,89 @@
   <title>Widget Preview</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
+    html, body { 
+      height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #f8fafc;
+    }
+    #page-content {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+      padding: 40px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     }
-    #widget-container {
-      flex: 1;
-      position: relative;
+    .demo-content {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      color: #94a3b8;
+    .demo-content h1 {
+      color: #1e293b;
+      margin-bottom: 16px;
     }
-    .error {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    .demo-content p {
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .demo-button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+    .demo-button:hover {
+      background: #2563eb;
+    }
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #64748b;
+      font-size: 14px;
+    }
+    #error {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       color: #ef4444;
-      padding: 20px;
       text-align: center;
+      padding: 20px;
     }
   </style>
 </head>
 <body>
-  <div id="widget-container">
-    <div class="loading">Завантаження...</div>
-  </div>
+  <div id="loading">Завантаження...</div>
+  <div id="error" style="display: none;"></div>
   
+  <!-- Demo page content -->
+  <div id="page-content">
+    <div class="demo-content">
+      <h1>Демо сторінка</h1>
+      <p>Це тестова сторінка для перегляду віджета. Тут імітується звичайний контент сайту.</p>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+      <button class="demo-button">Кнопка на сторінці</button>
+    </div>
+  </div>
+
   <script>
-    // Get params from URL
+    // Get config from URL params
     const params = new URLSearchParams(window.location.search);
     const apiUrl = params.get('apiUrl');
     const device = params.get('device') || 'desktop';
     
     if (!apiUrl) {
-      document.getElementById('widget-container').innerHTML = 
-        '<div class="error">Помилка: не вказано apiUrl</div>';
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = 'Помилка: не вказано apiUrl';
     } else {
       // Fetch widget config
       fetch(apiUrl)
@@ -57,20 +97,28 @@
           return r.json();
         })
         .then(data => {
-          // Inject widget script
-          const container = document.getElementById('widget-container');
-          container.innerHTML = '<div style="padding: 20px; color: #64748b;">' +
-            '<h3>Widget Preview</h3>' +
-            '<p>Type: ' + (data.widgets?.[0]?.type || 'unknown') + '</p>' +
-            '<p>Name: ' + (data.widgets?.[0]?.name || 'unnamed') + '</p>' +
-            '<pre style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto;">' +
-            JSON.stringify(data.widgets?.[0]?.config || {}, null, 2) +
-            '</pre>' +
-            '</div>';
+          document.getElementById('loading').style.display = 'none';
+          
+          // Apply device class to body
+          document.body.classList.add('device-' + device);
+          
+          // Inject widget config as global variable
+          window.__WIDGET_PREVIEW__ = data;
+          
+          // Create script element for w.js
+          const script = document.createElement('script');
+          script.src = '/w.js?preview=1';
+          script.async = true;
+          script.onerror = () => {
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = 'Помилка завантаження w.js';
+          };
+          document.head.appendChild(script);
         })
         .catch(e => {
-          document.getElementById('widget-container').innerHTML = 
-            '<div class="error">Помилка завантаження: ' + e.message + '</div>';
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('error').style.display = 'block';
+          document.getElementById('error').textContent = 'Помилка: ' + e.message;
         });
     }
   </script>

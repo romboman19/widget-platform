@@ -939,6 +939,15 @@
   // ─── Init ───
   async function init() {
     try {
+      // Check for preview mode (data injected via window.__WIDGET_PREVIEW__)
+      if (window.__WIDGET_PREVIEW__) {
+        siteConfig = window.__WIDGET_PREVIEW__;
+        siteId = siteConfig.siteId;
+        injectStyles();
+        siteConfig.widgets.forEach(renderWidget);
+        return;
+      }
+      
       const res = await fetch(BASE_URL + '/api/widget/' + SITE_SLUG);
       if (!res.ok) return console.warn('[Widget] Config fetch failed:', res.status);
       siteConfig = await res.json();
