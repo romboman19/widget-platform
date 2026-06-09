@@ -232,15 +232,58 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         </Field>
       </Section>
 
+      <Section title="Іконка кнопки">
+        <p className="text-xs text-slate-400 mb-3">Виберіть іконку або вкажіть FontAwesome клас</p>
+        <Field label="Тип іконки">
+          <Select
+            value={cfg.iconType || 'preset'}
+            onChange={v => update('config.iconType', v)}
+            options={[
+              { value: 'preset', label: '🎨 Вбудована іконка' },
+              { value: 'fontawesome', label: '🔤 FontAwesome' },
+              { value: 'custom', label: '🖼 Кастомне зображення' },
+            ]}
+          />
+        </Field>
+        
+        {cfg.iconType === 'preset' && (
+          <Field label="Іконка">
+            <IconPicker value={cfg.icon} onChange={v => update('config.icon', v)} />
+          </Field>
+        )}
+        
+        {cfg.iconType === 'fontawesome' && (
+          <Field label="FontAwesome клас" hint="Наприклад: fa-solid fa-phone">
+            <Input 
+              value={cfg.iconClass || ''} 
+              onChange={v => update('config.iconClass', v)} 
+              placeholder="fa-solid fa-comment-dots"
+            />
+          </Field>
+        )}
+        
+        {cfg.iconType === 'custom' && (
+          <Field label="URL іконки">
+            <Input 
+              value={cfg.customIconUrl || ''} 
+              onChange={v => update('config.customIconUrl', v)} 
+              placeholder="https://..."
+            />
+          </Field>
+        )}
+      </Section>
+
       <Section title="Канали зв'язку">
+        <p className="text-xs text-slate-400 mb-3">Налаштуйте канали з можливістю вибору іконок FontAwesome</p>
         <div className="space-y-3">
           {channels.map((ch, i) => (
             <div key={i} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
               <div className="flex-1 space-y-2">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Select value={ch.type} onChange={v => updateChannel(i, 'type', v)}
                     options={CHANNEL_TYPES} />
                   <Input value={ch.label} onChange={v => updateChannel(i, 'label', v)} placeholder="Підпис" />
+                  <Input value={ch.iconClass} onChange={v => updateChannel(i, 'iconClass', v)} placeholder="fa-brands fa-telegram (FontAwesome)" />
                 </div>
                 <Input value={ch.value} onChange={v => updateChannel(i, 'value', v)}
                   placeholder={ch.type === 'phone' ? '+380...' : ch.type === 'email' ? 'email@...' : 'username або URL'} />
@@ -802,6 +845,26 @@ function ScheduleConfig({ rules, update }) {
         </div>
       )}
     </div>
+  );
+}
+
+// ─── ICON PICKER ───
+const PRESET_ICONS = [
+  { value: 'menu', label: '☰ Меню' },
+  { value: 'phone', label: '📞 Телефон' },
+  { value: 'message', label: '💬 Повідомлення' },
+  { value: 'chat', label: '🗨 Чат' },
+  { value: 'support', label: '🎧 Підтримка' },
+  { value: 'help', label: '❓ Допомога' },
+  { value: 'contact', label: '📇 Контакти' },
+  { value: 'info', label: 'ℹ Інфо' },
+  { value: 'bell', label: '🔔 Дзвінок' },
+  { value: 'star', label: '⭐ Зірка' },
+];
+
+function IconPicker({ value, onChange }) {
+  return (
+    <Select value={value} onChange={onChange} options={PRESET_ICONS} />
   );
 }
 
