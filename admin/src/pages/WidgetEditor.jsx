@@ -273,7 +273,7 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         )}
       </Section>
 
-      <Section title="Канали зв'язку">
+      <Section title="Канали зв\'язку">
         <p className="text-xs text-slate-400 mb-3">Налаштуйте канали з можливістю вибору іконок FontAwesome</p>
         <div className="space-y-3">
           {channels.map((ch, i) => (
