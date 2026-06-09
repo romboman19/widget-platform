@@ -682,19 +682,6 @@
       }
 
       const bannerBox = el('div', { class: 'wp-popup-box', role: 'document' }, children);
-      const overlay = el('div', {
-        class: 'wp-widget wp-popup-overlay',
-        role: 'dialog',
-        'aria-modal': 'true',
-        'aria-labelledby': 'wp-banner-title',
-        onClick: (e) => { if (e.target === overlay) closePopup(overlay, cookieKey, triggers); },
-        onKeyDown: (e) => {
-          if (e.key === 'Escape') {
-            e.preventDefault();
-            closePopup(overlay, cookieKey, triggers);
-          }
-        }
-      });
 
       overlay.appendChild(bannerBox);
       document.body.appendChild(overlay);
