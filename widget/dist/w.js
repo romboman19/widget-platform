@@ -166,6 +166,33 @@
     });
   }
 
+  // ─── Animation utilities ───
+  function applyAnimation(element, animationName) {
+    if (!animationName || animationName === 'none') return;
+    const className = 'wp-anim-' + animationName;
+    element.classList.add(className);
+    // Remove class after animation completes to allow re-triggering
+    const duration = getAnimationDuration(animationName);
+    if (duration) {
+      setTimeout(() => element.classList.remove(className), duration);
+    }
+  }
+
+  function getAnimationDuration(animationName) {
+    const durations = {
+      'fade': 300,
+      'slide-up': 400,
+      'slide-down': 400,
+      'slide-left': 400,
+      'slide-right': 400,
+      'zoom': 350,
+      'bounce': 600,
+      'elastic': 500,
+      'flip': 500,
+    };
+    return durations[animationName] || 400;
+  }
+
   function setCookie(name, val, days) {
     const d = new Date(); d.setDate(d.getDate() + days);
     document.cookie = `${name}=${val};expires=${d.toUTCString()};path=/;SameSite=Lax`;
@@ -174,9 +201,107 @@
   // ─── Inject global styles ───
   function injectStyles() {
     const css = `
+      /* Animation keyframes */
+      @keyframes wp-fade-in { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes wp-fade-out { from { opacity: 1; } to { opacity: 0; } }
+      @keyframes wp-slide-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes wp-slide-down { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes wp-slide-left { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes wp-slide-right { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes wp-zoom { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+      @keyframes wp-bounce { 
+        0% { opacity: 0; transform: translateY(30px); } 
+        60% { opacity: 1; transform: translateY(-10px); } 
+        80% { transform: translateY(5px); } 
+        100% { transform: translateY(0); } 
+      }
+      @keyframes wp-elastic { 
+        0% { opacity: 0; transform: scale(0.3); } 
+        50% { transform: scale(1.05); } 
+        70% { transform: scale(0.9); } 
+        100% { opacity: 1; transform: scale(1); } 
+      }
+      @keyframes wp-flip { from { opacity: 0; transform: perspective(400px) rotateX(90deg); } to { opacity: 1; transform: perspective(400px) rotateX(0deg); } }
+      @keyframes wp-pulse { 
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+      @keyframes wp-shake { 
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+      }
+      @keyframes wp-wobble {
+        0% { transform: translateX(0%); }
+        15% { transform: translateX(-25%) rotate(-5deg); }
+        30% { transform: translateX(20%) rotate(3deg); }
+        45% { transform: translateX(-15%) rotate(-3deg); }
+        60% { transform: translateX(10%) rotate(2deg); }
+        75% { transform: translateX(-5%) rotate(-1deg); }
+        100% { transform: translateX(0%); }
+      }
+      
+      /* Animation classes */
+      .wp-anim-fade { animation: wp-fade-in 0.3s ease forwards; }
+      .wp-anim-slide-up { animation: wp-slide-up 0.4s ease forwards; }
+      .wp-anim-slide-down { animation: wp-slide-down 0.4s ease forwards; }
+      .wp-anim-slide-left { animation: wp-slide-left 0.4s ease forwards; }
+      .wp-anim-slide-right { animation: wp-slide-right 0.4s ease forwards; }
+      .wp-anim-zoom { animation: wp-zoom 0.35s ease forwards; }
+      .wp-anim-bounce { animation: wp-bounce 0.6s ease forwards; }
+      .wp-anim-elastic { animation: wp-elastic 0.5s ease forwards; }
+      .wp-anim-flip { animation: wp-flip 0.5s ease forwards; }
+      .wp-anim-pulse { animation: wp-pulse 1s ease infinite; }
+      .wp-anim-shake { animation: wp-shake 0.5s ease forwards; }
+      .wp-anim-wobble { animation: wp-wobble 1s ease forwards; }
+      
+      /* Attention effects */
+      .wp-attention-pulse { animation: wp-pulse 2s ease infinite; }
+      .wp-attention-shake { animation: wp-shake 0.5s ease; }
+      .wp-attention-wobble { animation: wp-wobble 1s ease; }
+      
+      /* Exit animations */
+      .wp-exit-fade { animation: wp-fade-out 0.2s ease forwards; }
+      .wp-exit-zoom { animation: wp-zoom 0.2s ease reverse forwards; }
+      
       .wp-widget * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
       .wp-floating-btn { position: fixed; z-index: 999999; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+      .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
+      .wp-floating-menu { position: fixed; z-index: 999998; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s; }
+      .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
+      .wp-channel-btn { width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; }
+      .wp-channel-btn:hover { transform: scale(1.15); }
+      .wp-channel-btn svg { width: 22px; height: 22px; color: #fff; }
+      .wp-channel-btn .wp-tooltip { position: absolute; right: 56px; top: 50%; transform: translateY(-50%); background: #333; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
+      .wp-channel-btn:hover .wp-tooltip { opacity: 1; }
+      .wp-popup-overlay { position: fixed; z-index: 9999999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .3s; }
+      .wp-popup-overlay.visible { opacity: 1; }
+      .wp-popup-box { background: #fff; border-radius: 12px; max-width: 420px; width: 90%; padding: 28px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+      .wp-popup-close { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; padding: 4px; }
+      .wp-popup-close svg { width: 20px; height: 20px; color: #666; }
+      .wp-popup-title { margin: 0 0 8px; font-size: 20px; font-weight: 700; color: #1a1a1a; }
+      .wp-popup-text { margin: 0 0 20px; font-size: 14px; color: #666; line-height: 1.5; }
+      .wp-form-input { width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 15px; margin-bottom: 12px; outline: none; transition: border-color .2s; }
+      .wp-form-input:focus { border-color: #1f93ff; }
+      .wp-form-submit { width: 100%; padding: 13px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; transition: opacity .2s; }
+      .wp-form-submit:hover { opacity: .9; }
+      .wp-form-success { text-align: center; padding: 20px; font-size: 16px; color: #2ecc71; }
+      .wp-sticky-bar { position: fixed; z-index: 999990; left: 0; width: 100%; padding: 10px 20px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); transition: transform .3s; }
+      .wp-sticky-bar.top { top: 0; }
+      .wp-sticky-bar.bottom { bottom: 0; }
+      .wp-sticky-bar-close { background: none; border: none; cursor: pointer; margin-left: 8px; }
+      .wp-sticky-bar-close svg { width: 16px; height: 16px; }
+      .wp-sticky-btn { padding: 6px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+      .wp-side-tab { position: fixed; z-index: 999995; writing-mode: vertical-rl; text-orientation: mixed; padding: 14px 8px; border-radius: 8px 0 0 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: -2px 0 8px rgba(0,0,0,.15); border: none; transition: transform .2s; }
+      .wp-side-tab:hover { transform: translateX(-3px); }
+      .wp-banner-img { width: 100%; border-radius: 8px; margin-bottom: 16px; }
+      @media (max-width: 480px) {
+        .wp-channel-btn .wp-tooltip { display: none; }
+        .wp-popup-box { width: 95%; padding: 20px; }
+      }
+    `;
       .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
       .wp-floating-menu { position: fixed; z-index: 999998; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s; }
       .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; }
@@ -248,7 +373,7 @@
       menuEl.appendChild(btn);
     });
 
-    // Main button
+    // Main button with animation support
     const mainBtn = el('button', {
       class: 'wp-widget wp-floating-btn',
       style: { ...posStyle, background: mainColor },
@@ -256,12 +381,20 @@
         floatingOpen = !floatingOpen;
         menuEl.classList.toggle('hidden', !floatingOpen);
         mainBtn.innerHTML = floatingOpen ? ICONS.close : (cfg.icon ? ICONS[cfg.icon] : ICONS.menu);
-        if (floatingOpen) track('open', widget.id);
+        if (floatingOpen) {
+          track('open', widget.id);
+          applyAnimation(menuEl, cfg.menuAnimation || 'fade');
+        }
       },
     }, cfg.icon ? ICONS[cfg.icon] : ICONS.menu);
 
-    // Pulse animation for greeting
-    if (cfg.greeting && !getCookie('wp_greeted_' + widget.id)) {
+    // Apply attention animation to main button
+    if (cfg.attentionAnimation) {
+      mainBtn.classList.add('wp-attention-' + cfg.attentionAnimation);
+    }
+
+    // Greeting animation (legacy fallback)
+    if (cfg.greeting && !getCookie('wp_greeted_' + widget.id) && !cfg.attentionAnimation) {
       setTimeout(() => {
         mainBtn.style.animation = 'none';
         mainBtn.style.transform = 'scale(1.15)';
@@ -318,7 +451,10 @@
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
-    requestAnimationFrame(() => overlay.classList.add('visible'));
+    requestAnimationFrame(() => {
+      overlay.classList.add('visible');
+      applyAnimation(box, cfg.animation || 'zoom');
+    });
     track('view', widget.id, 'callback_form');
   }
 
@@ -369,7 +505,11 @@
 
       overlay.appendChild(el('div', { class: 'wp-popup-box' }, children));
       document.body.appendChild(overlay);
-      requestAnimationFrame(() => overlay.classList.add('visible'));
+      requestAnimationFrame(() => {
+        overlay.classList.add('visible');
+        const box = overlay.querySelector('.wp-popup-box');
+        applyAnimation(box, cfg.animation || 'zoom');
+      });
       track('view', widget.id);
     };
 
@@ -454,6 +594,7 @@
     ]);
 
     document.body.appendChild(bar);
+    applyAnimation(bar, cfg.animation || 'slide-down');
     track('view', widget.id);
   }
 
@@ -478,6 +619,7 @@
     }, cfg.text || 'Зв\'язатися');
 
     document.body.appendChild(tab);
+    applyAnimation(tab, cfg.animation || 'slide-left');
     track('view', widget.id);
   }
 

@@ -257,6 +257,23 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         </button>
       </Section>
 
+      <Section title="Налаштування анімації">
+        <Field label="Анімація меню" hint="Ефект появи каналів">
+          <Select
+            value={cfg.menuAnimation || 'fade'}
+            onChange={v => update('config.menuAnimation', v)}
+            options={ANIMATION_TYPES}
+          />
+        </Field>
+        <Field label="Анімація уваги" hint="Привернути увагу до кнопки">
+          <Select
+            value={cfg.attentionAnimation || ''}
+            onChange={v => update('config.attentionAnimation', v)}
+            options={ATTENTION_ANIMATIONS}
+          />
+        </Field>
+      </Section>
+
       <Section title="Форма зворотного дзвінка">
         <p className="text-xs text-slate-400 mb-3">Налаштування popup-форми, яка відкривається при натисканні на канал «Зворотній дзвінок»</p>
         <Field label="Заголовок">
@@ -296,6 +313,7 @@ function PopupCallbackConfig({ cfg, triggers, update }) {
         <Field label="Webhook URL (n8n)">
           <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
         </Field>
+        <AnimationConfig cfg={cfg} update={update} />
       </Section>
       <TriggersConfig triggers={triggers} update={update} />
     </>
@@ -328,6 +346,8 @@ function PopupBannerConfig({ cfg, triggers, update }) {
             <Input value={cfg.buttonUrl} onChange={v => update('config.buttonUrl', v)} />
           </Field>
         </div>
+        
+        <AnimationConfig cfg={cfg} update={update} />
       </Section>
       <TriggersConfig triggers={triggers} update={update} />
     </>
@@ -362,6 +382,8 @@ function StickyBarConfig({ cfg, pos, update }) {
           <Input value={cfg.buttonUrl} onChange={v => update('config.buttonUrl', v)} />
         </Field>
       </div>
+      
+      <AnimationConfig cfg={cfg} update={update} />
     </Section>
   );
 }
@@ -398,6 +420,42 @@ function SideTabConfig({ cfg, pos, update }) {
         </Field>
       )}
     </Section>
+  );
+}
+
+// ─── ANIMATION CONFIG ───
+const ANIMATION_TYPES = [
+  { value: 'none', label: 'Без анімації' },
+  { value: 'fade', label: 'Fade (поступово)' },
+  { value: 'slide-up', label: 'Slide Up (знизу вгору)' },
+  { value: 'slide-down', label: 'Slide Down (зверху вниз)' },
+  { value: 'slide-left', label: 'Slide Left (справа)' },
+  { value: 'slide-right', label: 'Slide Right (зліва)' },
+  { value: 'zoom', label: 'Zoom (масштабування)' },
+  { value: 'bounce', label: 'Bounce (підскок)' },
+  { value: 'elastic', label: 'Elastic (еластичний)' },
+  { value: 'flip', label: 'Flip (переворот)' },
+];
+
+const ATTENTION_ANIMATIONS = [
+  { value: '', label: 'Немає' },
+  { value: 'pulse', label: 'Pulse (пульсація)' },
+  { value: 'shake', label: 'Shake (тряска)' },
+  { value: 'wobble', label: 'Wobble (хитання)' },
+];
+
+function AnimationConfig({ cfg, update }) {
+  return (
+    <div className="border-t border-slate-200 mt-4 pt-4">
+      <h4 className="text-sm font-medium text-slate-700 mb-3">Анімація появи</h4>
+      <Field label="Ефект">
+        <Select 
+          value={cfg.animation || 'zoom'} 
+          onChange={v => update('config.animation', v)} 
+          options={ANIMATION_TYPES} 
+        />
+      </Field>
+    </div>
   );
 }
 
