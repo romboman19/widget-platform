@@ -9,4 +9,4 @@ COPY src ./src/
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node src/index.js"]
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npx prisma db seed && node src/index.js"]

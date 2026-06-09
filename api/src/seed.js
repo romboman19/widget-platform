@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { seedTemplates } from '../prisma/seed.js';
 
 export async function seed(prisma) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@local.dev';
@@ -16,6 +17,9 @@ export async function seed(prisma) {
     });
     console.log(`✅ Admin user created: ${adminEmail}`);
   }
+
+  // Seed global templates
+  await seedTemplates(prisma);
 }
 
 // Allow running standalone
