@@ -6,6 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/auth.js';
 import siteRoutes from './routes/sites.js';
 import widgetRoutes from './routes/widgets.js';
+import experimentRoutes from './routes/experiments.js';
 import publicRoutes from './routes/public.js';
 import analyticsRoutes from './routes/analytics.js';
 import { seed } from './seed.js';
@@ -80,6 +81,7 @@ app.addHook('onSend', async (request, reply) => {
 await app.register(authRoutes, { prefix: '/api/auth' });
 await app.register(siteRoutes, { prefix: '/api/sites' });
 await app.register(widgetRoutes, { prefix: '/api/sites' });
+await app.register(experimentRoutes, { prefix: '/api/sites' });
 await app.register(publicRoutes, { prefix: '/api/widget' });
 await app.register(analyticsRoutes, { prefix: '/api/analytics' });
 

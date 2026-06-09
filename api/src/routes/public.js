@@ -16,6 +16,15 @@ export default async function publicRoutes(app) {
             rules: true,
             position: true,
             triggers: true,
+            experimentId: true,
+          },
+        },
+        experiments: {
+          where: { status: 'RUNNING' },
+          select: {
+            id: true,
+            trafficAllocation: true,
+            variants: true,
           },
         },
       },
@@ -32,6 +41,7 @@ export default async function publicRoutes(app) {
     return {
       siteId: site.id,
       widgets: site.widgets,
+      experiments: site.experiments,
     };
   });
 

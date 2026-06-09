@@ -67,6 +67,7 @@ model Widget {
   position  Json?      // placement settings
   triggers  Json?      // popup triggers
   priority  Int        @default(0)
+  experimentId String? // Assigned to A/B experiment
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   analytics AnalyticsEvent[]

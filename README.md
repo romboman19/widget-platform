@@ -4,14 +4,44 @@
 
 ## Можливості
 
-- **5 типів віджетів**: FLOATING_MENU, POPUP_CALLBACK, POPUP_BANNER, STICKY_BAR, SIDE_TAB
-- **11+ каналів**: Телефон, Telegram, Viber, WhatsApp, Email, Instagram, Facebook, TikTok, Chatwoot, Callback, кастомні
-- **Мультисайтовість**: один інстанс — необмежена кількість сайтів
-- **Правила показу**: фільтр за URL (contains/exact/regex), пристроєм (desktop/mobile)
-- **Тригери popup**: затримка N секунд, скрол до X%, частота показу
-- **Аналітика**: покази, кліки, заявки — з графіками та статистикою
-- **Інтеграція з n8n**: заявки з форм надсилаються на webhook
-- **Легкий widget.js**: ~15kb, vanilla JS, без залежностей
+### Типи віджетів
+- **FLOATING_MENU** — плаваюче меню з каналами зв'язку
+- **POPUP_CALLBACK** — popup форма зворотного дзвінка
+- **POPUP_BANNER** — банер з зображенням та CTA
+- **STICKY_BAR** — приклеєна панель (зверху/знизу)
+- **SIDE_TAB** — бокова кнопка-вкладка
+
+### Канали зв'язку
+📞 Телефон | ✈️ Telegram | 💜 Viber | 💚 WhatsApp | 📧 Email | 📸 Instagram | 👤 Facebook | 🎵 TikTok | 💬 Chatwoot | 📲 Callback
+
+### Тригери показу (#5, #6)
+- ⏱️ Затримка N секунд
+- 📜 Скрол до X%
+- 🚪 Exit-intent (покидання сайту)
+- 😴 Idle (бездіяльність N сек)
+- 🔄 Частота: once / every / days
+
+### Анімації (#7)
+`fade` | `slide-up` | `slide-down` | `slide-left` | `slide-right` | `zoom` | `bounce` | `elastic` | `flip`
+
+### Планування (#8)
+- 📅 Діапазон дат
+- 📆 Дні тижня
+- ⏰ Часові інтервали
+- ❌ Виключені дати
+
+### A/B Тестування (#10)
+- Створення експериментів з варіантами
+- Weighted traffic allocation
+- Автоматична статистика
+- Winner selection
+
+### Доступність (#11)
+- ♿ ARIA labels та roles
+- ⌨️ Keyboard navigation
+- 🔍 Screen reader support
+- 🎚️ Reduced motion support
+- 🔲 High contrast mode
 
 ## Стек
 
@@ -20,192 +50,136 @@
 | API | Node.js 20 + Fastify + Prisma ORM |
 | БД | PostgreSQL 16 |
 | Адмінка | React 18 + Tailwind + Recharts |
-| Віджет | Vanilla JS (IIFE), ~26kb |
+| Віджет | Vanilla JS (IIFE), ~48kb |
 | Деплой | Docker Compose + Nginx |
 
 ## Швидкий старт
 
-### 1. Клонувати / скопіювати
-
 ```bash
-cd /opt
-git clone https://github.com/romboman19/widget-platform.git widget-platform
+# Клонувати
+git clone https://github.com/romboman19/widget-platform.git
 cd widget-platform
-# Оновити до останньої версії
-git pull origin main
-```
 
-### 2. Налаштувати .env
-
-```bash
+# Налаштувати
 cp .env.example .env
-nano .env
-```
+# Редагувати .env (DB_PASSWORD, JWT_SECRET, PUBLIC_URL)
 
-Мінімально змінити:
-- `DB_PASSWORD` — пароль до PostgreSQL
-- `JWT_SECRET` — секрет для JWT (згенерувати: `openssl rand -hex 32`)
-- `ADMIN_EMAIL` — email адміністратора
-- `ADMIN_PASSWORD` — пароль адміністратора
-- `PUBLIC_URL` — публічний URL (наприклад `https://widgets.yourdomain.ua`)
-
-### 3. Запустити
-
-```bash
-# Перший запуск — зі збіркою образів
+# Запустити
 docker compose up -d --build
-
-# Повне перебудування (після оновлень)
-docker compose up -d --build --force-recreate --remove-orphans
 ```
 
-### 4. Відкрити адмінку
+Адмінка: `http://localhost:8090`
 
-Адмінка доступна на `http://your-server:8090` (або порт з `HTTP_PORT`).
-
-### 5. Додати на сайт
-
-В адмінці створити сайт → скопіювати тег:
-
+Embed код:
 ```html
 <script src="https://widgets.yourdomain.ua/w.js?site=your-site-slug"></script>
 ```
 
-Вставити перед `</body>` на сайті.
-
-## Налаштування за Nginx Proxy Manager
-
-Створити Proxy Host:
-- Domain: `widgets.yourdomain.ua`
-- Forward: `http://docker-host-ip:8090`
-- SSL: Let's Encrypt
-- Websockets: OFF
-- Custom locations: не потрібні (вже є внутрішній nginx)
-
-## Структура проекту
-
-```
-widget-platform/
-├── docker-compose.yml      # Оркестрація
-├── .env.example            # Шаблон змінних
-├── nginx/nginx.conf        # Reverse proxy + CORS
-├── api/                    # REST API (Fastify + Prisma)
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── prisma/schema.prisma
-│   └── src/
-│       ├── index.js        # Entry point
-│       ├── seed.js         # Автосід адміна
-│       └── routes/
-│           ├── auth.js     # Login, /me, зміна паролю
-│           ├── sites.js    # CRUD сайтів + аналітика
-│           ├── widgets.js  # CRUD віджетів + дублювання
-│           ├── public.js   # Публічний конфіг для widget.js
-│           └── analytics.js # Track подій + форма → n8n
-├── admin/                  # React SPA
-│   ├── Dockerfile          # Multi-stage (Vite → nginx)
-│   ├── package.json
-│   └── src/
-│       ├── main.jsx
-│       ├── hooks/useAuth.jsx
-│       ├── components/Layout.jsx
-│       └── pages/
-│           ├── Login.jsx
-│           ├── Dashboard.jsx
-│           ├── SiteEditor.jsx
-│           ├── WidgetEditor.jsx
-│           └── Analytics.jsx
-└── widget/
-    └── dist/w.js           # Публічний скрипт для сайтів
-```
-
 ## API Endpoints
 
-### Публічні (без авторизації)
+### Публічні
 | Method | Path | Опис |
 |--------|------|------|
-| GET | `/api/widget/:slug` | Конфіг віджетів для сайту |
-| POST | `/api/analytics/track` | Трекінг подій |
-| POST | `/api/analytics/form` | Відправка форми → БД + n8n webhook |
+| GET | `/api/widget/:slug` | Конфіг + experiments |
+| POST | `/api/analytics/track` | Трекінг |
+| POST | `/api/analytics/form` | Форма → n8n |
 
 ### Захищені (JWT)
 | Method | Path | Опис |
 |--------|------|------|
 | POST | `/api/auth/login` | Логін |
-| GET | `/api/auth/me` | Поточний юзер |
-| GET/POST | `/api/sites` | Список / створення сайтів |
-| GET/PUT/DELETE | `/api/sites/:id` | CRUD сайту |
-| GET | `/api/sites/:id/analytics` | Статистика сайту |
-| GET/POST | `/api/sites/:id/widgets` | Список / створення віджетів |
-| GET/PUT/DELETE | `/api/sites/:id/widgets/:wid` | CRUD віджета |
-| POST | `/api/sites/:id/widgets/:wid/duplicate` | Дублювання віджета |
+| GET | `/api/sites` | Список сайтів |
+| GET/POST | `/api/sites/:id/widgets` | Віджети сайту |
+| GET/POST | `/api/sites/:id/experiments` | A/B тести |
+| POST | `/api/sites/:id/experiments/:eid/start` | Старт тесту |
+| POST | `/api/sites/:id/experiments/:eid/complete` | Завершити |
 
-## Конфіг віджетів (JSON)
+## Конфігурація
 
 ### Floating Menu
 ```json
 {
   "color": "#1f93ff",
-  "greeting": "Потрібна допомога?",
+  "iconType": "fontawesome",
+  "iconClass": "fa-solid fa-comment-dots",
+  "menuAnimation": "fade",
+  "attentionAnimation": "pulse",
   "channels": [
-    { "type": "phone", "value": "+380XXXXXXXXX", "label": "Зателефонувати" },
-    { "type": "telegram", "value": "username", "label": "Telegram" },
-    { "type": "viber", "value": "+380XXXXXXXXX", "label": "Viber" },
-    { "type": "callback", "value": "", "label": "Зворотній дзвінок" }
-  ],
-  "callbackTitle": "Замовити дзвінок",
-  "webhookUrl": "https://n8n.example.com/webhook/abc"
+    { "type": "phone", "value": "+380...", "label": "Подзвонити", "iconClass": "fa-solid fa-phone" }
+  ]
 }
 ```
 
-### Trigger / Rules
+### Triggers (тригери)
 ```json
-// triggers
-{ "delay": 5, "scrollPercent": 50, "frequency": "once", "frequencyDays": 7 }
-
-// rules
-{ "devices": ["mobile"], "urlRules": [{ "type": "contains", "value": "/catalog" }] }
+{
+  "delay": 5,
+  "scrollPercent": 50,
+  "exitIntent": true,
+  "exitCooldown": 60,
+  "idleTimeout": 30,
+  "idleResetOnActivity": true,
+  "frequency": "once",
+  "frequencyDays": 7
+}
 ```
 
-## Корисні команди
+### Schedule (розклад)
+```json
+{
+  "enabled": true,
+  "startDate": "2026-06-01",
+  "endDate": "2026-06-30",
+  "daysOfWeek": ["mon", "tue", "wed", "thu", "fri"],
+  "timeRanges": [{ "start": "09:00", "end": "18:00" }],
+  "excludedDates": ["2026-06-24"]
+}
+```
+
+### Experiment (A/B тест)
+```json
+{
+  "name": "Button color test",
+  "trafficAllocation": 50,
+  "variants": [
+    { "widgetId": "widget-a-id", "weight": 1 },
+    { "widgetId": "widget-b-id", "weight": 1 }
+  ],
+  "status": "RUNNING"
+}
+```
+
+## Команди
 
 ```bash
-# Перевірити оновлення в репозиторії
-git fetch origin && git log HEAD..origin/main --oneline
-
-# Оновити код і перезапустити
-git pull origin main && docker compose up -d --build --force-recreate
-
-# Логи API
+# Логи
 docker compose logs -f api
 
-# Логи всіх сервісів
-docker compose logs -f
+# Оновлення
+git pull origin main && docker compose up -d --build --force-recreate
 
-# Повне перебудування
-docker compose up -d --build --force-recreate --remove-orphans
-
-# Backup БД
+# Бекап
 docker compose exec postgres pg_dump -U widget widget_platform > backup.sql
 
-# Відновлення БД
+# Відновлення
 cat backup.sql | docker compose exec -T postgres psql -U widget widget_platform
-
-# Очистити невикористовувані образи
-docker system prune -af
 ```
 
-## Відомі обмеження та баги
+## Історія версій
 
-- Лічильник віджетів показує тільки активні (`enabled: true`)
-- При першій збірці може знадобитися до 2-3 хвилин на `npm install` та генерацію Prisma client
-- Admin panel потребує окремої збірки (Vite build) — не включена в базовий docker-compose
+### v1.0.0 — Issues #1-11
+- ✅ Drag & Drop Builder (#1)
+- ✅ Live Preview (#2)
+- ✅ Embed script прив'язка (#3)
+- ✅ Templates system (#4)
+- ✅ Exit-intent + Idle triggers (#5, #6)
+- ✅ 10+ анімацій (#7)
+- ✅ Scheduling (#8)
+- ✅ FontAwesome icons (#9)
+- ✅ A/B Testing (#10)
+- ✅ Accessibility — ARIA, keyboard (#11)
 
 ## Ліцензія
 
-Цей проект використовує подвійне ліцензування:
-
-- **API Server** (`/api`): [AGPL-3.0](LICENSE) — якщо ви змінюєте та запускаєте сервер як сервіс, ви повинні опублікувати зміни.
-- **Frontend** (`/admin`) та **Widget** (`/widget`): [MIT](LICENSE-MIT) — можна використовувати в комерційних проектах без розкриття коду.
-
-Це забезпечує відкритість серверної частини та гнучкість для клієнтських інтеграцій.
+- **API** (`/api`): [AGPL-3.0](LICENSE)
+- **Admin + Widget** (`/admin`, `/widget`): [MIT](LICENSE-MIT)
