@@ -883,7 +883,8 @@ function PreviewPane({ widget, siteId }) {
   }, [widget]);
 
   const previewUrl = `/api/widget/preview/${siteId}/${widget.id}`;
-  const publicUrl = process.env.PUBLIC_URL || window.location.origin;
+  // Use relative path for preview.html (copied from public/ to dist/ by Vite)
+  const publicUrl = '';
 
   // Device dimensions
   const dimensions = device === 'mobile'

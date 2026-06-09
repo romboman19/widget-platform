@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    #widget-container {
+      flex: 1;
+      position: relative;
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #94a3b8;
+    }
+    .error {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #ef4444;
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="widget-container">
+    <div class="loading">Завантаження...</div>
+  </div>
+  
+  <script>
+    // Get params from URL
+    const params = new URLSearchParams(window.location.search);
+    const apiUrl = params.get('apiUrl');
+    const device = params.get('device') || 'desktop';
+    
+    if (!apiUrl) {
+      document.getElementById('widget-container').innerHTML = 
+        '<div class="error">Помилка: не вказано apiUrl</div>';
+    } else {
+      // Fetch widget config
+      fetch(apiUrl)
+        .then(r => {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(data => {
+          // Inject widget script
+          const container = document.getElementById('widget-container');
+          container.innerHTML = '<div style="padding: 20px; color: #64748b;">' +
+            '<h3>Widget Preview</h3>' +
+            '<p>Type: ' + (data.widgets?.[0]?.type || 'unknown') + '</p>' +
+            '<p>Name: ' + (data.widgets?.[0]?.name || 'unnamed') + '</p>' +
+            '<pre style="background: #f1f5f9; padding: 10px; border-radius: 4px; font-size: 12px; overflow: auto;">' +
+            JSON.stringify(data.widgets?.[0]?.config || {}, null, 2) +
+            '</pre>' +
+            '</div>';
+        })
+        .catch(e => {
+          document.getElementById('widget-container').innerHTML = 
+            '<div class="error">Помилка завантаження: ' + e.message + '</div>';
+        });
+    }
+  </script>
+</body>
+</html>
