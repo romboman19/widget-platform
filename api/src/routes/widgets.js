@@ -215,7 +215,60 @@ export default async function widgetRoutes(app) {
     const site = await verifySite(request, reply);
     if (!site) return;
 
-    const { templateId } = request.params;
+    // Support both URL param and body.id
+    const templateId = request.params.templateId || request.body?.id;
+    
+    if (!templateId) {
+      return reply.status(400).send({ error: 'templateId or id is required' });
+    }
+
+    const template = await app.prisma.template.findFirst({
+      where: {
+        id: templateId,
+        OR: [
+          { userId: request.user.id },
+          { isGlobal: true },
+        ],
+      },
+    });
+
+    if (!template) {
+      return reply.status(404).send({ error: 'Template not found' });
+    }
+
+    // Increment usage count
+    await app.prisma.template.update({
+      where: { id: templateId },
+      data: { usageCount: { increment: 1 } },
+    });
+
+    const widget = await app.prisma.widget.create({
+      data: {
+        siteId: site.id,
+        type: template.type,
+        name: `${template.name} (from template)`.slice(0, 200),
+        config: template.config || {},
+        position: template.position,
+        triggers: template.triggers,
+        rules: template.rules,
+        enabled: true,
+      },
+    });
+
+    return widget;
+  });
+
+  // ─── Templates: create widget from template (legacy body.id support) ───
+  app.post('/:siteId/widgets/from-template', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const site = await verifySite(request, reply);
+    if (!site) return;
+
+    const { id: templateId } = request.body || {};
+    
+    if (!templateId) {
+      return reply.status(400).send({ error: 'id is required' });
+    }
+
     const template = await app.prisma.template.findFirst({
       where: {
         id: templateId,
