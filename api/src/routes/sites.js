@@ -9,8 +9,8 @@ export default async function siteRoutes(app) {
     // Add embed script to each site
     return sites.map(site => ({
       ...site,
-      embedScript: app.getEmbedScript(site.slug),
-      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+      embedScript: app.getEmbedScript(site.id),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
     }));
   });
 
@@ -23,8 +23,8 @@ export default async function siteRoutes(app) {
     if (!site) return reply.status(404).send({ error: 'Site not found' });
     return {
       ...site,
-      embedScript: app.getEmbedScript(site.slug),
-      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+      embedScript: app.getEmbedScript(site.id),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
     };
   });
 
@@ -36,8 +36,8 @@ export default async function siteRoutes(app) {
     });
     return {
       ...site,
-      embedScript: app.getEmbedScript(site.slug),
-      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+      embedScript: app.getEmbedScript(site.id),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
     };
   });
 
@@ -55,8 +55,8 @@ export default async function siteRoutes(app) {
     });
     return {
       ...site,
-      embedScript: app.getEmbedScript(site.slug),
-      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.slug}`,
+      embedScript: app.getEmbedScript(site.id),
+      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
     };
   });
 
