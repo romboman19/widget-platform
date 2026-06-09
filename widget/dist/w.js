@@ -726,9 +726,68 @@
     }
   }
 
+  // ─── A/B Testing utilities ───
+  function getABVariant(experiment) {
+    const cookieKey = 'wp_ab_' + experiment.id;
+    const saved = getCookie(cookieKey);
+    if (saved) return saved;
+
+    // Hash visitor ID for consistent assignment
+    const visitorId = getVisitorId();
+    const hash = hashCode(visitorId + experiment.id);
+    const variants = experiment.variants || [];
+    if (variants.length === 0) return null;
+
+    // Weighted random selection
+    let totalWeight = variants.reduce((sum, v) => sum + (v.weight || 1), 0);
+    let random = (hash & 0x7FFFFFFF) / 0x7FFFFFFF * totalWeight;
+    
+    for (const variant of variants) {
+      random -= variant.weight || 1;
+      if (random <= 0) {
+        // Save for 30 days
+        setCookie(cookieKey, variant.widgetId, 30);
+        return variant.widgetId;
+      }
+    }
+    return variants[0]?.widgetId;
+  }
+
+  function getVisitorId() {
+    const key = 'wp_visitor';
+    let id = getCookie(key);
+    if (!id) {
+      id = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      setCookie(key, id, 365);
+    }
+    return id;
+  }
+
+  function hashCode(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash;
+    }
+    return hash;
+  }
+
   // ─── Render dispatcher ───
   function renderWidget(widget) {
     if (!matchRules(widget.rules)) return;
+
+    // Check A/B experiment
+    if (widget.experimentId) {
+      const experiment = siteConfig.experiments?.find(e => e.id === widget.experimentId);
+      if (experiment && experiment.status === 'RUNNING') {
+        const variantId = getABVariant(experiment);
+        if (variantId !== widget.id) return; // Not assigned to this variant
+        
+        // Track experiment view
+        track('view', widget.id, null, { experimentId: experiment.id, variantId });
+      }
+    }
 
     switch (widget.type) {
       case 'FLOATING_MENU': renderFloatingMenu(widget); break;
