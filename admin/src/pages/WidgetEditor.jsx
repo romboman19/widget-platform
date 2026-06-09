@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { ChevronLeft, Save, Trash2, Plus, GripVertical, X } from 'lucide-react';
+import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone } from 'lucide-react';
 
 const CHANNEL_TYPES = [
   { value: 'phone', label: '📞 Телефон' },
@@ -507,67 +507,62 @@ function RulesConfig({ rules, update }) {
 }
 
 // ─── PREVIEW PANE ───
-function PreviewPane({ widget }) {
-  const cfg = widget.config || {};
-  const color = cfg.color || '#1f93ff';
+function PreviewPane({ widget, siteId }) {
+  const [iframeKey, setIframeKey] = useState(0);
+  const [device, setDevice] = useState('desktop'); // desktop | mobile
+
+  // Reload iframe when widget changes (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIframeKey(k => k + 1);
+    }, 500); // 500ms debounce
+    return () => clearTimeout(timer);
+  }, [widget]);
+
+  const previewUrl = `/api/widget/preview/${siteId}/${widget.id}`;
+  const publicUrl = process.env.PUBLIC_URL || window.location.origin;
+
+  // Device dimensions
+  const dimensions = device === 'mobile'
+    ? { width: 375, height: 667 }
+    : { width: '100%', height: 400 };
 
   return (
-    <div className="bg-slate-100 rounded-xl border border-slate-200 relative overflow-hidden" style={{ height: 400 }}>
-      <div className="absolute inset-0 p-4">
-        <div className="bg-white rounded-lg h-full w-full shadow-sm border border-slate-100 relative overflow-hidden">
-          {/* Fake page content */}
-          <div className="p-4 space-y-2">
-            <div className="h-3 bg-slate-200 rounded w-3/4"></div>
-            <div className="h-3 bg-slate-100 rounded w-full"></div>
-            <div className="h-3 bg-slate-100 rounded w-5/6"></div>
-            <div className="h-8 bg-slate-50 rounded mt-4"></div>
-            <div className="h-3 bg-slate-100 rounded w-full"></div>
-            <div className="h-3 bg-slate-100 rounded w-2/3"></div>
-          </div>
-
-          {/* Widget preview */}
-          {widget.type === 'FLOATING_MENU' && (
-            <div className="absolute bottom-3 right-3">
-              <div className="w-10 h-10 rounded-full shadow-lg flex items-center justify-center text-white text-sm"
-                style={{ background: color }}>💬</div>
-            </div>
-          )}
-          {widget.type === 'POPUP_BANNER' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-              <div className="bg-white rounded-lg p-4 w-4/5 shadow-xl">
-                {cfg.title && <div className="font-bold text-sm mb-1">{cfg.title}</div>}
-                {cfg.text && <div className="text-xs text-slate-500 mb-2">{cfg.text}</div>}
-                {cfg.buttonText && <div className="text-xs text-center py-1.5 rounded text-white" style={{ background: color }}>{cfg.buttonText}</div>}
-              </div>
-            </div>
-          )}
-          {widget.type === 'POPUP_CALLBACK' && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-              <div className="bg-white rounded-lg p-4 w-4/5 shadow-xl">
-                <div className="font-bold text-sm mb-1">{cfg.callbackTitle || 'Замовити дзвінок'}</div>
-                <div className="text-xs text-slate-400 mb-2">{cfg.callbackText || ''}</div>
-                <div className="h-6 bg-slate-100 rounded mb-1.5"></div>
-                <div className="h-6 bg-slate-100 rounded mb-2"></div>
-                <div className="text-xs text-center py-1.5 rounded text-white" style={{ background: color }}>
-                  {cfg.callbackButton || 'Зателефонуйте мені'}
-                </div>
-              </div>
-            </div>
-          )}
-          {widget.type === 'STICKY_BAR' && (
-            <div className={`absolute left-0 right-0 ${widget.position?.placement === 'top' ? 'top-0' : 'bottom-0'} px-3 py-2 flex items-center justify-center gap-2`}
-              style={{ background: cfg.bgColor || '#fff', color: cfg.textColor || '#333', boxShadow: '0 1px 4px rgba(0,0,0,.1)' }}>
-              <span className="text-xs truncate">{cfg.text || 'Текст'}</span>
-              {cfg.buttonText && <span className="text-xs px-2 py-0.5 rounded text-white shrink-0" style={{ background: color }}>{cfg.buttonText}</span>}
-            </div>
-          )}
-          {widget.type === 'SIDE_TAB' && (
-            <div className={`absolute ${widget.position?.side === 'left' ? 'left-0' : 'right-0'} top-1/2 -translate-y-1/2 text-white px-1.5 py-3 rounded-l text-xs font-medium`}
-              style={{ background: color, writingMode: 'vertical-rl' }}>
-              {cfg.text || "Зв'язатися"}
-            </div>
-          )}
+    <div className="bg-slate-100 rounded-xl border border-slate-200 overflow-hidden">
+      {/* Device toggle */}
+      <div className="flex items-center justify-between p-3 bg-white border-b border-slate-200">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Live Preview</span>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setDevice('desktop')}
+            className={`p-1.5 rounded ${device === 'desktop' ? 'bg-blue-100 text-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+            title="Desktop"
+          >
+            <Monitor size={16} />
+          </button>
+          <button
+            onClick={() => setDevice('mobile')}
+            className={`p-1.5 rounded ${device === 'mobile' ? 'bg-blue-100 text-blue-600' : 'text-slate-400 hover:bg-slate-100'}`}
+            title="Mobile"
+          >
+            <Smartphone size={16} />
+          </button>
         </div>
+      </div>
+
+      {/* Preview iframe */}
+      <div className="relative bg-slate-50 flex items-center justify-center p-4" style={{ height: 450 }}>
+        <iframe
+          key={iframeKey}
+          src={`${publicUrl}/preview.html?apiUrl=${encodeURIComponent(previewUrl)}&device=${device}`}
+          className="bg-white rounded-lg shadow-lg border border-slate-200"
+          style={{
+            width: dimensions.width,
+            height: dimensions.height,
+            maxWidth: '100%',
+          }}
+          title="Widget Preview"
+        />
       </div>
     </div>
   );

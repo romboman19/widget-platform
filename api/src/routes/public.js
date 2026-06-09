@@ -34,4 +34,26 @@ export default async function publicRoutes(app) {
       widgets: site.widgets,
     };
   });
+
+  // Preview endpoint for widget editor — returns widget config without auth
+  // Used by iframe in admin panel
+  app.get('/preview/:siteId/:widgetId', async (request, reply) => {
+    const { siteId, widgetId } = request.params;
+
+    const widget = await app.prisma.widget.findFirst({
+      where: { id: widgetId, siteId },
+    });
+
+    if (!widget) {
+      return reply.status(404).send({ error: 'Widget not found' });
+    }
+
+    reply.header('Cache-Control', 'no-cache');
+    reply.header('Access-Control-Allow-Origin', '*');
+
+    return {
+      siteId,
+      widgets: [widget],
+    };
+  });
 }
