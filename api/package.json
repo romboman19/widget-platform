@@ -2,6 +2,7 @@
   "name": "widget-platform-api",
   "version": "1.0.0",
   "type": "module",
+  "license": "AGPL-3.0",
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",

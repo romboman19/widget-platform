@@ -1,0 +1,29 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2024 Widget Platform Contributors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+ADDITIONAL TERMS:
+
+The API server code (everything in /api directory) is licensed under AGPLv3.
+The frontend code (everything in /admin directory) is licensed under MIT License.
+The widget embed code (everything in /widget directory) is licensed under MIT License.
+
+This means:
+- If you modify and RUN the API server (as a service), you MUST publish your changes.
+- Frontend and widget code can be used freely in commercial projects without source disclosure.
