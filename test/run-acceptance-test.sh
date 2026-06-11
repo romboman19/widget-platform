@@ -58,8 +58,8 @@ echo "   ✅ Logged in"
 echo ""
 echo "📋 Step 2: Create site"
 
-# Find "Новий сайт" button
-REF_NEW_SITE=$(get_ref "Новий сайт")
+# Find "Додати сайт" button
+REF_NEW_SITE=$(get_ref "Додати сайт")
 if [ -z "$REF_NEW_SITE" ]; then
   # Try generic selectors
   REF_NEW_SITE=$(get_ref "button" | head -1)
