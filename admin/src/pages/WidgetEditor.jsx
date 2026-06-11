@@ -67,6 +67,19 @@ const CHANNEL_TYPES = [
   { value: 'custom', label: 'Кастомне посилання', icon: Link2 },
 ];
 
+const SHAPES = [
+  { value: 'circle', label: '● Коло' },
+  { value: 'square', label: '■ Квадрат' },
+  { value: 'rounded', label: '▢ Заокруглений' },
+  { value: 'oval', label: '⬭ Овал' },
+];
+
+const SIZES = [
+  { value: 'sm', label: 'Маленький (48px)' },
+  { value: 'md', label: 'Середній (56px)' },
+  { value: 'lg', label: 'Великий (64px)' },
+];
+
 const CORNERS = [
   { value: 'bottom-right', label: '↘ Внизу праворуч' },
   { value: 'bottom-left', label: '↙ Внизу ліворуч' },
@@ -316,6 +329,68 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         <Field label="Текст привітання" hint="Покажеться як підказка біля кнопки">
           <Input value={cfg.greeting} onChange={v => update('config.greeting', v)} placeholder="Потрібна допомога?" />
         </Field>
+
+        {/* FLOATING_MENU v2: Shape Picker */}
+        <Section title="Форма кнопки (v2)">
+          <p className="text-xs text-slate-400 mb-3">Налаштування форми та рамки кнопок</p>
+          
+          <Field label="Форма">
+            <Select 
+              value={cfg.buttonShape?.type || 'circle'} 
+              onChange={v => update('config.buttonShape.type', v)} 
+              options={SHAPES} 
+            />
+          </Field>
+          
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Товщина рамки (px)" hint="0 = без рамки">
+              <Input 
+                type="number" 
+                min="0" 
+                max="10"
+                value={cfg.buttonShape?.borderWidth || 0} 
+                onChange={v => update('config.buttonShape.borderWidth', parseInt(v) || 0)} 
+              />
+            </Field>
+            
+            {(cfg.buttonShape?.type === 'square' || cfg.buttonShape?.type === 'rounded') && (
+              <Field label="Радіус закруглення (px)">
+                <Input 
+                  type="number" 
+                  min="0" 
+                  max="50"
+                  value={cfg.buttonShape?.borderRadius || (cfg.buttonShape?.type === 'rounded' ? 12 : 0)} 
+                  onChange={v => update('config.buttonShape.borderRadius', parseInt(v) || 0)} 
+                />
+              </Field>
+            )}
+            
+            {cfg.buttonShape?.borderWidth > 0 && (
+              <Field label="Колір рамки">
+                <ColorPicker 
+                  value={cfg.buttonShape?.borderColor || '#ffffff'} 
+                  onChange={v => update('config.buttonShape.borderColor', v)} 
+                />
+              </Field>
+            )}
+          </div>
+          
+          <Field label="Розмір кнопки">
+            <Select 
+              value={cfg.buttons?.[0]?.style?.size || 'md'} 
+              onChange={v => {
+                // Update size in all buttons if they exist, or set default
+                const buttons = cfg.buttons || [{ id: 'default', mode: 'menu', channels: cfg.channels || [], style: {} }];
+                const updated = buttons.map(b => ({
+                  ...b,
+                  style: { ...b.style, size: v }
+                }));
+                update('config.buttons', updated);
+              }} 
+              options={SIZES} 
+            />
+          </Field>
+        </Section>
       </Section>
 
       <Section title="Іконка кнопки">
