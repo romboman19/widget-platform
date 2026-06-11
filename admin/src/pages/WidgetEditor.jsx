@@ -1261,23 +1261,13 @@ function PreviewPane({ widget, siteId }) {
     return () => clearTimeout(timer);
   }, [widget, siteId]);
 
-  // Build iframe URL
+  // Build iframe URL - uses w.js with ?preview=1 to activate preview mode
   const buildPreviewUrl = () => {
-    if (!widget) return '/preview.html';
-    
-    const previewConfig = {
-      siteId: siteId,
-      widgets: [{
-        ...widget,
-        enabled: true,
-        triggers: null,
-      }]
-    };
-    
-    const configStr = JSON.stringify(previewConfig);
-    const configB64 = btoa(unescape(encodeURIComponent(configStr)));
-    
-    return `/preview.html?config=${encodeURIComponent(configB64)}&device=${device}`;
+    // Use absolute URL to widget/preview.html
+    const baseUrl = window.location.origin.includes('localhost') 
+      ? 'http://localhost:8090' 
+      : 'https://widget.hunter.rv.ua';
+    return `${baseUrl}/preview.html?preview=1`;
   };
   
   // Device frame

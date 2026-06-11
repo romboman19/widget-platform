@@ -75,6 +75,8 @@
   }
 
   function track(event, widgetId, channel, meta) {
+    // Skip tracking in preview mode
+    if (window.__WIDGET_PREVIEW__) return;
     const data = { siteId, widgetId, event, channel, page: location.href, device: DEVICE, meta };
     navigator.sendBeacon?.(BASE_URL + '/api/analytics/track', new Blob([JSON.stringify(data)], { type: 'application/json' }))
       || fetch(BASE_URL + '/api/analytics/track', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, keepalive: true, credentials: 'omit' });
@@ -1126,6 +1128,23 @@
       case 'STICKY_BAR': renderStickyBar(widget); break;
       case 'SIDE_TAB': renderSideTab(widget); break;
     }
+  }
+
+  // ─── Preview mode: listen for postMessage config updates ───
+  const urlParams = new URL(window.location.href).searchParams;
+  const isPreview = urlParams.get('preview') === '1' || urlParams.get('__widget_preview__') === '1';
+  
+  if (isPreview) {
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === 'UPDATE_WIDGET_CONFIG') {
+        // Validate origin for security
+        const allowedOrigins = [window.location.origin];
+        if (allowedOrigins.includes(e.origin)) {
+          window.__WIDGET_PREVIEW__ = e.data.config;
+          window.__WIDGET_REINIT__();
+        }
+      }
+    });
   }
 
   // ─── Init ───
