@@ -888,8 +888,7 @@
     // Helper: get button styles based on shape
     function getButtonStyles(btnStyle, isMain) {
       const base = {
-        position: 'fixed',
-        zIndex: 999999,
+        position: 'relative', // Changed from 'fixed' — buttons flow in container
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -969,6 +968,17 @@
       const isToggleMode = btn.mode === 'toggle';
       const isDirectMode = btn.mode === 'direct' || (!isMenuMode && !isToggleMode);
       
+      // Create wrapper for each button (for menu positioning)
+      const wrapper = el('div', {
+        class: 'wp-btn-wrapper',
+        style: {
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: corner.includes('right') ? 'flex-end' : 'flex-start',
+        }
+      });
+      
       const buttonEl = el('button', {
         class: 'wp-floating-btn-v2',
         'aria-label': btn.channels?.[0]?.label || 'Open menu',
@@ -980,6 +990,12 @@
         if (isDirectMode) {
           if (btn.channels?.[0]) handleChannelClick(btn.channels[0], widget);
         } else if (isMenuMode || isToggleMode) {
+          // If only 1 channel, behave like direct mode
+          if (btn.channels?.length === 1) {
+            handleChannelClick(btn.channels[0], widget);
+            return;
+          }
+          
           const menuId = 'wp-menu-' + widget.id + '-' + btnIndex;
           const menuEl = document.getElementById(menuId);
           const isOpen = menuStates[btnIndex];
@@ -1012,10 +1028,11 @@
         buttonEl.classList.add('wp-attention-' + (btnStyle.attentionAnimation || cfg.attentionAnimation));
       }
       
-      container.appendChild(buttonEl);
+      wrapper.appendChild(buttonEl);
       
-      // Create menu for menu/toggle modes
-      if ((isMenuMode || isToggleMode) && btn.channels?.length > 1) {
+      // Create menu for menu/toggle modes with 2+ channels
+      // Menu is now inside wrapper for proper positioning
+      if ((isMenuMode || isToggleMode) && btn.channels?.length >= 2) {
         const menuId = 'wp-menu-' + widget.id + '-' + btnIndex;
         const menuEl = el('div', {
           id: menuId,
@@ -1026,7 +1043,8 @@
             flexDirection: 'column',
             gap: '10px',
             transition: 'opacity .25s, transform .25s',
-            ...(corner.includes('bottom') ? { bottom: '70px' } : { top: '70px' }),
+            // Position relative to wrapper, not viewport
+            ...(corner.includes('bottom') ? { bottom: '100%', marginBottom: '10px' } : { top: '100%', marginTop: '10px' }),
             ...(corner.includes('right') ? { right: '0' } : { left: '0' }),
           }
         });
@@ -1055,9 +1073,11 @@
           menuEl.appendChild(channelBtn);
         });
         
-        container.appendChild(menuEl);
+        wrapper.appendChild(menuEl);
         menuStates[btnIndex] = false;
       }
+      
+      container.appendChild(wrapper);
     });
 
     document.body.appendChild(container);
