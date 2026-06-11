@@ -460,6 +460,158 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         </button>
       </Section>
 
+      {/* FLOATING_MENU v2: Button Builder */}
+      <Section title="Кнопки (v2)">
+        <p className="text-xs text-slate-400 mb-3">Конфігуруйте кнопки та їхні канали</p>
+        
+        <Field label="Розкладка">
+          <Select
+            value={cfg.layout || 'single'}
+            onChange={v => update('config.layout', v)}
+            options={[
+              { value: 'single', label: 'Одна кнопка' },
+              { value: 'horizontal', label: 'Горизонтально' },
+              { value: 'vertical', label: 'Вертикально' },
+            ]}
+          />
+        </Field>
+
+        <div className="space-y-4">
+          {(cfg.buttons || []).map((btn, btnIndex) => (
+            <div key={btn.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium text-slate-700">Кнопка {btnIndex + 1}</h4>
+                {(cfg.buttons?.length || 0) > 1 && (
+                  <button
+                    onClick={() => {
+                      const next = (cfg.buttons || []).filter((_, i) => i !== btnIndex);
+                      update('config.buttons', next);
+                    }}
+                    className="p-1 text-slate-400 hover:text-red-500"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Режим">
+                    <Select
+                      value={btn.mode || 'menu'}
+                      onChange={v => {
+                        const next = [...(cfg.buttons || [])];
+                        next[btnIndex] = { ...btn, mode: v };
+                        update('config.buttons', next);
+                      }}
+                      options={[
+                        { value: 'direct', label: 'Прямий дзвінок' },
+                        { value: 'menu', label: 'Меню каналів' },
+                        { value: 'toggle', label: 'Перемикач' },
+                      ]}
+                    />
+                  </Field>
+
+                  <Field label="Колір фону">
+                    <ColorPicker
+                      value={btn.style?.bgColor || cfg.color || '#1f93ff'}
+                      onChange={v => {
+                        const next = [...(cfg.buttons || [])];
+                        next[btnIndex] = { ...btn, style: { ...btn.style, bgColor: v } };
+                        update('config.buttons', next);
+                      }}
+                    />
+                  </Field>
+                </div>
+
+                {/* Channels for this button */}
+                <div className="space-y-2">
+                  <label className="text-sm text-slate-600">Канали:</label>
+                  {(btn.channels || []).map((ch, chIndex) => (
+                    <div key={chIndex} className="flex gap-2 items-start p-2 bg-white rounded border border-slate-200">
+                      <div className="flex-1 grid grid-cols-3 gap-2 text-sm">
+                        <ChannelSelect
+                          value={ch.type}
+                          onChange={v => {
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            newChannels[chIndex] = { ...ch, type: v };
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                        />
+                        <Input
+                          value={ch.label || ''}
+                          onChange={v => {
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            newChannels[chIndex] = { ...ch, label: v };
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                          placeholder="Підпис"
+                        />
+                        <Input
+                          value={ch.value || ''}
+                          onChange={v => {
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            newChannels[chIndex] = { ...ch, value: v };
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                          placeholder={ch.type === 'phone' ? '+380...' : 'URL або username'}
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const next = [...(cfg.buttons || [])];
+                          const newChannels = (btn.channels || []).filter((_, i) => i !== chIndex);
+                          next[btnIndex] = { ...btn, channels: newChannels };
+                          update('config.buttons', next);
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-500"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      const next = [...(cfg.buttons || [])];
+                      const newChannels = [...(btn.channels || []), { type: 'phone', value: '', label: '' }];
+                      next[btnIndex] = { ...btn, channels: newChannels };
+                      update('config.buttons', next);
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded"
+                  >
+                    <Plus size={12} /> Додати канал
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {(cfg.buttons?.length || 0) < 5 && (
+          <button
+            onClick={() => {
+              const next = [...(cfg.buttons || [])];
+              next.push({
+                id: 'btn_' + Date.now(),
+                mode: 'menu',
+                channels: [{ type: 'phone', value: '', label: '' }],
+                style: { bgColor: cfg.color || '#1f93ff', iconColor: '#ffffff', size: 'md' }
+              });
+              update('config.buttons', next);
+            }}
+            className="mt-4 flex items-center gap-1 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200"
+          >
+            <Plus size={16} /> Додати кнопку
+          </button>
+        )}
+      </Section>
+
       <Section title="Налаштування анімації">
         <Field label="Анімація меню" hint="Ефект появи каналів">
           <Select
