@@ -278,6 +278,9 @@
 
   // ─── Inject global styles ───
   function injectStyles() {
+    // Guard: already injected
+    if (document.getElementById('wp-styles')) return;
+    
     const css = `
       /* Animation keyframes */
       @keyframes wp-fade-in { from { opacity: 0; } to { opacity: 1; } }
@@ -404,7 +407,7 @@
     `;
 
     if (document.getElementById('wp-styles')) return;
-    const style = el('style', {}, css);
+    const style = el('style', { id: 'wp-styles' }, css);
     document.head.appendChild(style);
   }
 
@@ -1173,8 +1176,8 @@
 
   // Expose reinit function for preview updates
   window.__WIDGET_REINIT__ = function() {
-    // Clear existing widgets
-    document.querySelectorAll('[data-widget-id]').forEach(el => el.remove());
+    // Clear existing widgets (use .wp-widget class which all renderers add)
+    document.querySelectorAll('.wp-widget').forEach(el => el.remove());
     // Re-init with current config
     init();
   };
