@@ -1,0 +1,22 @@
+- generic
+  - generic
+    - image
+    - generic
+      - heading "This site can’t be reached" [level=1, ref=e2]
+      - strong
+        - StaticText "localhost"
+      - StaticText " refused to connect."
+      - generic
+        - paragraph
+          - StaticText "Try:"
+        - list
+          - listitem [level=1]
+            - ListMarker "• "
+            - StaticText "Checking the connection"
+          - listitem [level=1]
+            - ListMarker "• "
+            - link "Checking the proxy and the firewall" [ref=e4]
+      - StaticText "ERR_CONNECTION_REFUSED"
+  - generic
+    - button "Reload" [ref=e3]
+    - button "Details" [ref=e1]
