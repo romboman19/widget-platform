@@ -16,29 +16,29 @@ export function normalizeFloatingMenuConfig(config) {
     return config;
   }
   
-  // Old format: channels[]
+  // Old format: channels[] — convert to ONE button with all channels inside
   if (config.channels && Array.isArray(config.channels)) {
-    const buttons = config.channels.map((ch, index) => ({
-      id: `legacy_${index}`,
+    const button = {
+      id: 'legacy_main',
       mode: 'menu',
-      channels: [{
+      channels: config.channels.map((ch) => ({
         type: ch.type,
         value: ch.value,
         label: ch.label,
         // Map old iconClass to new iconId (fallback for migration)
-        iconId: ch.iconId || `default_${ch.type}`,
+        iconId: ch.iconId || null,
         iconClass: ch.iconClass, // Keep for backward compatibility
-      }],
+      })),
       style: {
         bgColor: config.color || '#1f93ff',
         iconColor: '#ffffff',
         size: 'lg',
       },
-    }));
+    };
     
     return {
       ...config,
-      buttons,
+      buttons: [button], // ONE button with menu mode
       layout: 'single',
       buttonShape: {
         type: 'circle',

@@ -96,13 +96,12 @@ export default async function mediaRoutes(app) {
 
   // ─── Check if file is used in widgets (via JSON search) ───
   async function checkFileUsage(fileId) {
-    // Note: This assumes config stores mediaFileId, not URL
-    // If widgets store URL instead, this check won't work
+    // Note: jsonb::text has spaces after colons, so we search for fileId anywhere in config
+    // CUIDs are unique enough to avoid false positives
     const widgets = await app.prisma.$queryRaw`
       SELECT id, name 
       FROM "Widget" 
-      WHERE config::text LIKE ${'%"mediaFileId":"' + fileId + '"%'}
-         OR config::text LIKE ${'%"iconId":"' + fileId + '"%'}
+      WHERE config::text LIKE ${'%' + fileId + '%'}
       LIMIT 10
     `;
     return widgets;

@@ -18,18 +18,22 @@ export default async function publicRoutes(app) {
     
     if (iconIds.size === 0) return {};
     
-    // Fetch all icons in one query
+    // Fetch all icons by id OR by slug (for default icons like 'default-phone')
     const icons = await app.prisma.mediaFile.findMany({
-      where: { id: { in: Array.from(iconIds) } },
-      select: { id: true, url: true, type: true, svgContent: true },
+      where: { 
+        OR: [
+          { id: { in: Array.from(iconIds) } },
+          { slug: { in: Array.from(iconIds) } },
+        ],
+      },
+      select: { id: true, slug: true, url: true },
     });
     
-    // Build lookup map
+    // Build lookup map (by both id and slug)
     const iconMap = {};
     for (const icon of icons) {
-      iconMap[icon.id] = icon.type === 'SVG' 
-        ? { type: 'svg', content: icon.svgContent }
-        : { type: 'url', url: icon.url };
+      iconMap[icon.id] = icon.url;
+      if (icon.slug) iconMap[icon.slug] = icon.url;
     }
     
     return iconMap;
@@ -112,8 +116,7 @@ export default async function publicRoutes(app) {
         for (const btn of widget.config.buttons) {
           for (const ch of btn.channels || []) {
             if (ch.iconId && iconMap[ch.iconId]) {
-              ch.iconUrl = iconMap[ch.iconId].url || iconMap[ch.iconId].content;
-              ch.iconType = iconMap[ch.iconId].type;
+              ch.iconUrl = iconMap[ch.iconId]; // Just URL, no inline SVG
             }
           }
         }
@@ -151,8 +154,7 @@ export default async function publicRoutes(app) {
       for (const btn of normalized.config.buttons) {
         for (const ch of btn.channels || []) {
           if (ch.iconId && iconMap[ch.iconId]) {
-            ch.iconUrl = iconMap[ch.iconId].url || iconMap[ch.iconId].content;
-            ch.iconType = iconMap[ch.iconId].type;
+            ch.iconUrl = iconMap[ch.iconId]; // Just URL
           }
         }
       }
