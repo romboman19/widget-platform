@@ -1,6 +1,0 @@
-- generic [ref=e1] clickable [onclick]
-  - heading "🔧 Widget Platform" [level=1, ref=e2]
-  - form
-    - textbox "Email" [required, ref=e3]
-    - textbox "Пароль" [required, ref=e4]
-    - button "Увійти" [ref=e5]
