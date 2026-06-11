@@ -105,12 +105,24 @@ echo "📋 Step 3: Create widget"
 agent-browser open "${BASE_URL}/sites/${SITE_ID}/widgets"
 agent-browser wait 2000
 
-REF_NEW_WIDGET=$(get_ref "Новий віджет")
+# Get fresh snapshot
+agent-browser snapshot > "$ARTIFACTS_DIR/snapshot-03-widgets.txt" 2>/dev/null
+
+# Find "Новий віджет" or similar button
+REF_NEW_WIDGET=$(grep -E 'button.*(Новий віджет|Додати віджет|Створити)' "$ARTIFACTS_DIR/snapshot-03-widgets.txt" | grep -o 'ref=e[0-9]*' | head -1)
 if [ -z "$REF_NEW_WIDGET" ]; then
-  REF_NEW_WIDGET=$(get_ref "button" | head -1 | awk '{print $1}')
+  # Try any button
+  REF_NEW_WIDGET=$(grep 'button' "$ARTIFACTS_DIR/snapshot-03-widgets.txt" | grep -o 'ref=e[0-9]*' | tail -1)
 fi
 
-agent-browser click "${REF_NEW_WIDGET:-button}"
+echo "   Widget list ref: $REF_NEW_WIDGET"
+if [ -z "$REF_NEW_WIDGET" ]; then
+  echo "❌ No button found for creating widget"
+  cat "$ARTIFACTS_DIR/snapshot-03-widgets.txt"
+  exit 1
+fi
+
+agent-browser click "$REF_NEW_WIDGET"
 agent-browser wait 1000
 
 agent-browser select "select[name='type']" "FLOATING_MENU"
