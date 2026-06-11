@@ -364,6 +364,9 @@
       .wp-floating-btn { position: fixed; z-index: 999999; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
       .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
+      .wp-floating-btn-v2 { display: flex; align-items: center; justify-content: center; }
+      .wp-floating-btn-v2 svg { width: 26px; height: 26px; color: #fff; }
+      .wp-floating-btn-v2 img { width: 26px; height: 26px; object-fit: contain; }
       .wp-floating-menu { position: fixed; z-index: 999998; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
       .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; visibility: hidden; transition: opacity .25s, transform .25s, visibility 0s .25s; }
       .wp-channel-btn { width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; }

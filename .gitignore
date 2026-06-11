@@ -1,3 +1,12 @@
+# Screenshots (binary files)
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+
 # Dependencies
 node_modules/
 */node_modules/
