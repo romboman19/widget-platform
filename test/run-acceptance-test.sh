@@ -99,28 +99,30 @@ if [ -z "$SITE_ID" ]; then
   exit 1
 fi
 
-# 3. Create FLOATING_MENU widget
+# 3. Create FLOATING_MENU widget (SiteEditor page, not /widgets)
 echo ""
 echo "📋 Step 3: Create widget"
-agent-browser open "${BASE_URL}/sites/${SITE_ID}/widgets"
-agent-browser wait 2000
-agent-browser reload  # Force reload
+agent-browser open "${BASE_URL}/sites/${SITE_ID}"
 agent-browser wait 2000
 
-# Get fresh snapshot
-agent-browser snapshot > "$ARTIFACTS_DIR/snapshot-03-widgets.txt" 2>/dev/null
+# Get fresh snapshot from SiteEditor
+agent-browser snapshot > "$ARTIFACTS_DIR/snapshot-03-site-editor.txt" 2>/dev/null
 
-# Find "Новий віджет" or similar button
-REF_NEW_WIDGET=$(grep -E 'button.*(Новий віджет|Додати віджет|Створити)' "$ARTIFACTS_DIR/snapshot-03-widgets.txt" | grep -o 'ref=e[0-9]*' | head -1)
+# Find button for creating widget - could be "Новий віджет", "Додати віджет", etc.
+REF_NEW_WIDGET=$(grep -E 'button.*(Новий|Додати|Створити).*віджет' "$ARTIFACTS_DIR/snapshot-03-site-editor.txt" | grep -o 'ref=e[0-9]*' | head -1)
 if [ -z "$REF_NEW_WIDGET" ]; then
-  # Try any button
-  REF_NEW_WIDGET=$(grep 'button' "$ARTIFACTS_DIR/snapshot-03-widgets.txt" | grep -o 'ref=e[0-9]*' | tail -1)
+  # Fallback: look for any button with "widget" or similar
+  REF_NEW_WIDGET=$(grep -iE 'button.*(widget|віджет)' "$ARTIFACTS_DIR/snapshot-03-site-editor.txt" | grep -o 'ref=e[0-9]*' | head -1)
+fi
+if [ -z "$REF_NEW_WIDGET" ]; then
+  # Last resort: any button in main content
+  REF_NEW_WIDGET=$(grep 'button' "$ARTIFACTS_DIR/snapshot-03-site-editor.txt" | grep -o 'ref=e[0-9]*' | tail -1)
 fi
 
-echo "   Widget list ref: $REF_NEW_WIDGET"
+echo "   Widget creation ref: $REF_NEW_WIDGET"
 if [ -z "$REF_NEW_WIDGET" ]; then
   echo "❌ No button found for creating widget"
-  cat "$ARTIFACTS_DIR/snapshot-03-widgets.txt"
+  cat "$ARTIFACTS_DIR/snapshot-03-site-editor.txt"
   exit 1
 fi
 
