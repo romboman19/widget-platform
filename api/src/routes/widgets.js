@@ -1,4 +1,5 @@
 import { sanitizeDeep, isValidWidgetType, isAllowedWebhookUrl } from '../lib/security.js';
+import { normalizeFloatingMenuConfig, denormalizeFloatingMenuConfig } from '../lib/configNormalizer.js';
 
 export default async function widgetRoutes(app) {
 
@@ -36,17 +37,20 @@ export default async function widgetRoutes(app) {
   app.get('/:siteId/widgets', { preHandler: [app.authenticate] }, async (request, reply) => {
     const site = await verifySite(request, reply);
     if (!site) return;
-    return app.prisma.widget.findMany({
+    const widgets = await app.prisma.widget.findMany({
       where: { siteId: request.params.siteId },
       orderBy: { priority: 'asc' },
     });
+    // Normalize configs for response
+    return widgets.map(w => normalizeFloatingMenuConfig(w));
   });
 
   // ─── Get single widget ───
   app.get('/:siteId/widgets/:widgetId', { preHandler: [app.authenticate] }, async (request, reply) => {
     const widget = await verifyWidget(request, reply);
     if (!widget) return;
-    return widget;
+    // Normalize config for response
+    return normalizeFloatingMenuConfig(widget);
   });
 
   // ─── Create widget ───
@@ -88,12 +92,18 @@ export default async function widgetRoutes(app) {
     if (!widget) return;
 
     const { name, config, rules, position, triggers, enabled, priority } = request.body || {};
+    
+    // Denormalize config before saving (for FLOATING_MENU)
+    let normalizedConfig = config;
+    if (config && widget.type === 'FLOATING_MENU') {
+      normalizedConfig = denormalizeFloatingMenuConfig(config);
+    }
 
     const updated = await app.prisma.widget.update({
       where: { id: request.params.widgetId },
       data: {
         ...(name !== undefined && { name: String(name).slice(0, 200) }),
-        ...(config !== undefined && { config: validateConfig(config) }),
+        ...(config !== undefined && { config: validateConfig(normalizedConfig) }),
         ...(rules !== undefined && { rules: rules ? sanitizeDeep(rules) : null }),
         ...(position !== undefined && { position: position ? sanitizeDeep(position) : null }),
         ...(triggers !== undefined && { triggers: triggers ? sanitizeDeep(triggers) : null }),
@@ -101,7 +111,7 @@ export default async function widgetRoutes(app) {
         ...(priority !== undefined && { priority: Math.max(0, Math.min(parseInt(priority) || 0, 999)) }),
       },
     });
-    return updated;
+    return normalizeFloatingMenuConfig(updated);
   });
 
   // ─── Delete widget ───
