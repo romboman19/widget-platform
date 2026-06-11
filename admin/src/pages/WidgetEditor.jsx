@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { denormalizeFloatingMenuConfig } from '../lib/configNormalizer.js';
+import IconPicker from '../components/IconPicker.jsx';
 import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone, Phone, Mail, MessageCircle, Link2 } from 'lucide-react';
 
 // Brand SVG Icons
@@ -568,7 +569,7 @@ function FloatingMenuConfig({ cfg, pos, update }) {
                   <label className="text-sm text-slate-600">Канали:</label>
                   {(btn.channels || []).map((ch, chIndex) => (
                     <div key={chIndex} className="flex gap-2 items-start p-2 bg-white rounded border border-slate-200">
-                      <div className="flex-1 grid grid-cols-3 gap-2 text-sm">
+                      <div className="flex-1 grid grid-cols-4 gap-2 text-sm">
                         <ChannelSelect
                           value={ch.type}
                           onChange={v => {
@@ -600,6 +601,18 @@ function FloatingMenuConfig({ cfg, pos, update }) {
                             update('config.buttons', next);
                           }}
                           placeholder={ch.type === 'phone' ? '+380...' : 'URL або username'}
+                        />
+                        <IconPicker
+                          value={ch.iconId || null}
+                          onChange={v => {
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            newChannels[chIndex] = { ...ch, iconId: v };
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                          api={api}
+                          channelType={ch.type}
                         />
                       </div>
                       <button
