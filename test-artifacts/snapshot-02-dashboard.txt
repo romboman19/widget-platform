@@ -1,0 +1,38 @@
+- generic [ref=e1] clickable [onclick]
+  - complementary
+    - heading "🔧 Widget Platform" [level=1, ref=e2]
+    - navigation
+      - link "Дашборд" [ref=e9]
+        - image
+        - StaticText "Дашборд"
+      - StaticText "САЙТИ"
+      - link "https://hunter.rv.ua/ 0" [ref=e10]
+        - image
+        - StaticText "https://hunter.rv.ua/"
+        - StaticText "0"
+      - button "Додати сайт" [ref=e11]
+        - image
+        - StaticText "Додати сайт"
+    - button "Вийти" [ref=e3]
+      - image
+      - StaticText "Вийти"
+  - main
+    - heading "Дашборд" [level=2, ref=e4]
+    - heading "https://hunter.rv.ua/" [level=3, ref=e5]
+    - StaticText "0"
+    - StaticText " віджетів"
+    - paragraph
+      - StaticText "https://hunter.rv.ua/"
+    - image
+    - StaticText "Код для вставки"
+    - button "Копіювати" [ref=e6]
+      - image
+      - StaticText "Копіювати"
+    - code
+      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq73zzhz0001o201ulvuaj5t\"></script>"
+    - link "Налаштування" [ref=e7]
+      - image
+      - StaticText "Налаштування"
+    - link "Аналітика" [ref=e8]
+      - image
+      - StaticText "Аналітика"

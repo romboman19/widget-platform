@@ -45,7 +45,7 @@ agent-browser wait 1000
 agent-browser snapshot > "$ARTIFACTS_DIR/snapshot-02-dashboard.txt" 2>/dev/null
 
 # Get ref for "Додати сайт" button
-REF_ADD_SITE=$(grep "Додати сайт" "$ARTIFACTS_DIR/snapshot-02-dashboard.txt" | head -1 | awk '{print $1}')
+REF_ADD_SITE=$(grep 'button "Додати сайт"' "$ARTIFACTS_DIR/snapshot-02-dashboard.txt" | grep -o 'ref=e[0-9]*' | head -1)
 if [ -z "$REF_ADD_SITE" ]; then
   echo "❌ 'Додати сайт' button not found in snapshot:"
   cat "$ARTIFACTS_DIR/snapshot-02-dashboard.txt"
