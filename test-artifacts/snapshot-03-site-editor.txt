@@ -1,0 +1,57 @@
+- generic [ref=e1] clickable [onclick]
+  - complementary
+    - heading "🔧 Widget Platform" [level=1, ref=e2]
+    - navigation
+      - link "Дашборд" [ref=e15]
+        - image
+        - StaticText "Дашборд"
+      - StaticText "САЙТИ"
+      - link "Acceptance Site 1781188753 0" [ref=e16]
+        - image
+        - StaticText "Acceptance Site 1781188753"
+        - StaticText "0"
+      - link "https://hunter.rv.ua/ 0" [ref=e17]
+        - image
+        - StaticText "https://hunter.rv.ua/"
+        - StaticText "0"
+      - button "Додати сайт" [ref=e18]
+        - image
+        - StaticText "Додати сайт"
+    - button "Вийти" [ref=e3]
+      - image
+      - StaticText "Вийти"
+  - main
+    - link "Назад до дашборду" [ref=e4]
+      - image
+      - StaticText "Назад до дашборду"
+    - heading "Acceptance Site 1781188753" [level=2, ref=e5]
+    - link "Аналітика" [ref=e6]
+      - image
+      - StaticText "Аналітика"
+    - button "Редагувати" [ref=e7]
+      - image
+      - StaticText "Редагувати"
+    - generic
+      - StaticText "Домен: test-1781188753.example.com · Slug: acceptance-site-1781188753"
+    - heading "Віджети (0 активних з 0)" [level=3, ref=e8]
+      - StaticText "Віджети (0 активних з 0)"
+    - button "З шаблону" [ref=e9]
+      - image
+      - StaticText "З шаблону"
+    - button "💬 Floating меню" [ref=e10]
+      - image
+      - StaticText "💬 Floating меню"
+    - button "📞 Popup зворотній дзвінок" [ref=e11]
+      - image
+      - StaticText "📞 Popup зворотній дзвінок"
+    - button "🎯 Popup банер" [ref=e12]
+      - image
+      - StaticText "🎯 Popup банер"
+    - button "📌 Sticky bar" [ref=e13]
+      - image
+      - StaticText "📌 Sticky bar"
+    - button "📎 Вкладка збоку" [ref=e14]
+      - image
+      - StaticText "📎 Вкладка збоку"
+    - status
+    - StaticText "Віджетів поки немає. Натисніть кнопку вище, щоб додати перший."
