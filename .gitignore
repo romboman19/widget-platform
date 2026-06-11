@@ -1,17 +1,7 @@
-# Screenshots (binary files)
-screenshots/
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.webp
-*.svg
-
 # Dependencies
 node_modules/
 */node_modules/
-package-lock.json
-*/package-lock.json
+# Keep package-lock.json for reproducible builds
 yarn.lock
 */yarn.lock
 
@@ -19,9 +9,8 @@ yarn.lock
 .env
 */.env
 
-# Build outputs
-dist/
-*/dist/
+# Build outputs — specific paths only
+admin/dist/
 build/
 */build/
 
@@ -49,6 +38,10 @@ Thumbs.db
 # Testing
 coverage/
 .nyc_output/
+screenshots/
+test/**/*.png
+test/**/*.jpg
+test/**/*.jpeg
 
 # Misc
 .cache/
