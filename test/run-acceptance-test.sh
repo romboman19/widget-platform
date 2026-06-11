@@ -57,26 +57,22 @@ echo "   Found ref: $REF_ADD_SITE"
 SITE_NAME="Acceptance Site $(date +%s)"
 SITE_DOMAIN="test-$(date +%s).example.com"
 
-echo "   Clicking 'Додати сайт' (will trigger prompt)..."
-echo "   Will accept prompt with: $SITE_NAME"
+echo "   Clicking 'Додати сайт' (will trigger prompts)..."
+echo "   Will accept prompts with: $SITE_NAME / $SITE_DOMAIN"
 
-# Click in background — it will block until dialog is handled
+# Click and immediately handle dialogs
 agent-browser click "$REF_ADD_SITE" &
 CLICK_PID=$!
 
-# Wait for dialog to appear
+# Wait and handle first prompt (site name)
 sleep 2
+agent-browser dialog accept "$SITE_NAME"
+echo "   ✅ Accepted prompt 1: site name"
 
-# Check if dialog is open and accept with site name
-DIALOG_STATUS=$(agent-browser dialog status 2>/dev/null || echo "no dialog")
-echo "   Dialog status: $DIALOG_STATUS"
-
-if echo "$DIALOG_STATUS" | grep -q "prompt"; then
-  agent-browser dialog accept "$SITE_NAME"
-  echo "   ✅ Accepted prompt with site name"
-else
-  echo "   ⚠️  No prompt dialog detected"
-fi
+# Handle second prompt (domain)
+sleep 2
+agent-browser dialog accept "$SITE_DOMAIN"
+echo "   ✅ Accepted prompt 2: domain"
 
 # Wait for click to complete
 wait $CLICK_PID 2>/dev/null || true
