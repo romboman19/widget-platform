@@ -876,7 +876,8 @@
     
     // Button shape configuration
     const shape = cfg.buttonShape || { type: 'circle' };
-    const layout = cfg.layout || 'single';
+    // Normalize layout: 'double' maps to 'horizontal' for backward compatibility
+    const layout = cfg.layout === 'double' ? 'horizontal' : (cfg.layout || 'single');
     
     // Position styles
     const posStyle = {};
