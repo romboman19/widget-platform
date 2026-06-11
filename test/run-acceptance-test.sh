@@ -30,7 +30,7 @@ get_ref() {
 echo ""
 echo "📋 Step 1: Login to admin"
 echo "   Opening: ${ADMIN_URL}/login"
-agent-browser open "${ADMIN_URL}/login" --no-sandbox --screenshot-dir "$ARTIFACTS_DIR" || true
+agent-browser open "${ADMIN_URL}/login" --screenshot-dir "$ARTIFACTS_DIR" || true
 
 # Get snapshot to find actual selectors
 echo "   Getting page snapshot..."
