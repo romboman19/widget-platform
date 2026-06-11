@@ -2,23 +2,27 @@
   - complementary
     - heading "🔧 Widget Platform" [level=1, ref=e2]
     - navigation
-      - link "Дашборд" [ref=e17]
+      - link "Дашборд" [ref=e21]
         - image
         - StaticText "Дашборд"
       - StaticText "САЙТИ"
-      - link "Acceptance Site 1781187986 0" [ref=e18]
+      - link "Acceptance Site 1781188041 0" [ref=e22]
+        - image
+        - StaticText "Acceptance Site 1781188041"
+        - StaticText "0"
+      - link "Acceptance Site 1781187986 0" [ref=e23]
         - image
         - StaticText "Acceptance Site 1781187986"
         - StaticText "0"
-      - link "Acceptance Site 1781187917 0" [ref=e19]
+      - link "Acceptance Site 1781187917 0" [ref=e24]
         - image
         - StaticText "Acceptance Site 1781187917"
         - StaticText "0"
-      - link "https://hunter.rv.ua/ 0" [ref=e20]
+      - link "https://hunter.rv.ua/ 0" [ref=e25]
         - image
         - StaticText "https://hunter.rv.ua/"
         - StaticText "0"
-      - button "Додати сайт" [ref=e21]
+      - button "Додати сайт" [ref=e26]
         - image
         - StaticText "Додати сайт"
     - button "Вийти" [ref=e3]
@@ -26,57 +30,75 @@
       - StaticText "Вийти"
   - main
     - heading "Дашборд" [level=2, ref=e4]
-    - heading "Acceptance Site 1781187986" [level=3, ref=e5]
+    - heading "Acceptance Site 1781188041" [level=3, ref=e5]
     - StaticText "0"
     - StaticText " віджетів"
     - paragraph
-      - StaticText "test-1781187986.example.com"
+      - StaticText "test-1781188041.example.com"
     - image
     - StaticText "Код для вставки"
     - button "Копіювати" [ref=e6]
       - image
       - StaticText "Копіювати"
     - code
-      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq9lcvez0007ne01lpo6r5vu\"></script>"
+      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq9le1xm0009ne01fyl2ulfb\"></script>"
     - link "Налаштування" [ref=e7]
       - image
       - StaticText "Налаштування"
     - link "Аналітика" [ref=e8]
       - image
       - StaticText "Аналітика"
-    - heading "Acceptance Site 1781187917" [level=3, ref=e9]
+    - heading "Acceptance Site 1781187986" [level=3, ref=e9]
     - StaticText "0"
     - StaticText " віджетів"
     - paragraph
-      - StaticText "test-1781187917.example.com"
+      - StaticText "test-1781187986.example.com"
     - image
     - StaticText "Код для вставки"
     - button "Копіювати" [ref=e10]
       - image
       - StaticText "Копіювати"
     - code
-      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq9lbeg70005ne01flfw8jmk\"></script>"
+      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq9lcvez0007ne01lpo6r5vu\"></script>"
     - link "Налаштування" [ref=e11]
       - image
       - StaticText "Налаштування"
     - link "Аналітика" [ref=e12]
       - image
       - StaticText "Аналітика"
-    - heading "https://hunter.rv.ua/" [level=3, ref=e13]
+    - heading "Acceptance Site 1781187917" [level=3, ref=e13]
     - StaticText "0"
     - StaticText " віджетів"
     - paragraph
-      - StaticText "https://hunter.rv.ua/"
+      - StaticText "test-1781187917.example.com"
     - image
     - StaticText "Код для вставки"
     - button "Копіювати" [ref=e14]
       - image
       - StaticText "Копіювати"
     - code
-      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq73zzhz0001o201ulvuaj5t\"></script>"
+      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq9lbeg70005ne01flfw8jmk\"></script>"
     - link "Налаштування" [ref=e15]
       - image
       - StaticText "Налаштування"
     - link "Аналітика" [ref=e16]
+      - image
+      - StaticText "Аналітика"
+    - heading "https://hunter.rv.ua/" [level=3, ref=e17]
+    - StaticText "0"
+    - StaticText " віджетів"
+    - paragraph
+      - StaticText "https://hunter.rv.ua/"
+    - image
+    - StaticText "Код для вставки"
+    - button "Копіювати" [ref=e18]
+      - image
+      - StaticText "Копіювати"
+    - code
+      - StaticText "<script src=\"https://widget.hunter.rv.ua/w.js?site=cmq73zzhz0001o201ulvuaj5t\"></script>"
+    - link "Налаштування" [ref=e19]
+      - image
+      - StaticText "Налаштування"
+    - link "Аналітика" [ref=e20]
       - image
       - StaticText "Аналітика"
