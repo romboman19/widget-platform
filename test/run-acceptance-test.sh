@@ -16,7 +16,7 @@ echo "   Admin: $ADMIN_EMAIL"
 echo "   Target: ${API_URL:-http://localhost:8090}"
 
 BASE_URL="${API_URL:-http://localhost:8090}"
-ADMIN_URL="${BASE_URL}/admin"
+ADMIN_URL="${BASE_URL}"
 ARTIFACTS_DIR="${TEST_ARTIFACTS:-./test-artifacts}"
 
 mkdir -p "$ARTIFACTS_DIR"

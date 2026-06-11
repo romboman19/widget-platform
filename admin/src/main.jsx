@@ -27,6 +27,7 @@ function App() {
             <Route path="sites/:siteId/widgets/:widgetId" element={<WidgetEditor />} />
             <Route path="sites/:siteId/analytics" element={<Analytics />} />
           </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
