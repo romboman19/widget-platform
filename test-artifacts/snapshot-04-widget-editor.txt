@@ -1,0 +1,265 @@
+- generic [ref=e1] clickable [onclick]
+  - complementary
+    - heading "🔧 Widget Platform" [level=1, ref=e2]
+    - navigation
+      - link "Дашборд" [ref=e54]
+        - image
+        - StaticText "Дашборд"
+      - StaticText "САЙТИ"
+      - link "Acceptance Site 1781188837 0" [ref=e55]
+        - image
+        - StaticText "Acceptance Site 1781188837"
+        - StaticText "0"
+      - link "Acceptance Site 1781188753 1" [ref=e56]
+        - image
+        - StaticText "Acceptance Site 1781188753"
+        - StaticText "1"
+      - link "https://hunter.rv.ua/ 0" [ref=e57]
+        - image
+        - StaticText "https://hunter.rv.ua/"
+        - StaticText "0"
+      - button "Додати сайт" [ref=e58]
+        - image
+        - StaticText "Додати сайт"
+    - button "Вийти" [ref=e3]
+      - image
+      - StaticText "Вийти"
+  - main
+    - link "Назад до сайту" [ref=e4]
+      - image
+      - StaticText "Назад до сайту"
+    - button "Зберегти" [ref=e5]
+      - image
+      - StaticText "Зберегти"
+    - button [ref=e6]
+      - image
+    - heading "Загальні" [level=3, ref=e7]
+    - LabelText
+      - StaticText "Назва (для себе)"
+    - textbox [ref=e8]: 💬 Floating меню
+      - StaticText "💬 Floating меню"
+    - LabelText [ref=e9] clickable [cursor:pointer]
+      - checkbox "Увімкнений" [checked=true, ref=e59]
+      - StaticText "Увімкнений"
+    - LabelText
+      - StaticText "Пріоритет"
+    - spinbutton [ref=e10]
+    - heading "Вигляд" [level=3, ref=e11]
+    - LabelText
+      - StaticText "Колір кнопки"
+    - ColorWell: #1f93ff
+    - textbox "#1f93ff" [ref=e12]
+      - StaticText "#1f93ff"
+    - LabelText
+      - StaticText "Позиція"
+    - combobox [expanded=false, ref=e13]: ↘ Внизу праворуч
+      - MenuListPopup
+        - option "↘ Внизу праворуч" [selected, ref=e66]
+        - option "↙ Внизу ліворуч" [ref=e67]
+        - option "↗ Вгорі праворуч" [ref=e68]
+        - option "↖ Вгорі ліворуч" [ref=e69]
+    - LabelText
+      - StaticText "Відступ X (px)"
+    - spinbutton [ref=e14]: 20
+      - StaticText "20"
+    - LabelText
+      - StaticText "Відступ Y (px)"
+    - spinbutton [ref=e15]: 20
+      - StaticText "20"
+    - LabelText
+      - StaticText "Текст привітання"
+    - textbox "Потрібна допомога?" [ref=e16]
+    - paragraph
+      - StaticText "Покажеться як підказка біля кнопки"
+    - heading "Форма кнопки (v2)" [level=3, ref=e17]
+    - paragraph
+      - StaticText "Налаштування форми та рамки кнопок"
+    - LabelText
+      - StaticText "Форма"
+    - combobox [expanded=false, ref=e18]: ● Коло
+      - MenuListPopup
+        - option "● Коло" [selected, ref=e70]
+        - option "■ Квадрат" [ref=e71]
+        - option "▢ Заокруглений" [ref=e72]
+        - option "⬭ Овал" [ref=e73]
+    - LabelText
+      - StaticText "Товщина рамки (px)"
+    - spinbutton [ref=e19]
+    - paragraph
+      - StaticText "0 = без рамки"
+    - LabelText
+      - StaticText "Розмір кнопки"
+    - combobox [expanded=false, ref=e20]: Середній (56px)
+      - MenuListPopup
+        - option "Маленький (48px)" [ref=e74]
+        - option "Середній (56px)" [selected, ref=e75]
+        - option "Великий (64px)" [ref=e76]
+    - heading "Іконка кнопки" [level=3, ref=e21]
+    - paragraph
+      - StaticText "Виберіть іконку або вкажіть FontAwesome клас"
+    - LabelText
+      - StaticText "Тип іконки"
+    - combobox [expanded=false, ref=e22]: 🎨 Вбудована іконка
+      - MenuListPopup
+        - option "🎨 Вбудована іконка" [selected, ref=e77]
+        - option "🔤 FontAwesome" [ref=e78]
+        - option "🖼 Кастомне зображення" [ref=e79]
+    - heading "Канали зв'язку" [level=3, ref=e23]
+    - paragraph
+      - StaticText "Налаштуйте канали з можливістю вибору іконок FontAwesome"
+    - generic
+      - combobox [expanded=false, ref=e60]: Телефон
+        - MenuListPopup
+          - option "Телефон" [selected, ref=e98]
+          - option "Telegram" [ref=e99]
+          - option "Viber" [ref=e100]
+          - option "WhatsApp" [ref=e101]
+          - option "Email" [ref=e102]
+          - option "Instagram" [ref=e103]
+          - option "Facebook" [ref=e104]
+          - option "TikTok" [ref=e105]
+          - option "Chatwoot" [ref=e106]
+          - option "Зворотній дзвінок" [ref=e107]
+          - option "Кастомне посилання" [ref=e108]
+      - image
+    - textbox "Підпис" [ref=e24]: Зателефонувати
+      - StaticText "Зателефонувати"
+    - textbox "fa-brands fa-telegram (FontAwesome)" [ref=e25]
+    - textbox "+380..." [ref=e26]: +380XXXXXXXXX
+      - StaticText "+380XXXXXXXXX"
+    - button [ref=e27]
+      - image
+    - generic
+      - combobox [expanded=false, ref=e61]: Telegram
+        - MenuListPopup
+          - option "Телефон" [ref=e109]
+          - option "Telegram" [selected, ref=e110]
+          - option "Viber" [ref=e111]
+          - option "WhatsApp" [ref=e112]
+          - option "Email" [ref=e113]
+          - option "Instagram" [ref=e114]
+          - option "Facebook" [ref=e115]
+          - option "TikTok" [ref=e116]
+          - option "Chatwoot" [ref=e117]
+          - option "Зворотній дзвінок" [ref=e118]
+          - option "Кастомне посилання" [ref=e119]
+      - image
+    - textbox "Підпис" [ref=e28]: Telegram
+      - StaticText "Telegram"
+    - textbox "fa-brands fa-telegram (FontAwesome)" [ref=e29]
+    - textbox "username або URL" [ref=e30]: your_bot
+      - StaticText "your_bot"
+    - button [ref=e31]
+      - image
+    - generic
+      - combobox [expanded=false, ref=e62]: Viber
+        - MenuListPopup
+          - option "Телефон" [ref=e120]
+          - option "Telegram" [ref=e121]
+          - option "Viber" [selected, ref=e122]
+          - option "WhatsApp" [ref=e123]
+          - option "Email" [ref=e124]
+          - option "Instagram" [ref=e125]
+          - option "Facebook" [ref=e126]
+          - option "TikTok" [ref=e127]
+          - option "Chatwoot" [ref=e128]
+          - option "Зворотній дзвінок" [ref=e129]
+          - option "Кастомне посилання" [ref=e130]
+      - image
+    - textbox "Підпис" [ref=e32]: Viber
+      - StaticText "Viber"
+    - textbox "fa-brands fa-telegram (FontAwesome)" [ref=e33]
+    - textbox "username або URL" [ref=e34]: +380XXXXXXXXX
+      - StaticText "+380XXXXXXXXX"
+    - button [ref=e35]
+      - image
+    - button "Додати канал" [ref=e36]
+      - image
+      - StaticText "Додати канал"
+    - paragraph
+      - StaticText "Потрібно більше можливостей?"
+    - button "Перейти до кнопок v2" [ref=e37]
+      - image
+      - StaticText "Перейти до кнопок v2"
+    - heading "Кнопки (v2)" [level=3, ref=e38]
+    - paragraph
+      - StaticText "Конфігуруйте кнопки та їхні канали"
+    - LabelText
+      - StaticText "Розкладка"
+    - combobox [expanded=false, ref=e39]: Одна кнопка
+      - MenuListPopup
+        - option "Одна кнопка" [selected, ref=e80]
+        - option "Горизонтально" [ref=e81]
+        - option "Вертикально" [ref=e82]
+    - button "Додати кнопку" [ref=e40]
+      - image
+      - StaticText "Додати кнопку"
+    - heading "Налаштування анімації" [level=3, ref=e41]
+    - LabelText
+      - StaticText "Анімація меню"
+    - combobox [expanded=false, ref=e42]: Fade (поступово)
+      - MenuListPopup
+        - option "Без анімації" [ref=e83]
+        - option "Fade (поступово)" [selected, ref=e84]
+        - option "Slide Up (знизу вгору)" [ref=e85]
+        - option "Slide Down (зверху вниз)" [ref=e86]
+        - option "Slide Left (справа)" [ref=e87]
+        - option "Slide Right (зліва)" [ref=e88]
+        - option "Zoom (масштабування)" [ref=e89]
+        - option "Bounce (підскок)" [ref=e90]
+        - option "Elastic (еластичний)" [ref=e91]
+        - option "Flip (переворот)" [ref=e92]
+    - paragraph
+      - StaticText "Ефект появи каналів"
+    - LabelText
+      - StaticText "Анімація уваги"
+    - combobox [expanded=false, ref=e43]: Немає
+      - MenuListPopup
+        - option "Немає" [selected, ref=e93]
+        - option "Pulse (пульсація)" [ref=e94]
+        - option "Shake (тряска)" [ref=e95]
+        - option "Wobble (хитання)" [ref=e96]
+    - paragraph
+      - StaticText "Привернути увагу до кнопки"
+    - heading "Форма зворотного дзвінка" [level=3, ref=e44]
+    - paragraph
+      - StaticText "Налаштування popup-форми, яка відкривається при натисканні на канал «Зворотній дзвінок»"
+    - LabelText
+      - StaticText "Заголовок"
+    - textbox "Замовити дзвінок" [ref=e45]
+    - LabelText
+      - StaticText "Текст"
+    - textbox [ref=e46]
+    - LabelText
+      - StaticText "Текст кнопки"
+    - textbox "Зателефонуйте мені" [ref=e47]
+    - LabelText
+      - StaticText "Webhook URL (n8n)"
+    - textbox "https://n8n.yourdomain.ua/webhook/..." [ref=e48]
+    - paragraph
+      - StaticText "Куди надсилати заявки зі зворотного дзвінка"
+    - heading "Правила відображення" [level=3, ref=e49]
+    - checkbox [checked=false, ref=e50]
+    - StaticText "Планування показу за часом"
+    - LabelText
+      - StaticText "Пристрої"
+    - button "🖥 Desktop" [ref=e51]
+    - button "📱 Mobile" [ref=e52]
+    - StaticText "Всі пристрої"
+    - LabelText
+      - StaticText "URL-правила"
+    - button "Додати правило" [ref=e53]
+      - image
+      - StaticText "Додати правило"
+    - paragraph
+      - StaticText "Якщо не задано — показується на всіх сторінках"
+    - generic
+      - heading "ПОПЕРЕДНІЙ ПЕРЕГЛЯД" [level=3, ref=e63]
+      - StaticText "LIVE PREVIEW"
+      - button "Desktop" [ref=e64]
+        - image
+        - StaticText "Desktop"
+      - button "Mobile" [ref=e65]
+        - image
+        - StaticText "Mobile"
+      - Iframe "Widget Preview" [ref=e97]

@@ -6,15 +6,19 @@
         - image
         - StaticText "Дашборд"
       - StaticText "САЙТИ"
-      - link "Acceptance Site 1781188753 0" [ref=e16]
+      - link "Acceptance Site 1781188837 0" [ref=e16]
+        - image
+        - StaticText "Acceptance Site 1781188837"
+        - StaticText "0"
+      - link "Acceptance Site 1781188753 1" [ref=e17]
         - image
         - StaticText "Acceptance Site 1781188753"
-        - StaticText "0"
-      - link "https://hunter.rv.ua/ 0" [ref=e17]
+        - StaticText "1"
+      - link "https://hunter.rv.ua/ 0" [ref=e18]
         - image
         - StaticText "https://hunter.rv.ua/"
         - StaticText "0"
-      - button "Додати сайт" [ref=e18]
+      - button "Додати сайт" [ref=e19]
         - image
         - StaticText "Додати сайт"
     - button "Вийти" [ref=e3]
@@ -24,7 +28,7 @@
     - link "Назад до дашборду" [ref=e4]
       - image
       - StaticText "Назад до дашборду"
-    - heading "Acceptance Site 1781188753" [level=2, ref=e5]
+    - heading "Acceptance Site 1781188837" [level=2, ref=e5]
     - link "Аналітика" [ref=e6]
       - image
       - StaticText "Аналітика"
@@ -32,7 +36,7 @@
       - image
       - StaticText "Редагувати"
     - generic
-      - StaticText "Домен: test-1781188753.example.com · Slug: acceptance-site-1781188753"
+      - StaticText "Домен: test-1781188837.example.com · Slug: acceptance-site-1781188837"
     - heading "Віджети (0 активних з 0)" [level=3, ref=e8]
       - StaticText "Віджети (0 активних з 0)"
     - button "З шаблону" [ref=e9]
