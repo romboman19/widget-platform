@@ -41,12 +41,18 @@ echo ""
 echo "📋 Step 2: Create site"
 agent-browser wait 1000
 
+# Get FRESH snapshot after login
+agent-browser snapshot > "$ARTIFACTS_DIR/snapshot-02-dashboard.txt" 2>/dev/null
+
 # Get ref for "Додати сайт" button
-REF_ADD_SITE=$(get_ref "Додати сайт")
+REF_ADD_SITE=$(grep "Додати сайт" "$ARTIFACTS_DIR/snapshot-02-dashboard.txt" | head -1 | awk '{print $1}')
 if [ -z "$REF_ADD_SITE" ]; then
-  echo "❌ 'Додати сайт' button not found"
+  echo "❌ 'Додати сайт' button not found in snapshot:"
+  cat "$ARTIFACTS_DIR/snapshot-02-dashboard.txt"
   exit 1
 fi
+
+echo "   Found ref: $REF_ADD_SITE"
 
 SITE_NAME="Acceptance Site $(date +%s)"
 SITE_DOMAIN="test-$(date +%s).example.com"
