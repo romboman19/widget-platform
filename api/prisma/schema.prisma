@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -39,6 +39,8 @@ model User {
   updatedAt DateTime @updatedAt
   sites     Site[]
   templates Template[]
+  mediaFolders MediaFolder[]
+  mediaFiles   MediaFile[]
 }
 
 model Site {
@@ -123,4 +125,66 @@ model Template {
 
   @@index([isGlobal, usageCount])
   @@index([userId])
+}
+
+// === Media Library ===
+
+model MediaFolder {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String
+  parentId    String?
+  parent      MediaFolder? @relation("FolderTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    MediaFolder[] @relation("FolderTree")
+  files       MediaFile[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+enum MediaType {
+  SVG
+  PNG
+  JPG
+  WEBP
+  GIF
+  VIDEO
+  FONT
+}
+
+model MediaFile {
+  id          String    @id @default(cuid())
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  folderId    String?
+  folder      MediaFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  name        String
+  slug        String    @unique
+
+  type        MediaType
+  mimeType    String
+  subtype     String    // 'icon', 'avatar', 'banner', etc.
+
+  originalUrl String
+  url         String
+  thumbnailUrl String?
+
+  channelType String?
+  isDefault   Boolean   @default(false)
+  svgContent  String?
+
+  size        Int
+  hash        String    @unique
+  width       Int?
+  height      Int?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId, folderId])
+  @@index([type, subtype])
+  @@index([channelType])
 }

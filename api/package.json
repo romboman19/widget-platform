@@ -15,12 +15,15 @@
     "postinstall": "npx prisma generate"
   },
   "dependencies": {
-    "@prisma/client": "^6.0.0",
-    "fastify": "^5.0.0",
     "@fastify/cors": "^10.0.0",
     "@fastify/jwt": "^9.0.0",
+    "@fastify/multipart": "^10.0.0",
+    "@prisma/client": "^6.0.0",
     "bcryptjs": "^2.4.3",
-    "prisma": "^6.0.0",
+    "fastify": "^5.0.0",
     "puppeteer-core": "^21.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
   }
 }

@@ -9,24 +9,34 @@ import widgetRoutes from './routes/widgets.js';
 import experimentRoutes from './routes/experiments.js';
 import publicRoutes from './routes/public.js';
 import analyticsRoutes from './routes/analytics.js';
+import mediaRoutes from './routes/media.js';
 import { seed } from './seed.js';
 
 const prisma = new PrismaClient();
 const app = Fastify({
   logger: true,
-  bodyLimit: 65536,           // 64kb max body — prevents oversized payloads
-  trustProxy: true,           // trust X-Real-IP / X-Forwarded-For from nginx
+  bodyLimit: 65536,
+  trustProxy: true,
 });
 
 // ─── Plugins ───
 await app.register(cors, {
-  origin: false, // CORS handled by nginx
+  origin: false,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false,
 });
 
-// ─── Allow empty JSON body for DELETE and duplicate requests ───
+// Multipart for file uploads
+const multipart = await import('@fastify/multipart');
+await app.register(multipart.default || multipart, {
+  limits: {
+    fileSize: 2 * 1024 * 1024,
+    files: 1,
+  },
+});
+
+// ─── Allow empty JSON body ───
 app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
   if (!body || body.length === 0) return done(null, {});
   try {
@@ -40,7 +50,7 @@ app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, 
 await app.register(jwt, {
   secret: process.env.JWT_SECRET || 'dev-secret',
   sign: {
-    expiresIn: '24h',         // Reduced from 7d
+    expiresIn: '24h',
   },
 });
 
@@ -63,7 +73,7 @@ app.decorate('authenticate', async (request, reply) => {
   }
 });
 
-// ─── Security: remove X-Powered-By, add security headers ───
+// ─── Security headers ───
 app.addHook('onSend', async (request, reply) => {
   reply.header('X-Content-Type-Options', 'nosniff');
   reply.removeHeader('X-Powered-By');
@@ -76,11 +86,12 @@ await app.register(widgetRoutes, { prefix: '/api/sites' });
 await app.register(experimentRoutes, { prefix: '/api/sites' });
 await app.register(publicRoutes, { prefix: '/api/widget' });
 await app.register(analyticsRoutes, { prefix: '/api/analytics' });
+await app.register(mediaRoutes, { prefix: '/api/media' });
 
 // Health check
 app.get('/api/health', async () => ({ status: 'ok' }));
 
-// ─── Global error handler — don't leak internals ───
+// ─── Error handler ───
 app.setErrorHandler((error, request, reply) => {
   app.log.error(error);
   const statusCode = error.statusCode || 500;
