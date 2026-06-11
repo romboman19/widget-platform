@@ -417,7 +417,7 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         
         {cfg.iconType === 'preset' && (
           <Field label="Іконка">
-            <IconPicker value={cfg.icon} onChange={v => update('config.icon', v)} />
+            <LegacyIconPicker value={cfg.icon} onChange={v => update('config.icon', v)} />
           </Field>
         )}
         
@@ -1227,7 +1227,7 @@ const PRESET_ICONS = [
   { value: 'star', label: '⭐ Зірка' },
 ];
 
-function IconPicker({ value, onChange }) {
+function LegacyIconPicker({ value, onChange }) {
   return (
     <Select value={value} onChange={onChange} options={PRESET_ICONS} />
   );
