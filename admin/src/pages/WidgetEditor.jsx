@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
+import { denormalizeFloatingMenuConfig } from '../lib/configNormalizer.js';
 import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone, Phone, Mail, MessageCircle, Link2 } from 'lucide-react';
 
 // Brand SVG Icons
@@ -192,11 +193,17 @@ export default function WidgetEditor() {
   async function save() {
     setSaving(true);
     try {
+      // Denormalize FLOATING_MENU config before saving
+      let configToSave = widget.config;
+      if (widget.type === 'FLOATING_MENU' && widget.config) {
+        configToSave = denormalizeFloatingMenuConfig(widget.config);
+      }
+
       await api(`/sites/${siteId}/widgets/${widgetId}`, {
         method: 'PUT',
         body: {
           name: widget.name,
-          config: widget.config,
+          config: configToSave,
           position: widget.position,
           triggers: widget.triggers,
           rules: widget.rules,
@@ -434,31 +441,63 @@ function FloatingMenuConfig({ cfg, pos, update }) {
         )}
       </Section>
 
-      <Section title="Канали зв\'язку">
-        <p className="text-xs text-slate-400 mb-3">Налаштуйте канали з можливістю вибору іконок FontAwesome</p>
-        <div className="space-y-3">
-          {channels.map((ch, i) => (
-            <div key={i} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
-              <div className="flex-1 space-y-2">
-                <div className="grid grid-cols-3 gap-2">
-                  <ChannelSelect value={ch.type} onChange={v => updateChannel(i, 'type', v)} />
-                  <Input value={ch.label} onChange={v => updateChannel(i, 'label', v)} placeholder="Підпис" />
-                  <Input value={ch.iconClass} onChange={v => updateChannel(i, 'iconClass', v)} placeholder="fa-brands fa-telegram (FontAwesome)" />
+      {/* Legacy channels section — show only if no v2 buttons */}
+      {!cfg.buttons?.length ? (
+        <>
+          <Section title="Канали зв'язку">
+            <p className="text-xs text-slate-400 mb-3">Налаштуйте канали з можливістю вибору іконок FontAwesome</p>
+            <div className="space-y-3">
+              {channels.map((ch, i) => (
+                <div key={i} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
+                  <div className="flex-1 space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <ChannelSelect value={ch.type} onChange={v => updateChannel(i, 'type', v)} />
+                      <Input value={ch.label} onChange={v => updateChannel(i, 'label', v)} placeholder="Підпис" />
+                      <Input value={ch.iconClass} onChange={v => updateChannel(i, 'iconClass', v)} placeholder="fa-brands fa-telegram (FontAwesome)" />
+                    </div>
+                    <Input value={ch.value} onChange={v => updateChannel(i, 'value', v)}
+                      placeholder={ch.type === 'phone' ? '+380...' : ch.type === 'email' ? 'email@...' : 'username або URL'} />
+                  </div>
+                  <button onClick={() => removeChannel(i)} className="p-1.5 text-slate-400 hover:text-red-500">
+                    <X size={16} />
+                  </button>
                 </div>
-                <Input value={ch.value} onChange={v => updateChannel(i, 'value', v)}
-                  placeholder={ch.type === 'phone' ? '+380...' : ch.type === 'email' ? 'email@...' : 'username або URL'} />
-              </div>
-              <button onClick={() => removeChannel(i)} className="p-1.5 text-slate-400 hover:text-red-500">
-                <X size={16} />
-              </button>
+              ))}
             </div>
-          ))}
-        </div>
-        <button onClick={addChannel}
-          className="mt-3 flex items-center gap-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg">
-          <Plus size={14} /> Додати канал
-        </button>
-      </Section>
+            <button onClick={addChannel}
+              className="mt-3 flex items-center gap-1 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg">
+              <Plus size={14} /> Додати канал
+            </button>
+          </Section>
+
+          <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <p className="text-sm text-blue-700 mb-2">Потрібно більше можливостей?</p>
+            <button
+              onClick={() => {
+                // Migrate legacy channels to v2 format
+                const legacyChannels = cfg.channels || [];
+                const migrated = [{
+                  id: 'legacy_main',
+                  mode: 'menu',
+                  channels: legacyChannels.map(ch => ({
+                    type: ch.type,
+                    value: ch.value,
+                    label: ch.label,
+                    iconId: ch.iconId || null,
+                    iconClass: ch.iconClass
+                  })),
+                  style: { bgColor: cfg.color || '#1f93ff', iconColor: '#ffffff', size: 'md' }
+                }];
+                update('config.buttons', migrated);
+                update('config.layout', 'single');
+              }}
+              className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            >
+              <Plus size={16} /> Перейти до кнопок v2
+            </button>
+          </div>
+        </>
+      ) : null}
 
       {/* FLOATING_MENU v2: Button Builder */}
       <Section title="Кнопки (v2)">
