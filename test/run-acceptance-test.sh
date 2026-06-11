@@ -103,7 +103,7 @@ fi
 echo ""
 echo "📋 Step 3: Create widget"
 agent-browser open "${BASE_URL}/sites/${SITE_ID}/widgets"
-agent-browser wait 2000
+agent-browser wait 3000  # Wait longer for widgets page to load
 
 # Get fresh snapshot
 agent-browser snapshot > "$ARTIFACTS_DIR/snapshot-03-widgets.txt" 2>/dev/null
