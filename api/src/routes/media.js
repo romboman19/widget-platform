@@ -2,6 +2,7 @@ import { createHash } from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { sanitizeSvg, extractSvgDimensions } from '../lib/svgSanitizer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
@@ -21,17 +22,6 @@ const ALLOWED_TYPES = {
 
 const ALLOWED_EXTENSIONS = ['.svg', '.png', '.jpg', '.jpeg', '.webp', '.gif'];
 
-// Simple SVG sanitization (remove scripts)
-function sanitizeSvg(svgContent) {
-  // Remove script tags and on* attributes
-  return svgContent
-    .replace(/<script[^>]*>.*?<\/script>/gi, '')
-    .replace(/<[^>]+\son\w+="[^"]*"/gi, (match) => match.replace(/\s+on\w+="[^"]*"/gi, ''))
-    .replace(/javascript:/gi, '')
-    .replace(/<iframe/gi, '<!-- iframe')
-    .replace(/<\/iframe>/gi, '-->');
-}
-
 // Generate slug from name
 function generateSlug(name) {
   const base = name
@@ -47,14 +37,43 @@ async function calculateHash(buffer) {
   return createHash('sha256').update(buffer).digest('hex');
 }
 
+// Get physical file path for hash
+function getPhysicalPath(hash, ext) {
+  // Store files in subdirectories by first 2 chars of hash for better filesystem performance
+  const subdir = hash.slice(0, 2);
+  const filename = `${hash}.${ext.toLowerCase()}`;
+  return {
+    dir: path.join(UPLOAD_DIR, subdir),
+    path: path.join(UPLOAD_DIR, subdir, filename),
+    relative: `/uploads/${subdir}/${filename}`,
+  };
+}
+
 export default async function mediaRoutes(app) {
   // ─── Helper: verify media ownership ───
   async function verifyMediaFile(request, reply) {
     const file = await app.prisma.mediaFile.findFirst({
-      where: { id: request.params.id, userId: request.user.id },
+      where: { id: request.params.id },
       include: { folder: true },
     });
-    if (!file) { reply.status(404).send({ error: 'File not found' }); return null; }
+    
+    if (!file) {
+      reply.status(404).send({ error: 'File not found' });
+      return null;
+    }
+    
+    // Default files are readable by all, but only deletable by admin
+    if (file.isDefault && request.method !== 'GET') {
+      reply.status(403).send({ error: 'Cannot modify default files' });
+      return null;
+    }
+    
+    // Check ownership for non-default files
+    if (!file.isDefault && file.userId !== request.user.id) {
+      reply.status(403).send({ error: 'Access denied' });
+      return null;
+    }
+    
     return file;
   }
 
@@ -66,25 +85,45 @@ export default async function mediaRoutes(app) {
     return folder;
   }
 
-  // ─── Check if file is used in widgets ───
+  // ─── Check if file hash has other references ───
+  async function countReferences(hash, excludeId = null) {
+    const where = { hash };
+    if (excludeId) {
+      where.id = { not: excludeId };
+    }
+    return app.prisma.mediaFile.count({ where });
+  }
+
+  // ─── Check if file is used in widgets (via JSON search) ───
   async function checkFileUsage(fileId) {
-    const widgets = await app.prisma.widget.findMany({
-      where: {
-        config: {
-          path: ['buttons'],
-          array_contains: [{ channels: [{ iconId: fileId }] }],
-        },
-      },
-      select: { id: true, name: true },
-    });
+    const widgets = await app.prisma.$queryRaw`
+      SELECT id, name 
+      FROM Widget 
+      WHERE config::text LIKE ${'%' + fileId + '%'}
+      LIMIT 10
+    `;
     return widgets;
   }
 
   // ─── List files ───
   app.get('/', { preHandler: [app.authenticate] }, async (request, reply) => {
-    const { folder, type, subtype, channel } = request.query;
+    const { folder, type, subtype, channel, includeDefaults = 'true' } = request.query;
     
-    const where = { userId: request.user.id };
+    const where = {};
+    
+    // Include user's files
+    const userCondition = { userId: request.user.id };
+    
+    // Include default files if requested
+    if (includeDefaults !== 'false') {
+      where.OR = [
+        userCondition,
+        { isDefault: true },
+      ];
+    } else {
+      Object.assign(where, userCondition);
+    }
+    
     if (folder) where.folderId = folder === 'root' ? null : folder;
     if (type) where.type = type.toUpperCase();
     if (subtype) where.subtype = subtype;
@@ -93,7 +132,10 @@ export default async function mediaRoutes(app) {
     const files = await app.prisma.mediaFile.findMany({
       where,
       include: { folder: { select: { id: true, name: true } } },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'desc' },
+      ],
     });
 
     return files;
@@ -104,6 +146,23 @@ export default async function mediaRoutes(app) {
     const file = await verifyMediaFile(request, reply);
     if (!file) return;
     return file;
+  });
+
+  // ─── Get SVG content (with proper security headers) ───
+  app.get('/:id/content', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const file = await verifyMediaFile(request, reply);
+    if (!file) return;
+    
+    if (file.type !== 'SVG' || !file.svgContent) {
+      return reply.status(404).send({ error: 'SVG content not available' });
+    }
+    
+    // Security headers for SVG
+    reply.header('Content-Type', 'image/svg+xml');
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('Content-Security-Policy', "default-src 'none'");
+    
+    return file.svgContent;
   });
 
   // ─── Upload file ───
@@ -147,44 +206,75 @@ export default async function mediaRoutes(app) {
 
     // Calculate hash for deduplication
     const hash = await calculateHash(buffer);
-    const existingFile = await app.prisma.mediaFile.findUnique({
+    
+    // Check if file with this hash already exists
+    const existingFile = await app.prisma.mediaFile.findFirst({
       where: { hash },
     });
+    
     if (existingFile) {
-      return reply.status(409).send({ 
-        error: 'File already exists',
-        file: existingFile,
+      // File already exists — create new record pointing to same physical file
+      const name = data.filename.replace(ext, '');
+      const slug = generateSlug(name);
+      const type = ALLOWED_TYPES[mimetype];
+      
+      // Get dimensions from existing file
+      const dimensions = { width: existingFile.width, height: existingFile.height };
+      
+      const newFile = await app.prisma.mediaFile.create({
+        data: {
+          userId: request.user.id,
+          folderId: folderId || null,
+          name: data.filename,
+          slug,
+          type,
+          mimeType: mimetype,
+          subtype,
+          originalUrl: existingFile.originalUrl,
+          url: existingFile.url,
+          channelType: channelType || null,
+          svgContent: existingFile.svgContent,
+          size: existingFile.size,
+          hash,
+          width: dimensions.width,
+          height: dimensions.height,
+        },
+      });
+      
+      return reply.status(201).send({
+        ...newFile,
+        deduplicated: true,
+        originalFileId: existingFile.id,
       });
     }
 
-    // Generate slug and filename
+    // New file — process and save
     const name = data.filename.replace(ext, '');
     const slug = generateSlug(name);
     const type = ALLOWED_TYPES[mimetype];
-    const filename = `${slug}${ext}`;
-    const filePath = path.join(UPLOAD_DIR, filename);
+    
+    // Get physical path
+    const physical = getPhysicalPath(hash, ext);
+    await fs.mkdir(physical.dir, { recursive: true });
 
     // Process SVG
     let svgContent = null;
-    let width = null;
-    let height = null;
+    let dimensions = { width: null, height: null };
     
     if (type === 'SVG') {
       const content = buffer.toString('utf-8');
-      svgContent = sanitizeSvg(content);
-      // Parse width/height from SVG
-      const viewBoxMatch = svgContent.match(/viewBox="[^"]+"/) || [];
-      const widthMatch = svgContent.match(/width="([^"]+)"/) || svgContent.match(/width='([^']+)'/);
-      const heightMatch = svgContent.match(/height="([^"]+)"/) || svgContent.match(/height='([^']+)'/);
       
-      if (widthMatch) width = parseInt(widthMatch[1], 10) || null;
-      if (heightMatch) height = parseInt(heightMatch[1], 10) || null;
+      // Sanitize with DOMPurify
+      svgContent = sanitizeSvg(content);
+      
+      // Extract dimensions
+      dimensions = extractSvgDimensions(svgContent);
       
       // Save sanitized version
-      await fs.writeFile(filePath, svgContent, 'utf-8');
+      await fs.writeFile(physical.path, svgContent, 'utf-8');
     } else {
       // Save binary file
-      await fs.writeFile(filePath, buffer);
+      await fs.writeFile(physical.path, buffer);
     }
 
     // Create database record
@@ -197,14 +287,14 @@ export default async function mediaRoutes(app) {
         type,
         mimeType: mimetype,
         subtype,
-        originalUrl: `${PUBLIC_URL}/media/${filename}`,
-        url: `${PUBLIC_URL}/media/${filename}`,
+        originalUrl: `${PUBLIC_URL}/media${physical.relative}`,
+        url: `${PUBLIC_URL}/media${physical.relative}`,
         channelType: channelType || null,
         svgContent,
         size: buffer.length,
         hash,
-        width,
-        height,
+        width: dimensions.width,
+        height: dimensions.height,
       },
     });
 
@@ -257,18 +347,31 @@ export default async function mediaRoutes(app) {
       });
     }
 
-    // Delete physical file
-    const filename = `${file.slug}.${file.type.toLowerCase()}`;
-    try {
-      await fs.unlink(path.join(UPLOAD_DIR, filename));
-    } catch (err) {
-      // File might not exist, continue
-    }
-
+    // Check how many other records reference the same physical file
+    const refCount = await countReferences(file.hash, file.id);
+    
     // Delete database record
     await app.prisma.mediaFile.delete({ where: { id: request.params.id } });
+    
+    // Delete physical file only if no other references
+    if (refCount === 0) {
+      const ext = file.type === 'SVG' ? 'svg' : file.type.toLowerCase();
+      const physical = getPhysicalPath(file.hash, ext);
+      try {
+        await fs.unlink(physical.path);
+        // Try to remove empty subdirectory
+        const subdir = path.dirname(physical.path);
+        const files = await fs.readdir(subdir);
+        if (files.length === 0) {
+          await fs.rmdir(subdir);
+        }
+      } catch (err) {
+        // File might not exist, continue
+        app.log.warn(`Failed to delete physical file: ${err.message}`);
+      }
+    }
 
-    return { success: true };
+    return { success: true, physicalDeleted: refCount === 0 };
   });
 
   // ─── List folders ───
