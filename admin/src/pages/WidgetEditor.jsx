@@ -270,7 +270,7 @@ export default function WidgetEditor() {
           </Section>
 
           {/* Type-specific config */}
-          {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} update={update} />}
+          {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} update={update} api={api} />}
           {widget.type === 'POPUP_CALLBACK' && <PopupCallbackConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'POPUP_BANNER' && <PopupBannerConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'STICKY_BAR' && <StickyBarConfig cfg={cfg} pos={pos} update={update} />}
@@ -302,7 +302,7 @@ function Section({ title, children }) {
 }
 
 // ─── FLOATING MENU CONFIG ───
-function FloatingMenuConfig({ cfg, pos, update }) {
+function FloatingMenuConfig({ cfg, pos, update, api }) {
   const channels = cfg.channels || [];
 
   function addChannel() {
