@@ -1118,8 +1118,29 @@
       // Carousel: slide through this button's channel icons (icon only, button stays still)
       if (btn.style?.carousel && (btn.channels?.length || 0) >= 2) {
         const speed = (btn.style.carouselSpeed || 3) * 1000;
+        const delay = (btn.style.carouselDelay || 0) * 1000;
         let ci = 0;
+        const cycle = () => {
+          ci = (ci + 1) % btn.channels.length;
+          const nextIcon = renderButtonIcon(btn, btn.channels[ci], _iconSize);
+          iconWrap.style.transition = 'opacity .25s, transform .25s';
+          iconWrap.style.opacity = '0';
+          iconWrap.style.transform = 'translateX(-40%)';
+          setTimeout(() => {
+            setIcon(nextIcon);
+            iconWrap.style.transition = 'none';
+            iconWrap.style.transform = 'translateX(40%)';
+            requestAnimationFrame(() => {
+              iconWrap.style.transition = 'opacity .25s, transform .25s';
+              iconWrap.style.opacity = '1';
+              iconWrap.style.transform = 'translateX(0)';
+            });
+          }, 250);
+        };
+        cycle();
         setInterval(() => {
+          if (delay) setTimeout(cycle, delay);
+          else cycle();
           ci = (ci + 1) % btn.channels.length;
           const nextIcon = renderButtonIcon(btn, btn.channels[ci], _iconSize);
           iconWrap.style.transition = 'opacity .25s, transform .25s';

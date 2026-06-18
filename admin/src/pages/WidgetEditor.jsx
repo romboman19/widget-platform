@@ -580,7 +580,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                     </Field>
                   )}
                   {btn.style?.attentionAnimation && (
-                    <Field label="Затримка перед стартом (сек)">
+                    <Field label="Затримка між циклами (сек)" hint="Час між повтореннями анімації">
                       <Input type="number" min="0" max="30" step="0.5"
                         value={btn.style?.attentionDelay || 0}
                         onChange={v => {
