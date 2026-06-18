@@ -366,31 +366,47 @@
       .wp-attention-shake { animation: wp-shake 0.5s ease; }
       .wp-attention-wobble { animation: wp-wobble 1s ease; }
  .wp-attention-spin { animation: wp-spin 2s linear infinite; }
+ .wp-attention-swing { animation: wp-kf-swing 1.2s ease infinite; }
+ .wp-attention-bounce { animation: wp-kf-bounce 1.2s ease infinite; }
+ .wp-attention-tada { animation: wp-kf-tada 1.4s ease infinite; }
  /* Icon wrapper inside a floating button (for per-button icon animations & carousel) */
  .wp-btn-icon { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
  .wp-btn-icon img, .wp-btn-icon svg { object-fit:contain; display:block; }
  /* Per-button icon attention animations (animate the icon, not the button) */
- .wp-icon-pulse { animation: wp-icon-spin-rotate 2s linear infinite; }
- .wp-icon-shake { animation: wp-icon-shake-kf 0.6s ease infinite; }
- .wp-icon-wobble { animation: wp-icon-wobble-kf 1.2s ease infinite; }
- .wp-icon-spin { animation: wp-icon-spin-rotate 2s linear infinite; }
+ .wp-icon-pulse { animation-name: wp-kf-pulse; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-shake { animation-name: wp-kf-shake; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-wobble { animation-name: wp-kf-wobble; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-spin { animation-name: wp-kf-spin; animation-timing-function: linear; animation-iteration-count: infinite; }
+ .wp-icon-swing { animation-name: wp-kf-swing; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-bounce { animation-name: wp-kf-bounce; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-tada { animation-name: wp-kf-tada; animation-timing-function: ease; animation-iteration-count: infinite; }
  @keyframes wp-slide-in-right { from { opacity:0; transform: translateX(60%); } to { opacity:1; transform: translateX(0); } }
  @keyframes wp-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
- @keyframes wp-icon-spin-rotate {
- from { transform: rotate(0deg); }
- to { transform: rotate(360deg); }
+ @keyframes wp-kf-pulse {
+ 0% { transform: scale(1); } 25% { transform: scale(1.15); } 50% { transform: scale(1); } 100% { transform: scale(1); }
  }
- @keyframes wp-icon-wobble-kf {
- 0%,100% { transform: rotate(0deg); }
- 20% { transform: rotate(-10deg); }
- 40% { transform: rotate(8deg); }
- 60% { transform: rotate(-6deg); }
- 80% { transform: rotate(3deg); }
+ @keyframes wp-kf-shake {
+ 0% { transform: translateX(0); } 8% { transform: translateX(-3px); } 16% { transform: translateX(3px); }
+ 24% { transform: translateX(-3px); } 32% { transform: translateX(3px); } 40% { transform: translateX(0); } 100% { transform: translateX(0); }
  }
- @keyframes wp-icon-shake-kf {
- 0%,100% { transform: translateX(0); }
- 25% { transform: translateX(-3px); }
- 75% { transform: translateX(3px); }
+ @keyframes wp-kf-wobble {
+ 0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(8deg); }
+ 30% { transform: rotate(-6deg); } 40% { transform: rotate(3deg); } 50% { transform: rotate(0deg); } 100% { transform: rotate(0deg); }
+ }
+ @keyframes wp-kf-spin {
+ 0% { transform: rotate(0deg); } 50% { transform: rotate(360deg); } 100% { transform: rotate(360deg); }
+ }
+ @keyframes wp-kf-swing {
+ 0% { transform: rotate(0deg); } 10% { transform: rotate(15deg); } 20% { transform: rotate(-12deg); }
+ 30% { transform: rotate(9deg); } 40% { transform: rotate(-6deg); } 50% { transform: rotate(0deg); } 100% { transform: rotate(0deg); }
+ }
+ @keyframes wp-kf-bounce {
+ 0% { transform: translateY(0); } 15% { transform: translateY(-25%); } 30% { transform: translateY(0); }
+ 42% { transform: translateY(-12%); } 52% { transform: translateY(0); } 100% { transform: translateY(0); }
+ }
+ @keyframes wp-kf-tada {
+ 0% { transform: scale(1) rotate(0); } 10% { transform: scale(0.9) rotate(-3deg); } 20% { transform: scale(1.1) rotate(3deg); }
+ 30% { transform: scale(1.1) rotate(-3deg); } 40% { transform: scale(1.1) rotate(3deg); } 50% { transform: scale(1) rotate(0); } 100% { transform: scale(1) rotate(0); }
  }
       
       /* Exit animations */
@@ -1168,8 +1184,11 @@
         const toButton = btnStyle.attentionTarget === 'button';
         const target = toButton ? buttonEl : iconWrap;
         target.classList.add((toButton ? 'wp-attention-' : 'wp-icon-') + btnStyle.attentionAnimation);
-        if (btnStyle.attentionDuration) target.style.animationDuration = btnStyle.attentionDuration + 's';
-        if (btnStyle.attentionDelay) target.style.animationDelay = btnStyle.attentionDelay + 's';
+        // Pause between cycles lives inside the keyframes (motion in first ~50%, still after),
+        // so it repeats every cycle. animation-delay would pause only once before the first run.
+        const motion = btnStyle.attentionDuration || 1;
+        const pause = btnStyle.attentionDelay || 0;
+        target.style.animationDuration = (motion + pause) + 's';
       }
       
       wrapper.appendChild(buttonEl);

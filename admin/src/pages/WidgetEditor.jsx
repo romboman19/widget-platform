@@ -913,7 +913,10 @@ const ATTENTION_ANIMATIONS = [
   { value: 'pulse', label: 'Pulse (пульсація)' },
   { value: 'shake', label: 'Shake (тряска)' },
   { value: 'wobble', label: 'Wobble (хитання)' },
-  { value: 'spin', label: 'Spin (обертання навколо осі)' },
+  { value: 'spin', label: 'Spin (повне обертання)' },
+  { value: 'swing', label: 'Swing (хитання навколо осі)' },
+  { value: 'bounce', label: 'Bounce (підстрибування)' },
+  { value: 'tada', label: 'Tada (ефектний акцент)' },
 ];
 
 function AnimationConfig({ cfg, update }) {
