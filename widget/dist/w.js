@@ -759,6 +759,7 @@
   function renderStickyBar(widget) {
     const cfg = widget.config;
     const pos = widget.position || {};
+    const triggers = widget.triggers || {};
     const placement = pos.placement || 'bottom';
     const color = cfg.color || '#1f93ff';
     const cookieKey = 'wp_bar_' + widget.id;
@@ -781,14 +782,20 @@
       }, ICONS.close),
     ]);
 
-    document.body.appendChild(bar);
-    applyAnimation(bar, cfg.animation || 'slide-down');
-    track('view', widget.id);
+    const show = () => {
+      document.body.appendChild(bar);
+      applyAnimation(bar, cfg.animation || 'slide-down');
+      track('view', widget.id);
+    };
+
+    if (triggers.delay) setTimeout(show, triggers.delay * 1000);
+    else show();
   }
 
   function renderSideTab(widget) {
     const cfg = widget.config;
     const pos = widget.position || {};
+    const triggers = widget.triggers || {};
     const color = cfg.color || '#1f93ff';
 
     const tab = el('button', {
@@ -806,9 +813,14 @@
       },
     }, cfg.text || 'Зв\'язатися');
 
-    document.body.appendChild(tab);
-    applyAnimation(tab, cfg.animation || 'slide-left');
-    track('view', widget.id);
+    const show = () => {
+      document.body.appendChild(tab);
+      applyAnimation(tab, cfg.animation || 'slide-left');
+      track('view', widget.id);
+    };
+
+    if (triggers.delay) setTimeout(show, triggers.delay * 1000);
+    else show();
   }
 
   function closePopup(overlay, cookieKey, triggers) {
