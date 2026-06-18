@@ -722,6 +722,7 @@ function PopupCallbackConfig({ cfg, triggers, update }) {
         </Field>
         <AnimationConfig cfg={cfg} update={update} />
       </Section>
+      <DesignConfig cfg={cfg} update={update} />
       <TriggersConfig triggers={triggers} update={update} />
     </>
   );
@@ -756,6 +757,7 @@ function PopupBannerConfig({ cfg, triggers, update }) {
         
         <AnimationConfig cfg={cfg} update={update} />
       </Section>
+      <DesignConfig cfg={cfg} update={update} />
       <TriggersConfig triggers={triggers} update={update} />
     </>
   );
