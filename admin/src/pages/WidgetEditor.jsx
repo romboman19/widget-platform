@@ -551,6 +551,22 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                       options={ATTENTION_ANIMATIONS}
                     />
                   </Field>
+                    {btn.style?.attentionAnimation && (
+                      <Field label="Що анімувати" hint="Піктограму всередині чи всю кнопку">
+                        <Select
+                          value={btn.style?.attentionTarget || 'icon'}
+                          onChange={v => {
+                            const next = [...(cfg.buttons || [])];
+                            next[btnIndex] = { ...btn, style: { ...btn.style, attentionTarget: v } };
+                            update('config.buttons', next);
+                          }}
+                          options={[
+                            { value: 'icon', label: 'Тільки піктограму' },
+                            { value: 'button', label: 'Всю кнопку' },
+                          ]}
+                        />
+                      </Field>
+                    )}
                   {btn.style?.attentionAnimation && (
                     <Field label="Швидкість (сек)" hint="Тривалість одного циклу">
                       <Input type="number" min="0.2" max="10" step="0.1"

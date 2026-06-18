@@ -365,6 +365,14 @@
       .wp-attention-pulse { animation: wp-pulse 2s ease infinite; }
       .wp-attention-shake { animation: wp-shake 0.5s ease; }
       .wp-attention-wobble { animation: wp-wobble 1s ease; }
+ /* Icon wrapper inside a floating button (for per-button icon animations & carousel) */
+ .wp-btn-icon { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
+ .wp-btn-icon img, .wp-btn-icon svg { width:100%; height:100%; object-fit:contain; }
+ /* Per-button icon attention animations (animate the icon, not the button) */
+ .wp-icon-pulse { animation: wp-pulse 2s ease infinite; }
+ .wp-icon-shake { animation: wp-shake 0.5s ease infinite; }
+ .wp-icon-wobble { animation: wp-wobble 1s ease infinite; }
+ @keyframes wp-slide-in-right { from { opacity:0; transform: translateX(60%); } to { opacity:1; transform: translateX(0); } }
       
       /* Exit animations */
       .wp-exit-fade { animation: wp-fade-out 0.2s ease forwards; }
@@ -1071,36 +1079,51 @@
  ? renderButtonIcon(btn, btn.channels[0], _iconSize)
  : ICONS.menu;
       
-      if (typeof initialIcon === 'string') {
-        buttonEl.innerHTML = initialIcon;
-      } else {
-        buttonEl.appendChild(initialIcon);
-      }
-      // Carousel: cycle through this button's channel icons
+      // Icon wrapper — animations & carousel target this element, not the whole button
+      const iconWrap = document.createElement('span');
+      iconWrap.className = 'wp-btn-icon';
+      const setIcon = (icon) => {
+        iconWrap.innerHTML = '';
+        if (typeof icon === 'string') iconWrap.innerHTML = icon;
+        else iconWrap.appendChild(icon);
+      };
+      setIcon(initialIcon);
+      buttonEl.appendChild(iconWrap);
+
+      // Carousel: slide through this button's channel icons (icon only, button stays still)
       if (btn.style?.carousel && (btn.channels?.length || 0) >= 2) {
         const speed = (btn.style.carouselSpeed || 3) * 1000;
         let ci = 0;
-        const cycle = () => {
+        setInterval(() => {
           ci = (ci + 1) % btn.channels.length;
           const nextIcon = renderButtonIcon(btn, btn.channels[ci], _iconSize);
-          buttonEl.style.transition = 'opacity .28s';
-          buttonEl.style.opacity = '0';
+          iconWrap.style.transition = 'opacity .25s, transform .25s';
+          iconWrap.style.opacity = '0';
+          iconWrap.style.transform = 'translateX(-40%)';
           setTimeout(() => {
-            buttonEl.innerHTML = '';
-            if (typeof nextIcon === 'string') buttonEl.innerHTML = nextIcon;
-            else buttonEl.appendChild(nextIcon);
-            buttonEl.style.opacity = '1';
-          }, 280);
-        };
-        setInterval(cycle, speed);
+            setIcon(nextIcon);
+            iconWrap.style.transition = 'none';
+            iconWrap.style.transform = 'translateX(40%)';
+            requestAnimationFrame(() => {
+              iconWrap.style.transition = 'opacity .25s, transform .25s';
+              iconWrap.style.opacity = '1';
+              iconWrap.style.transform = 'translateX(0)';
+            });
+          }, 250);
+        }, speed);
       }
-      
-      // Attention animation
-      const attn = btnStyle.attentionAnimation || cfg.attentionAnimation;
-      if (attn) {
-        buttonEl.classList.add('wp-attention-' + attn);
-        if (btnStyle.attentionDuration) buttonEl.style.animationDuration = btnStyle.attentionDuration + 's';
-        if (btnStyle.attentionDelay) buttonEl.style.animationDelay = btnStyle.attentionDelay + 's';
+
+      // Attention: general (cfg) animates the WHOLE button; per-button animates the ICON.
+      // attentionTarget: 'button' on per-button forces button-level animation instead.
+      if (cfg.attentionAnimation) {
+        buttonEl.classList.add('wp-attention-' + cfg.attentionAnimation);
+      }
+      if (btnStyle.attentionAnimation) {
+        const toButton = btnStyle.attentionTarget === 'button';
+        const target = toButton ? buttonEl : iconWrap;
+        target.classList.add((toButton ? 'wp-attention-' : 'wp-icon-') + btnStyle.attentionAnimation);
+        if (btnStyle.attentionDuration) target.style.animationDuration = btnStyle.attentionDuration + 's';
+        if (btnStyle.attentionDelay) target.style.animationDelay = btnStyle.attentionDelay + 's';
       }
       
       wrapper.appendChild(buttonEl);
