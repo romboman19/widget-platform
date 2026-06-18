@@ -270,7 +270,7 @@ export default function WidgetEditor() {
           </Section>
 
           {/* Type-specific config */}
-          {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} update={update} api={api} />}
+          {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} triggers={triggers} update={update} api={api} />}
           {widget.type === 'POPUP_CALLBACK' && <PopupCallbackConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'POPUP_BANNER' && <PopupBannerConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'STICKY_BAR' && <StickyBarConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
@@ -302,7 +302,7 @@ function Section({ title, children }) {
 }
 
 // ─── FLOATING MENU CONFIG ───
-function FloatingMenuConfig({ cfg, pos, update, api }) {
+function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
   const channels = cfg.channels || [];
 
   function addChannel() {
@@ -540,6 +540,41 @@ function FloatingMenuConfig({ cfg, pos, update, api }) {
                       Прозорий фон (без заливки)
                     </label>
                   </Field>
+                  <Field label="Анімація уваги">
+                    <Select
+                      value={btn.style?.attentionAnimation || ''}
+                      onChange={v => {
+                        const next = [...(cfg.buttons || [])];
+                        next[btnIndex] = { ...btn, style: { ...btn.style, attentionAnimation: v } };
+                        update('config.buttons', next);
+                      }}
+                      options={ATTENTION_ANIMATIONS}
+                    />
+                  </Field>
+                  {btn.style?.attentionAnimation && (
+                    <Field label="Швидкість (сек)" hint="Тривалість одного циклу">
+                      <Input type="number" min="0.2" max="10" step="0.1"
+                        value={btn.style?.attentionDuration || 2}
+                        onChange={v => {
+                          const next = [...(cfg.buttons || [])];
+                          next[btnIndex] = { ...btn, style: { ...btn.style, attentionDuration: parseFloat(v) || 2 } };
+                          update('config.buttons', next);
+                        }}
+                      />
+                    </Field>
+                  )}
+                  {btn.style?.attentionAnimation && (
+                    <Field label="Затримка перед стартом (сек)">
+                      <Input type="number" min="0" max="30" step="0.5"
+                        value={btn.style?.attentionDelay || 0}
+                        onChange={v => {
+                          const next = [...(cfg.buttons || [])];
+                          next[btnIndex] = { ...btn, style: { ...btn.style, attentionDelay: parseFloat(v) || 0 } };
+                          update('config.buttons', next);
+                        }}
+                      />
+                    </Field>
+                  )}
                 </div>
 
                 {/* Channels for this button */}
@@ -674,6 +709,7 @@ function FloatingMenuConfig({ cfg, pos, update, api }) {
           <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
         </Field>
       </Section>
+      <TriggersConfig triggers={triggers} update={update} simple={true} />
     </>
   );
 }

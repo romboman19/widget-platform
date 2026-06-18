@@ -1078,8 +1078,11 @@
       }
       
       // Attention animation
-      if (btnStyle.attentionAnimation || cfg.attentionAnimation) {
-        buttonEl.classList.add('wp-attention-' + (btnStyle.attentionAnimation || cfg.attentionAnimation));
+      const attn = btnStyle.attentionAnimation || cfg.attentionAnimation;
+      if (attn) {
+        buttonEl.classList.add('wp-attention-' + attn);
+        if (btnStyle.attentionDuration) buttonEl.style.animationDuration = btnStyle.attentionDuration + 's';
+        if (btnStyle.attentionDelay) buttonEl.style.animationDelay = btnStyle.attentionDelay + 's';
       }
       
       wrapper.appendChild(buttonEl);
@@ -1134,8 +1137,13 @@
       container.appendChild(wrapper);
     });
 
-    document.body.appendChild(container);
-    track('view', widget.id);
+    const _ft = widget.triggers || {};
+    const showContainer = () => {
+      document.body.appendChild(container);
+      track('view', widget.id);
+    };
+    if (_ft.delay) setTimeout(showContainer, _ft.delay * 1000);
+    else showContainer();
   }
 
   // ─── Render dispatcher ───
