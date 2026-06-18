@@ -29,11 +29,14 @@ export default async function publicRoutes(app) {
       select: { id: true, slug: true, url: true },
     });
     
-    // Build lookup map (by both id and slug)
+    // Build lookup map (by both id and slug). Make URLs absolute so they
+    // resolve correctly when the widget is embedded on external domains.
+    const PUBLIC_URL = (process.env.PUBLIC_URL || '').replace(/\/$/, '');
+    const toAbsolute = (u) => (u && u.startsWith('/') && PUBLIC_URL) ? PUBLIC_URL + u : u;
     const iconMap = {};
     for (const icon of icons) {
-      iconMap[icon.id] = icon.url;
-      if (icon.slug) iconMap[icon.slug] = icon.url;
+      iconMap[icon.id] = toAbsolute(icon.url);
+      if (icon.slug) iconMap[icon.slug] = toAbsolute(icon.url);
     }
     
     return iconMap;
