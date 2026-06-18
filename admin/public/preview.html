@@ -28,24 +28,21 @@
       try {
         const jsonStr = decodeURIComponent(escape(atob(configParam)));
         const widgetConfig = JSON.parse(jsonStr);
-        
-        // Disable triggers - show immediately
         if (widgetConfig.widgets && widgetConfig.widgets[0]) {
           widgetConfig.widgets[0].triggers = null;
           widgetConfig.widgets[0].enabled = true;
         }
-        
         window.__WIDGET_PREVIEW__ = widgetConfig;
-        
-        // Load w.js
-        const script = document.createElement('script');
-        script.src = '/w.js?preview=1';
-        script.async = true;
-        document.head.appendChild(script);
       } catch (e) {
-        console.error('Failed to load widget:', e);
+        console.error('Failed to parse preview config:', e);
       }
     }
+
+    // Always load w.js so postMessage updates can re-init the widget
+    const script = document.createElement('script');
+    script.src = '/w.js?preview=1';
+    script.async = true;
+    document.head.appendChild(script);
     
     // Listen for updates from editor
     window.addEventListener('message', (event) => {
