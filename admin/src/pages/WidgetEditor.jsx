@@ -763,73 +763,78 @@ function PopupBannerConfig({ cfg, triggers, update }) {
 
 // ─── STICKY BAR CONFIG ───
 function StickyBarConfig({ cfg, pos, triggers, update }) {
-  return (
-    <Section title="Sticky Bar">
-      <Field label="Розташування">
-        <Select value={pos.placement} onChange={v => update('position.placement', v)}
-          options={[{ value: 'top', label: '⬆ Вгорі' }, { value: 'bottom', label: '⬇ Внизу' }]} />
-      </Field>
-      <Field label="Фон">
-        <ColorPicker value={cfg.bgColor} onChange={v => update('config.bgColor', v)} />
-      </Field>
-      <Field label="Колір тексту">
-        <ColorPicker value={cfg.textColor} onChange={v => update('config.textColor', v)} />
-      </Field>
-      <Field label="Текст">
-        <Input value={cfg.text} onChange={v => update('config.text', v)} />
-      </Field>
-      <Field label="Колір кнопки">
-        <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
-      </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Текст кнопки">
-          <Input value={cfg.buttonText} onChange={v => update('config.buttonText', v)} />
-        </Field>
-        <Field label="Посилання">
-          <Input value={cfg.buttonUrl} onChange={v => update('config.buttonUrl', v)} />
-        </Field>
-      </div>
-      
-      <AnimationConfig cfg={cfg} update={update} />
-      <TriggersConfig triggers={triggers} update={update} simple={true} />
-    </Section>
-  );
+ return (
+ <>
+ <Section title="Sticky Bar">
+ <Field label="Розташування">
+ <Select value={pos.placement} onChange={v => update('position.placement', v)}
+ options={[{ value: 'top', label: '⬆ Вгорі' }, { value: 'bottom', label: '⬇ Внизу' }]} />
+ </Field>
+ <Field label="Фон">
+ <ColorPicker value={cfg.bgColor} onChange={v => update('config.bgColor', v)} />
+ </Field>
+ <Field label="Колір тексту">
+ <ColorPicker value={cfg.textColor} onChange={v => update('config.textColor', v)} />
+ </Field>
+ <Field label="Текст">
+ <Input value={cfg.text} onChange={v => update('config.text', v)} />
+ </Field>
+ <Field label="Колір кнопки">
+ <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
+ </Field>
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Текст кнопки">
+ <Input value={cfg.buttonText} onChange={v => update('config.buttonText', v)} />
+ </Field>
+ <Field label="Посилання">
+ <Input value={cfg.buttonUrl} onChange={v => update('config.buttonUrl', v)} />
+ </Field>
+ </div>
+ <AnimationConfig cfg={cfg} update={update} />
+ </Section>
+ <DesignConfig cfg={cfg} update={update} />
+ <TriggersConfig triggers={triggers} update={update} simple={true} />
+ </>
+ );
 }
 
 // ─── SIDE TAB CONFIG ───
 function SideTabConfig({ cfg, pos, triggers, update }) {
-  return (
-    <Section title="Вкладка збоку">
-      <Field label="Колір">
-        <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
-      </Field>
-      <Field label="Текст">
-        <Input value={cfg.text} onChange={v => update('config.text', v)} />
-      </Field>
-      <Field label="Сторона">
-        <Select value={pos.side} onChange={v => update('position.side', v)}
-          options={[{ value: 'right', label: '→ Праворуч' }, { value: 'left', label: '← Ліворуч' }]} />
-      </Field>
-      <Field label="Зміщення по вертикалі (%)">
-        <Input type="number" value={pos.offsetY} onChange={v => update('position.offsetY', parseInt(v) || 50)} />
-      </Field>
-      <Field label="Дія">
-        <Select value={cfg.action} onChange={v => update('config.action', v)}
-          options={[{ value: 'callback', label: 'Форма зворотного дзвінка' }, { value: 'url', label: 'Відкрити посилання' }]} />
-      </Field>
-      {cfg.action === 'url' && (
-        <Field label="URL">
-          <Input value={cfg.url} onChange={v => update('config.url', v)} placeholder="https://..." />
-        </Field>
-      )}
-      {cfg.action === 'callback' && (
-        <Field label="Webhook URL (n8n)">
-          <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
-        </Field>
-      )}
-      <TriggersConfig triggers={triggers} update={update} simple={true} />
-    </Section>
-  );
+ return (
+ <>
+ <Section title="Вкладка збоку">
+ <Field label="Колір">
+ <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
+ </Field>
+ <Field label="Текст">
+ <Input value={cfg.text} onChange={v => update('config.text', v)} />
+ </Field>
+ <Field label="Сторона">
+ <Select value={pos.side} onChange={v => update('position.side', v)}
+ options={[{ value: 'right', label: '→ Праворуч' }, { value: 'left', label: '← Ліворуч' }]} />
+ </Field>
+ <Field label="Зміщення по вертикалі (%)">
+ <Input type="number" value={pos.offsetY} onChange={v => update('position.offsetY', parseInt(v) || 50)} />
+ </Field>
+ <Field label="Дія">
+ <Select value={cfg.action} onChange={v => update('config.action', v)}
+ options={[{ value: 'callback', label: 'Форма зворотного дзвінка' }, { value: 'url', label: 'Відкрити посилання' }]} />
+ </Field>
+ {cfg.action === 'url' && (
+ <Field label="URL">
+ <Input value={cfg.url} onChange={v => update('config.url', v)} placeholder="https://..." />
+ </Field>
+ )}
+ {cfg.action === 'callback' && (
+ <Field label="Webhook URL (n8n)">
+ <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
+ </Field>
+ )}
+ </Section>
+ <DesignConfig cfg={cfg} update={update} />
+ <TriggersConfig triggers={triggers} update={update} simple={true} />
+ </>
+ );
 }
 
 // ─── ANIMATION CONFIG ───
@@ -866,6 +871,42 @@ function AnimationConfig({ cfg, update }) {
       </Field>
     </div>
   );
+}
+
+const FONT_FAMILIES = [
+ { value: '', label: 'За замовчуванням' },
+ { value: 'system-ui, sans-serif', label: 'System' },
+ { value: 'Arial, sans-serif', label: 'Arial' },
+ { value: 'Georgia, serif', label: 'Georgia' },
+ { value: "'Roboto', sans-serif", label: 'Roboto' },
+ { value: "'Montserrat', sans-serif", label: 'Montserrat' },
+];
+
+function DesignConfig({ cfg, update }) {
+ const d = cfg.design || {};
+ return (
+ <Section title="Дизайн">
+ <Field label="Шрифт">
+ <Select value={d.fontFamily || ''} onChange={v => update('config.design.fontFamily', v)} options={FONT_FAMILIES} />
+ </Field>
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Розмір шрифта (px)">
+ <Input type="number" value={d.fontSize || ''} onChange={v => update('config.design.fontSize', parseInt(v) || null)} />
+ </Field>
+ <Field label="Заокруглення (px)">
+ <Input type="number" value={d.borderRadius ?? ''} onChange={v => update('config.design.borderRadius', parseInt(v) || 0)} />
+ </Field>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Товщина рамки (px)">
+ <Input type="number" value={d.borderWidth || 0} onChange={v => update('config.design.borderWidth', parseInt(v) || 0)} />
+ </Field>
+ <Field label="Колір рамки">
+ <ColorPicker value={d.borderColor || '#000000'} onChange={v => update('config.design.borderColor', v)} />
+ </Field>
+ </div>
+ </Section>
+ );
 }
 
 // ─── TRIGGERS CONFIG (shared by popups) ───
