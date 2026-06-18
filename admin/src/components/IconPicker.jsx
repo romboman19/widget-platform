@@ -35,7 +35,6 @@ export default function IconPicker({ value, onChange, api, channelType }) {
       const params = new URLSearchParams();
       if (selectedFolder) params.set('folder', selectedFolder);
       if (channelType) params.set('channel', channelType);
-      params.set('type', 'SVG'); // Icons are typically SVG
       params.set('includeDefaults', 'true');
       
       const filesData = await api(`/media?${params}`);
