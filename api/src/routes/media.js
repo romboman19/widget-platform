@@ -41,11 +41,12 @@ async function calculateHash(buffer) {
 function getPhysicalPath(hash, ext) {
   // Store files in subdirectories by first 2 chars of hash for better filesystem performance
   const subdir = hash.slice(0, 2);
-  const filename = `${hash}.${ext.toLowerCase()}`;
+  const cleanExt = ext.replace(/^\.+/, '').toLowerCase();
+  const filename = `${hash}.${cleanExt}`;
   return {
     dir: path.join(UPLOAD_DIR, subdir),
     path: path.join(UPLOAD_DIR, subdir, filename),
-    relative: `/uploads/${subdir}/${filename}`,
+    relative: `/${subdir}/${filename}`,
   };
 }
 
