@@ -34,7 +34,6 @@ export default function IconPicker({ value, onChange, api, channelType }) {
       // Load files
       const params = new URLSearchParams();
       if (selectedFolder) params.set('folder', selectedFolder);
-      if (channelType) params.set('channel', channelType);
       params.set('includeDefaults', 'true');
       
       const filesData = await api(`/media?${params}`);
