@@ -4,8 +4,10 @@
   // ─── Config ───
   const SCRIPT = document.currentScript;
   const BASE_URL = SCRIPT ? new URL(SCRIPT.src).origin : '';
-  const SITE_SLUG = new URL(SCRIPT.src).searchParams.get('site');
-  if (!SITE_SLUG) return console.warn('[Widget] Missing ?site= parameter');
+  const SCRIPT_PARAMS = new URL(SCRIPT.src).searchParams;
+  const SITE_SLUG = SCRIPT_PARAMS.get('site');
+  const IS_PREVIEW = SCRIPT_PARAMS.get('preview') === '1' || SCRIPT_PARAMS.get('__widget_preview__') === '1';
+  if (!SITE_SLUG && !IS_PREVIEW) return console.warn('[Widget] Missing ?site= parameter');
   // ─── Font families ───
   const FONT_FAMILIES = [
     { value: '', label: 'За замовчуванням' },
@@ -1194,7 +1196,13 @@
         siteConfig = window.__WIDGET_PREVIEW__;
         siteId = siteConfig.siteId;
         injectStyles();
-        siteConfig.widgets.forEach(renderWidget);
+        // In preview, ignore display rules and triggers so the widget always shows
+        (siteConfig.widgets || []).forEach((wgt) => {
+          wgt.rules = null;
+          wgt.triggers = null;
+          wgt.enabled = true;
+          renderWidget(wgt);
+        });
         return;
       }
       
