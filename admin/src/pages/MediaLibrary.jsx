@@ -90,7 +90,7 @@ export default function MediaLibrary() {
     try {
       const data = await api('/media/folders', {
         method: 'POST',
-        body: JSON.stringify({ name: name.trim() }),
+        body: { name: name.trim() },
       });
       setFolders([...folders, data]);
     } catch (err) {

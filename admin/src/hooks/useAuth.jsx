@@ -27,14 +27,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const api = useCallback(async (path, options = {}) => {
+    const isForm = options.body instanceof FormData;
     const res = await fetch('/api' + path, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isForm ? {} : { 'Content-Type': 'application/json' }),
         Authorization: `Bearer ${token}`,
         ...options.headers,
       },
-      body: options.body ? JSON.stringify(options.body) : undefined,
+      body: options.body ? (isForm ? options.body : JSON.stringify(options.body)) : undefined,
     });
     if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
     if (!res.ok) throw new Error(await res.text());
