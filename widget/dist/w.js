@@ -370,12 +370,16 @@
  .wp-btn-icon { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
  .wp-btn-icon img, .wp-btn-icon svg { object-fit:contain; display:block; }
  /* Per-button icon attention animations (animate the icon, not the button) */
- .wp-icon-pulse { animation: wp-pulse 2s ease infinite; }
+ .wp-icon-pulse { animation: wp-icon-spin-rotate 2s linear infinite; }
  .wp-icon-shake { animation: wp-icon-shake-kf 0.6s ease infinite; }
  .wp-icon-wobble { animation: wp-icon-wobble-kf 1.2s ease infinite; }
- .wp-icon-spin { animation: wp-spin 2s linear infinite; }
+ .wp-icon-spin { animation: wp-icon-spin-rotate 2s linear infinite; }
  @keyframes wp-slide-in-right { from { opacity:0; transform: translateX(60%); } to { opacity:1; transform: translateX(0); } }
  @keyframes wp-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+ @keyframes wp-icon-spin-rotate {
+ from { transform: rotate(0deg); }
+ to { transform: rotate(360deg); }
+ }
  @keyframes wp-icon-wobble-kf {
  0%,100% { transform: rotate(0deg); }
  20% { transform: rotate(-10deg); }
