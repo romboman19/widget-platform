@@ -22,7 +22,7 @@
     if (d.fontFamily) style.fontFamily = d.fontFamily;
     if (d.fontSize) style.fontSize = d.fontSize + 'px';
     if (d.borderRadius !== undefined) style.borderRadius = d.borderRadius + 'px';
-    if (d.borderWidth) style.borderWidth = d.borderWidth + 'px';
+    if (d.borderWidth) { style.borderWidth = d.borderWidth + 'px'; style.borderStyle = 'solid'; }
     if (d.borderColor) style.borderColor = d.borderColor;
     return style;
   }
