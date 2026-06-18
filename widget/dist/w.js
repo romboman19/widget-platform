@@ -1076,6 +1076,24 @@
       } else {
         buttonEl.appendChild(initialIcon);
       }
+      // Carousel: cycle through this button's channel icons
+      if (btn.style?.carousel && (btn.channels?.length || 0) >= 2) {
+        const speed = (btn.style.carouselSpeed || 3) * 1000;
+        let ci = 0;
+        const cycle = () => {
+          ci = (ci + 1) % btn.channels.length;
+          const nextIcon = renderButtonIcon(btn, btn.channels[ci], _iconSize);
+          buttonEl.style.transition = 'opacity .28s';
+          buttonEl.style.opacity = '0';
+          setTimeout(() => {
+            buttonEl.innerHTML = '';
+            if (typeof nextIcon === 'string') buttonEl.innerHTML = nextIcon;
+            else buttonEl.appendChild(nextIcon);
+            buttonEl.style.opacity = '1';
+          }, 280);
+        };
+        setInterval(cycle, speed);
+      }
       
       // Attention animation
       const attn = btnStyle.attentionAnimation || cfg.attentionAnimation;

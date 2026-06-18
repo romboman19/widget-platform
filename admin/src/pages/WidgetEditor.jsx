@@ -575,6 +575,31 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                       />
                     </Field>
                   )}
+                  <Field label="Карусель іконок" hint="Кнопка по черзі показує іконки своїх каналів (потрібно 2+ канали)">
+                    <label className="flex items-center gap-2 text-sm text-slate-600">
+                      <input type="checkbox"
+                        checked={btn.style?.carousel || false}
+                        onChange={e => {
+                          const next = [...(cfg.buttons || [])];
+                          next[btnIndex] = { ...btn, style: { ...btn.style, carousel: e.target.checked } };
+                          update('config.buttons', next);
+                        }}
+                        className="w-4 h-4 rounded border-slate-300" />
+                      Увімкнути карусель
+                    </label>
+                  </Field>
+                  {btn.style?.carousel && (
+                    <Field label="Швидкість каруселі (сек)" hint="Інтервал зміни іконки">
+                      <Input type="number" min="1" max="20" step="0.5"
+                        value={btn.style?.carouselSpeed || 3}
+                        onChange={v => {
+                          const next = [...(cfg.buttons || [])];
+                          next[btnIndex] = { ...btn, style: { ...btn.style, carouselSpeed: parseFloat(v) || 3 } };
+                          update('config.buttons', next);
+                        }}
+                      />
+                    </Field>
+                  )}
                 </div>
 
                 {/* Channels for this button */}
