@@ -6,6 +6,28 @@
   const BASE_URL = SCRIPT ? new URL(SCRIPT.src).origin : '';
   const SITE_SLUG = new URL(SCRIPT.src).searchParams.get('site');
   if (!SITE_SLUG) return console.warn('[Widget] Missing ?site= parameter');
+  // ─── Font families ───
+  const FONT_FAMILIES = [
+    { value: '', label: 'За замовчуванням' },
+    { value: 'system-ui, sans-serif', label: 'System' },
+    { value: 'Arial, sans-serif', label: 'Arial' },
+    { value: 'Georgia, serif', label: 'Georgia' },
+    { value: "'Roboto', sans-serif", label: 'Roboto' },
+    { value: "'Montserrat', sans-serif", label: 'Montserrat' },
+  ];
+
+  // ─── Design config ───
+  function applyDesign(style, cfg) {
+    const d = cfg.design || {};
+    if (d.fontFamily) style.fontFamily = d.fontFamily;
+    if (d.fontSize) style.fontSize = d.fontSize + 'px';
+    if (d.borderRadius !== undefined) style.borderRadius = d.borderRadius + 'px';
+    if (d.borderWidth) style.borderWidth = d.borderWidth + 'px';
+    if (d.borderColor) style.borderColor = d.borderColor;
+    return style;
+  }
+
+
 
   const isMobile = /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
   const DEVICE = isMobile ? 'mobile' : 'desktop';
@@ -765,10 +787,11 @@
     const cookieKey = 'wp_bar_' + widget.id;
     if (getCookie(cookieKey)) return;
 
-    const bar = el('div', {
-      class: 'wp-widget wp-sticky-bar ' + placement,
-      style: { background: cfg.bgColor || '#fff', color: cfg.textColor || '#333' },
-    }, [
+    const barStyle = applyDesign({ background: cfg.bgColor || '#fff', color: cfg.textColor || '#333' }, cfg);
+      const bar = el('div', {
+        class: 'wp-widget wp-sticky-bar ' + placement,
+        style: barStyle,
+      }, [
       el('span', {}, cfg.text || ''),
       cfg.buttonText ? el('button', {
         class: 'wp-sticky-btn',
@@ -798,13 +821,15 @@
     const triggers = widget.triggers || {};
     const color = cfg.color || '#1f93ff';
 
-    const tab = el('button', {
-      class: 'wp-widget wp-side-tab',
-      style: {
+    const tabStyle = applyDesign({
         background: color,
         color: '#fff',
         top: (pos.offsetY || 50) + '%',
         [pos.side || 'right']: '0',
+      }, cfg);
+      const tab = el('button', {
+        class: 'wp-widget wp-side-tab',
+        style: tabStyle,
       },
       onClick: () => {
         track('click', widget.id, 'side_tab');
