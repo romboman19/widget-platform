@@ -273,8 +273,8 @@ export default function WidgetEditor() {
           {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} update={update} api={api} />}
           {widget.type === 'POPUP_CALLBACK' && <PopupCallbackConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'POPUP_BANNER' && <PopupBannerConfig cfg={cfg} triggers={triggers} update={update} />}
-          {widget.type === 'STICKY_BAR' && <StickyBarConfig cfg={cfg} pos={pos} update={update} />}
-          {widget.type === 'SIDE_TAB' && <SideTabConfig cfg={cfg} pos={pos} update={update} />}
+          {widget.type === 'STICKY_BAR' && <StickyBarConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
+          {widget.type === 'SIDE_TAB' && <SideTabConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
 
           {/* Display rules */}
           <RulesConfig rules={rules} update={update} />
@@ -762,7 +762,7 @@ function PopupBannerConfig({ cfg, triggers, update }) {
 }
 
 // ─── STICKY BAR CONFIG ───
-function StickyBarConfig({ cfg, pos, update }) {
+function StickyBarConfig({ cfg, pos, triggers, update }) {
   return (
     <Section title="Sticky Bar">
       <Field label="Розташування">
@@ -791,12 +791,13 @@ function StickyBarConfig({ cfg, pos, update }) {
       </div>
       
       <AnimationConfig cfg={cfg} update={update} />
+      <TriggersConfig triggers={triggers} update={update} simple={true} />
     </Section>
   );
 }
 
 // ─── SIDE TAB CONFIG ───
-function SideTabConfig({ cfg, pos, update }) {
+function SideTabConfig({ cfg, pos, triggers, update }) {
   return (
     <Section title="Вкладка збоку">
       <Field label="Колір">
@@ -826,6 +827,7 @@ function SideTabConfig({ cfg, pos, update }) {
           <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
         </Field>
       )}
+      <TriggersConfig triggers={triggers} update={update} simple={true} />
     </Section>
   );
 }
@@ -867,7 +869,7 @@ function AnimationConfig({ cfg, update }) {
 }
 
 // ─── TRIGGERS CONFIG (shared by popups) ───
-function TriggersConfig({ triggers, update }) {
+function TriggersConfig({ triggers, update, simple = false }) {
   return (
     <Section title="Тригери показу">
       <div className="grid grid-cols-2 gap-3">
