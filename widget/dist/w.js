@@ -365,14 +365,29 @@
       .wp-attention-pulse { animation: wp-pulse 2s ease infinite; }
       .wp-attention-shake { animation: wp-shake 0.5s ease; }
       .wp-attention-wobble { animation: wp-wobble 1s ease; }
+ .wp-attention-spin { animation: wp-spin 2s linear infinite; }
  /* Icon wrapper inside a floating button (for per-button icon animations & carousel) */
  .wp-btn-icon { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
  .wp-btn-icon img, .wp-btn-icon svg { object-fit:contain; display:block; }
  /* Per-button icon attention animations (animate the icon, not the button) */
  .wp-icon-pulse { animation: wp-pulse 2s ease infinite; }
- .wp-icon-shake { animation: wp-shake 0.5s ease infinite; }
- .wp-icon-wobble { animation: wp-wobble 1s ease infinite; }
+ .wp-icon-shake { animation: wp-icon-shake-kf 0.6s ease infinite; }
+ .wp-icon-wobble { animation: wp-icon-wobble-kf 1.2s ease infinite; }
+ .wp-icon-spin { animation: wp-spin 2s linear infinite; }
  @keyframes wp-slide-in-right { from { opacity:0; transform: translateX(60%); } to { opacity:1; transform: translateX(0); } }
+ @keyframes wp-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+ @keyframes wp-icon-wobble-kf {
+ 0%,100% { transform: rotate(0deg); }
+ 20% { transform: rotate(-10deg); }
+ 40% { transform: rotate(8deg); }
+ 60% { transform: rotate(-6deg); }
+ 80% { transform: rotate(3deg); }
+ }
+ @keyframes wp-icon-shake-kf {
+ 0%,100% { transform: translateX(0); }
+ 25% { transform: translateX(-3px); }
+ 75% { transform: translateX(3px); }
+ }
       
       /* Exit animations */
       .wp-exit-fade { animation: wp-fade-out 0.2s ease forwards; }
