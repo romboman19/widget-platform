@@ -619,7 +619,9 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                 <div className="space-y-2">
                   <label className="text-sm text-slate-600">Канали:</label>
                   {(btn.channels || []).map((ch, chIndex) => (
-                    <div key={chIndex} className="flex gap-2 items-start p-2 bg-white rounded border border-slate-200">
+                    <div key={chIndex} className="flex flex-col gap-2 p-2 bg-white rounded border border-slate-200">
+                      <div className="flex gap-2 items-start">
+                        
                       <div className="flex-1 grid grid-cols-4 gap-2 text-sm">
                         <ChannelSelect
                           value={ch.type}
@@ -666,7 +668,19 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                           channelType={ch.type}
                         />
                       </div>
-                      <div className="w-full grid grid-cols-3 gap-2 text-xs mt-1">
+                      <button
+                        onClick={() => {
+                          const next = [...(cfg.buttons || [])];
+                          const newChannels = (btn.channels || []).filter((_, i) => i !== chIndex);
+                          next[btnIndex] = { ...btn, channels: newChannels };
+                          update("config.buttons", next);
+                        }}
+                        className="p-1 text-slate-400 hover:text-red-500"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div className="w-full grid grid-cols-3 gap-2 text-xs">
                         <label className="flex flex-col gap-1">
                           <span className="text-slate-400">Розмір (px)</span>
                           <Input type="number" min="24" max="120"
