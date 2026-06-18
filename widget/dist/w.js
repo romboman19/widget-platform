@@ -1213,22 +1213,27 @@
         });
         
         btn.channels.forEach((ch, chIndex) => {
+          const _chSize = ch.sizePx || 46;
+          const _chScale = (ch.iconScale || 48) / 100;
+          const _chIconSize = Math.round(_chSize * _chScale);
+          const _chBg = ch.bgTransparent ? 'transparent' : (ch.bgColor || ch.color || CHANNEL_COLORS[ch.type] || '#333');
           const channelBtn = el('button', {
             class: 'wp-channel-btn',
             style: {
-              width: '46px',
-              height: '46px',
+              width: _chSize + 'px',
+              height: _chSize + 'px',
               borderRadius: shape.type === 'circle' ? '50%' : (shape.borderRadius || 8) + 'px',
               border: shape.borderWidth ? shape.borderWidth + 'px solid ' + (shape.borderColor || '#fff') : 'none',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: ch.color || CHANNEL_COLORS[ch.type] || '#333',
-              boxShadow: '0 2px 8px rgba(0,0,0,.2)',
+              background: _chBg,
+              boxShadow: ch.bgTransparent ? 'none' : '0 2px 8px rgba(0,0,0,.2)',
+              overflow: 'hidden',
             },
           }, [
-            renderButtonIcon(btn, ch, 22),
+            renderButtonIcon(btn, ch, _chIconSize),
             el('span', { class: 'wp-tooltip' }, ch.label || ch.type),
           ]);
           

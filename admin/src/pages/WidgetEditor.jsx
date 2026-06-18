@@ -319,10 +319,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
 
   return (
     <>
-      <Section title="Вигляд">
-        <Field label="Колір кнопки">
-          <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
-        </Field>
+      <Section title="Розміщення">
         <Field label="Позиція">
           <Select value={pos.corner} onChange={v => update('position.corner', v)} options={CORNERS} />
         </Field>
@@ -668,6 +665,58 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                           api={api}
                           channelType={ch.type}
                         />
+                      </div>
+                      <div className="w-full grid grid-cols-3 gap-2 text-xs mt-1">
+                        <label className="flex flex-col gap-1">
+                          <span className="text-slate-400">Розмір (px)</span>
+                          <Input type="number" min="24" max="120"
+                            value={ch.sizePx || 46}
+                            onChange={v => {
+                              const next = [...(cfg.buttons || [])];
+                              const newChannels = [...(btn.channels || [])];
+                              newChannels[chIndex] = { ...ch, sizePx: parseInt(v) || 46 };
+                              next[btnIndex] = { ...btn, channels: newChannels };
+                              update('config.buttons', next);
+                            }} />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-slate-400">Заповнення %</span>
+                          <input type="range" min="20" max="100" step="5"
+                            value={ch.iconScale || 48}
+                            onChange={e => {
+                              const next = [...(cfg.buttons || [])];
+                              const newChannels = [...(btn.channels || [])];
+                              newChannels[chIndex] = { ...ch, iconScale: parseInt(e.target.value) || 48 };
+                              next[btnIndex] = { ...btn, channels: newChannels };
+                              update('config.buttons', next);
+                            }} />
+                          <span className="text-slate-400">{ch.iconScale || 48}%</span>
+                        </label>
+                        <label className="flex flex-col gap-1">
+                          <span className="text-slate-400">Фон каналу</span>
+                          <ColorPicker
+                            value={ch.bgColor || ''}
+                            onChange={v => {
+                              const next = [...(cfg.buttons || [])];
+                              const newChannels = [...(btn.channels || [])];
+                              newChannels[chIndex] = { ...ch, bgColor: v };
+                              next[btnIndex] = { ...btn, channels: newChannels };
+                              update('config.buttons', next);
+                            }} />
+                          <label className="flex items-center gap-1 text-slate-400">
+                            <input type="checkbox"
+                              checked={ch.bgTransparent || false}
+                              onChange={e => {
+                                const next = [...(cfg.buttons || [])];
+                                const newChannels = [...(btn.channels || [])];
+                                newChannels[chIndex] = { ...ch, bgTransparent: e.target.checked };
+                                next[btnIndex] = { ...btn, channels: newChannels };
+                                update('config.buttons', next);
+                              }}
+                              className="w-3 h-3" />
+                            Прозорий
+                          </label>
+                        </label>
                       </div>
                       <button
                         onClick={() => {
