@@ -830,13 +830,12 @@
       const tab = el('button', {
         class: 'wp-widget wp-side-tab',
         style: tabStyle,
-      },
-      onClick: () => {
-        track('click', widget.id, 'side_tab');
-        if (cfg.action === 'callback') showCallbackForm(widget);
-        else if (cfg.url) window.open(cfg.url, '_blank');
-      },
-    }, cfg.text || 'Зв\'язатися');
+        onClick: () => {
+          track('click', widget.id, 'side_tab');
+          if (cfg.action === 'callback') showCallbackForm(widget);
+          else if (cfg.url) window.open(cfg.url, '_blank');
+        },
+      }, cfg.text || 'Зв\'язатися');
 
     const show = () => {
       document.body.appendChild(tab);
