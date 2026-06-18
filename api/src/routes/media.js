@@ -174,7 +174,10 @@ export default async function mediaRoutes(app) {
       return reply.status(400).send({ error: 'No file uploaded' });
     }
 
-    const { folderId, subtype = 'icon', channelType } = request.body || {};
+    const fields = data.fields || {};
+    const folderId = fields.folderId?.value || null;
+    const subtype = fields.subtype?.value || 'icon';
+    const channelType = fields.channelType?.value || null;
 
     // Validate folder ownership
     if (folderId) {
