@@ -234,7 +234,7 @@ export async function seedTemplates(prisma) {
 
 export async function seed(prisma) {
   await seedTemplates(prisma);
-  await seedDefaultIcons(prisma);
+  // await seedDefaultIcons(prisma); // disabled: broken default icons
 }
 
 async function main() {
