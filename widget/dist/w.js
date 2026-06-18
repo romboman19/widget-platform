@@ -367,7 +367,7 @@
       .wp-attention-wobble { animation: wp-wobble 1s ease; }
  /* Icon wrapper inside a floating button (for per-button icon animations & carousel) */
  .wp-btn-icon { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
- .wp-btn-icon img, .wp-btn-icon svg { width:100%; height:100%; object-fit:contain; }
+ .wp-btn-icon img, .wp-btn-icon svg { object-fit:contain; display:block; }
  /* Per-button icon attention animations (animate the icon, not the button) */
  .wp-icon-pulse { animation: wp-pulse 2s ease infinite; }
  .wp-icon-shake { animation: wp-shake 0.5s ease infinite; }
@@ -402,8 +402,8 @@
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
       .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
       .wp-floating-btn-v2 { display: flex; align-items: center; justify-content: center; }
-      .wp-floating-btn-v2 svg { width: 26px; height: 26px; color: #fff; }
-      .wp-floating-btn-v2 img { width: 26px; height: 26px; object-fit: contain; }
+      .wp-floating-btn-v2 svg { color: #fff; }
+      .wp-floating-btn-v2 { overflow: hidden; }
       .wp-floating-menu { position: fixed; z-index: 999998; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
       .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; visibility: hidden; transition: opacity .25s, transform .25s, visibility 0s .25s; }
       .wp-channel-btn { width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; }
@@ -1079,13 +1079,19 @@
  ? renderButtonIcon(btn, btn.channels[0], _iconSize)
  : ICONS.menu;
       
-      // Icon wrapper — animations & carousel target this element, not the whole button
+      // Icon wrapper — animations & carousel target this element, not the whole button.
+      // Wrapper fills the button (for centering); the icon itself is sized to _iconSize (iconScale%).
       const iconWrap = document.createElement('span');
       iconWrap.className = 'wp-btn-icon';
+      const sizeIcon = () => {
+        const el = iconWrap.querySelector('img, svg');
+        if (el) { el.style.width = _iconSize + 'px'; el.style.height = _iconSize + 'px'; }
+      };
       const setIcon = (icon) => {
         iconWrap.innerHTML = '';
         if (typeof icon === 'string') iconWrap.innerHTML = icon;
         else iconWrap.appendChild(icon);
+        sizeIcon();
       };
       setIcon(initialIcon);
       buttonEl.appendChild(iconWrap);
