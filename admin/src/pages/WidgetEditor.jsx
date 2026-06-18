@@ -339,7 +339,7 @@ function FloatingMenuConfig({ cfg, pos, update, api }) {
         </Field>
 
         {/* FLOATING_MENU v2: Shape Picker */}
-        <Section title="Форма кнопки (v2)">
+        <Section title="Форма кнопки">
           <p className="text-xs text-slate-400 mb-3">Налаштування форми та рамки кнопок</p>
           
           <Field label="Форма">
@@ -383,63 +383,7 @@ function FloatingMenuConfig({ cfg, pos, update, api }) {
             )}
           </div>
           
-          <Field label="Розмір кнопки">
-            <Select 
-              value={cfg.buttons?.[0]?.style?.size || 'md'} 
-              onChange={v => {
-                // Update size in all buttons if they exist, or set default
-                const buttons = cfg.buttons || [{ id: 'default', mode: 'menu', channels: cfg.channels || [], style: {} }];
-                const updated = buttons.map(b => ({
-                  ...b,
-                  style: { ...b.style, size: v }
-                }));
-                update('config.buttons', updated);
-              }} 
-              options={SIZES} 
-            />
-          </Field>
         </Section>
-      </Section>
-
-      <Section title="Іконка кнопки">
-        <p className="text-xs text-slate-400 mb-3">Виберіть іконку або вкажіть FontAwesome клас</p>
-        <Field label="Тип іконки">
-          <Select
-            value={cfg.iconType || 'preset'}
-            onChange={v => update('config.iconType', v)}
-            options={[
-              { value: 'preset', label: '🎨 Вбудована іконка' },
-              { value: 'fontawesome', label: '🔤 FontAwesome' },
-              { value: 'custom', label: '🖼 Кастомне зображення' },
-            ]}
-          />
-        </Field>
-        
-        {cfg.iconType === 'preset' && (
-          <Field label="Іконка">
-            <LegacyIconPicker value={cfg.icon} onChange={v => update('config.icon', v)} />
-          </Field>
-        )}
-        
-        {cfg.iconType === 'fontawesome' && (
-          <Field label="FontAwesome клас" hint="Наприклад: fa-solid fa-phone">
-            <Input 
-              value={cfg.iconClass || ''} 
-              onChange={v => update('config.iconClass', v)} 
-              placeholder="fa-solid fa-comment-dots"
-            />
-          </Field>
-        )}
-        
-        {cfg.iconType === 'custom' && (
-          <Field label="URL іконки">
-            <Input 
-              value={cfg.customIconUrl || ''} 
-              onChange={v => update('config.customIconUrl', v)} 
-              placeholder="https://..."
-            />
-          </Field>
-        )}
       </Section>
 
       {/* Legacy channels section — show only if no v2 buttons */}
@@ -501,7 +445,7 @@ function FloatingMenuConfig({ cfg, pos, update, api }) {
       ) : null}
 
       {/* FLOATING_MENU v2: Button Builder */}
-      <Section title="Кнопки (v2)">
+      <Section title="Кнопки">
         <p className="text-xs text-slate-400 mb-3">Конфігуруйте кнопки та їхні канали</p>
         
         <Field label="Розкладка">
@@ -561,6 +505,40 @@ function FloatingMenuConfig({ cfg, pos, update, api }) {
                         update('config.buttons', next);
                       }}
                     />
+                  </Field>
+                  <Field label="Розмір кнопки (px)">
+                    <Input type="number" min="24" max="120"
+                      value={btn.style?.sizePx || 56}
+                      onChange={v => {
+                        const next = [...(cfg.buttons || [])];
+                        next[btnIndex] = { ...btn, style: { ...btn.style, sizePx: parseInt(v) || 56 } };
+                        update('config.buttons', next);
+                      }}
+                    />
+                  </Field>
+                  <Field label="Розмір картинки (%)" hint="Скільки картинка займає від кнопки">
+                    <input type="range" min="20" max="100" step="5"
+                      value={btn.style?.iconScale || 55}
+                      onChange={e => {
+                        const next = [...(cfg.buttons || [])];
+                        next[btnIndex] = { ...btn, style: { ...btn.style, iconScale: parseInt(e.target.value) || 55 } };
+                        update('config.buttons', next);
+                      }}
+                      className="w-full" />
+                    <span className="text-xs text-slate-400">{btn.style?.iconScale || 55}%</span>
+                  </Field>
+                  <Field label="Фон кнопки">
+                    <label className="flex items-center gap-2 text-sm text-slate-600">
+                      <input type="checkbox"
+                        checked={btn.style?.bgTransparent || false}
+                        onChange={e => {
+                          const next = [...(cfg.buttons || [])];
+                          next[btnIndex] = { ...btn, style: { ...btn.style, bgTransparent: e.target.checked } };
+                          update('config.buttons', next);
+                        }}
+                        className="w-4 h-4 rounded border-slate-300" />
+                      Прозорий фон (без заливки)
+                    </label>
                   </Field>
                 </div>
 

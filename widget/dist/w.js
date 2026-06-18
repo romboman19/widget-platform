@@ -945,11 +945,15 @@
         transition: 'transform .2s, box-shadow .2s',
       };
       
-      const size = isMain ? (btnStyle?.size === 'sm' ? 48 : btnStyle?.size === 'lg' ? 64 : 56) : 46;
+      // sizePx (new) overrides preset; fallback to preset, then default
+      const presetSize = btnStyle?.size === 'sm' ? 48 : btnStyle?.size === 'lg' ? 64 : 56;
+      const size = isMain ? (btnStyle?.sizePx || presetSize) : 46;
       
       base.width = size + 'px';
       base.height = size + 'px';
-      base.background = btnStyle?.bgColor || cfg.color || '#1f93ff';
+      base._size = size;
+      base.background = btnStyle?.bgTransparent ? 'transparent' : (btnStyle?.bgColor || cfg.color || '#1f93ff');
+      if (btnStyle?.bgTransparent) base.boxShadow = 'none';
       
       // Border
       if (shape.borderWidth) {
@@ -1059,10 +1063,13 @@
         }
       });
       
-      // Set initial icon
-      const initialIcon = btn.channels?.[0] 
-        ? renderButtonIcon(btn, btn.channels[0], 26)
-        : ICONS.menu;
+      // Set initial icon — size scales with button size and per-button iconScale
+ const _scale = (btn.style?.iconScale || 55) / 100;
+ const _btnSize = btn.style?.sizePx || (btn.style?.size === 'sm' ? 48 : btn.style?.size === 'lg' ? 64 : 56);
+ const _iconSize = Math.round(_btnSize * _scale);
+ const initialIcon = btn.channels?.[0] 
+ ? renderButtonIcon(btn, btn.channels[0], _iconSize)
+ : ICONS.menu;
       
       if (typeof initialIcon === 'string') {
         buttonEl.innerHTML = initialIcon;
