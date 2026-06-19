@@ -270,7 +270,7 @@ export default function WidgetEditor() {
           </Section>
 
           {/* Type-specific config */}
-          {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} triggers={triggers} update={update} api={api} />}
+          {widget.type === 'FLOATING_MENU' && <FloatingMenuConfig cfg={cfg} pos={pos} triggers={triggers} update={update} api={api} siteId={siteId} />}
           {widget.type === 'POPUP_CALLBACK' && <PopupCallbackConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'POPUP_BANNER' && <PopupBannerConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'STICKY_BAR' && <StickyBarConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
@@ -302,8 +302,16 @@ function Section({ title, children }) {
 }
 
 // ─── FLOATING MENU CONFIG ───
-function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
+function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
   const channels = cfg.channels || [];
+  const [callbackWidgets, setCallbackWidgets] = useState([]);
+  useEffect(() => { if (siteId) loadCallbackWidgets(); }, [siteId]);
+  async function loadCallbackWidgets() {
+    try {
+      const data = await api(`/sites/${siteId}/widgets`);
+      setCallbackWidgets((data || []).filter(w => w.type === 'POPUP_CALLBACK' && w.enabled));
+    } catch (e) { console.error('Failed to load callback widgets:', e); }
+  }
 
   function addChannel() {
     update('config.channels', [...channels, { type: 'phone', value: '', label: '' }]);
@@ -668,6 +676,26 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
                           channelType={ch.type}
                         />
                       </div>
+                      {ch.type === 'callback' && (
+                        <div className="w-full mt-1">
+                          <Field label="Віджет зворотного зв'язку" hint="Оберіть існуючий POPUP_CALLBACK віджет">
+                            <Select
+                              value={ch.callbackWidgetId || ''}
+                              onChange={v => {
+                                const next = [...(cfg.buttons || [])];
+                                const newChannels = [...(btn.channels || [])];
+                                newChannels[chIndex] = { ...ch, callbackWidgetId: v || null };
+                                next[btnIndex] = { ...btn, channels: newChannels };
+                                update('config.buttons', next);
+                              }}
+                              options={[
+                                { value: '', label: '— Не обрано —' },
+                                ...callbackWidgets.map(w => ({ value: w.id, label: w.name || 'Без назви' })),
+                              ]}
+                            />
+                          </Field>
+                        </div>
+                      )}
                       <button
                         onClick={() => {
                           const next = [...(cfg.buttons || [])];
@@ -781,7 +809,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
         )}
       </Section>
 
-      <Section title="Налаштування анімації">
+      <Section title="Налаштування анімації віджета">
         <Field label="Анімація меню" hint="Ефект появи каналів">
           <Select
             value={cfg.menuAnimation || 'fade'}
@@ -798,21 +826,6 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api }) {
         </Field>
       </Section>
 
-      <Section title="Форма зворотного дзвінка">
-        <p className="text-xs text-slate-400 mb-3">Налаштування popup-форми, яка відкривається при натисканні на канал «Зворотній дзвінок»</p>
-        <Field label="Заголовок">
-          <Input value={cfg.callbackTitle} onChange={v => update('config.callbackTitle', v)} placeholder="Замовити дзвінок" />
-        </Field>
-        <Field label="Текст">
-          <Input value={cfg.callbackText} onChange={v => update('config.callbackText', v)} />
-        </Field>
-        <Field label="Текст кнопки">
-          <Input value={cfg.callbackButton} onChange={v => update('config.callbackButton', v)} placeholder="Зателефонуйте мені" />
-        </Field>
-        <Field label="Webhook URL (n8n)" hint="Куди надсилати заявки зі зворотного дзвінка">
-          <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
-        </Field>
-      </Section>
       <TriggersConfig triggers={triggers} update={update} simple={true} />
     </>
   );

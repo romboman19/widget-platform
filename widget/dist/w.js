@@ -604,7 +604,15 @@
         if (window.$chatwoot) window.$chatwoot.toggle('open');
         else if (channel.value) window.open(channel.value, '_blank');
         break;
-      case 'callback': showCallbackForm(widget); break;
+      case 'callback': {
+        // If channel has callbackWidgetId, find and render that specific POPUP_CALLBACK widget
+        if (channel.callbackWidgetId && siteConfig) {
+          const cbWidget = siteConfig.widgets.find(w => w.id === channel.callbackWidgetId);
+          if (cbWidget) { renderPopupCallback(cbWidget); break; }
+        }
+        // Fallback: use this widget's own callback config (legacy)
+        showCallbackForm(widget); break;
+      }
       case 'custom': if (channel.value) window.open(channel.value, '_blank'); break;
     }
   }
