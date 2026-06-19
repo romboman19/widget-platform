@@ -27,6 +27,11 @@ export function denormalizeFloatingMenuConfig(config) {
         iconId: ch.iconId, // Keep iconId, NOT iconUrl
         // iconUrl is runtime-resolved, don't store
         iconClass: ch.iconClass, // Keep for legacy
+        // Per-channel design settings
+        sizePx: ch.sizePx,
+        iconScale: ch.iconScale,
+        bgColor: ch.bgColor,
+        bgTransparent: ch.bgTransparent,
       })),
       style: btn.style,
       position: btn.position,
