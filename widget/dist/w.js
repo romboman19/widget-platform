@@ -605,10 +605,10 @@
         else if (channel.value) window.open(channel.value, '_blank');
         break;
       case 'callback': {
-        // If channel has callbackWidgetId, find and render that specific POPUP_CALLBACK widget
+        // If channel has callbackWidgetId, find and render that specific POPUP_CALLBACK widget directly
         if (channel.callbackWidgetId && siteConfig) {
           const cbWidget = siteConfig.widgets.find(w => w.id === channel.callbackWidgetId);
-          if (cbWidget) { renderPopupCallback(cbWidget); break; }
+          if (cbWidget) { showCallbackForm(cbWidget); break; }
         }
         // Fallback: use this widget's own callback config (legacy)
         showCallbackForm(widget); break;
@@ -660,7 +660,6 @@
       '+374': '{+374}00000000',
       '+995': '{+995}000000000',
       '+375': '{+375}000000000',
-      '+7': '{+7}0000000000',
     };
     return patterns[cc] || '{+380}000000000';
   }
@@ -835,9 +834,10 @@
       fields.forEach((field) => {
         if (field.type === 'phone') {
           const phoneInput = document.getElementById('wp-field-' + field.id);
-          if (phoneInput && field.phoneMask) {
+          const mask = field.phoneMask || '+380';
+          if (phoneInput) {
             loadIMask().then(IMask => {
-              IMask(phoneInput, { mask: buildMaskPattern(field.phoneMask) });
+              IMask(phoneInput, { mask: buildMaskPattern(mask) });
             }).catch(e => console.warn('IMask load failed:', e));
           }
         }

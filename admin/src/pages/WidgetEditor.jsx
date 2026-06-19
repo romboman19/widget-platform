@@ -932,7 +932,6 @@ function PopupCallbackConfig({ cfg, triggers, update }) {
                     { value: '+374', label: 'Вірменія +374' },
                     { value: '+995', label: 'Грузія +995' },
                     { value: '+375', label: 'Білорусь +375' },
-                    { value: '+7', label: 'Росія +7' },
                   ]}
                 />
               </Field>
