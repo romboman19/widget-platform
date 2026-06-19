@@ -635,9 +635,111 @@
     return el('span', {}, ICONS.custom);
   }
 
+  // ─── IMask loader ───
+  let _imaskPromise = null;
+  function loadIMask() {
+    if (_imaskPromise) return _imaskPromise;
+    _imaskPromise = new Promise((resolve, reject) => {
+      if (window.IMask) return resolve(window.IMask);
+      const scr = document.createElement('script');
+      scr.src = 'https://unpkg.com/imask';
+      scr.async = true;
+      scr.onload = () => resolve(window.IMask);
+      scr.onerror = () => reject(new Error('IMask load error'));
+      document.body.appendChild(scr);
+    });
+    return _imaskPromise;
+  }
+
+  // ─── Build mask pattern for IMask from country code ───
+  function buildMaskPattern(cc) {
+    // e.g. +380 -> '{+380}000000000' (12 digits total for UA)
+    const patterns = {
+      '+380': '{+380}000000000',
+      '+48': '{+48}000000000',
+      '+374': '{+374}00000000',
+      '+995': '{+995}000000000',
+      '+375': '{+375}000000000',
+      '+7': '{+7}0000000000',
+    };
+    return patterns[cc] || '{+380}000000000';
+  }
+
+  // ─── Working hours check ───
+  function checkWorkingHours(schedule) {
+    if (!schedule) return true;
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun, 1=Mon, ...
+    const dayMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const key = dayMap[day];
+    const dayCfg = schedule[key];
+    if (!dayCfg || !dayCfg.enabled) return false;
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const [fh, fm] = (dayCfg.from || '09:30').split(':').map(Number);
+    const [th, tm] = (dayCfg.to || '18:00').split(':').map(Number);
+    return mins >= (fh * 60 + fm) && mins < (th * 60 + tm);
+  }
+
+  // ─── Schedule info for off-hours ───
+  function getScheduleInfo(schedule, defaultTime) {
+    if (!schedule) return null;
+    const now = new Date();
+    const day = now.getDay();
+    const dayMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const tomorrow = new Date(now.getTime() + 86400000);
+    const dayAfter = new Date(now.getTime() + 2 * 86400000);
+    const fmt = (d) => d.toISOString().split('T')[0];
+
+    // If today is working day but before hours -> today
+    const todayKey = dayMap[day];
+    const todayCfg = schedule[todayKey];
+    if (todayCfg && todayCfg.enabled) {
+      const mins = now.getHours() * 60 + now.getMinutes();
+      const [fh, fm] = (todayCfg.from || '09:30').split(':').map(Number);
+      if (mins < (fh * 60 + fm)) return { label: 'Сьогодні', date: fmt(now) };
+    }
+
+    // Check tomorrow
+    const tomorrowKey = dayMap[tomorrow.getDay()];
+    const tomorrowCfg = schedule[tomorrowKey];
+    if (tomorrowCfg && tomorrowCfg.enabled) {
+      return { label: 'Завтра', date: fmt(tomorrow) };
+    }
+
+    // Check day after tomorrow
+    const dayAfterKey = dayMap[dayAfter.getDay()];
+    const dayAfterCfg = schedule[dayAfterKey];
+    if (dayAfterCfg && dayAfterCfg.enabled) {
+      return { label: dayAfterKey === 'mon' ? 'в Понеділок' : 'Незабаром', date: fmt(dayAfter) };
+    }
+
+    // Fallback: find next working day
+    for (let i = 2; i < 7; i++) {
+      const d = new Date(now.getTime() + i * 86400000);
+      const k = dayMap[d.getDay()];
+      if (schedule[k] && schedule[k].enabled) return { label: 'Незабаром', date: fmt(d) };
+    }
+
+    return { label: 'Завтра', date: fmt(tomorrow) };
+  }
+
   function showCallbackForm(widget) {
     const cfg = widget.config;
-    const color = cfg.color || '#1f93ff';
+    const color = cfg.color || '#29574c';
+    const bgColor = cfg.popupBgColor || '#f4f4f4';
+    const textColor = cfg.popupTextColor || '#0a0a0a';
+    const popupWidth = cfg.popupWidth || 300;
+    const popupRadius = cfg.popupRadius || 6;
+    const fields = cfg.fields || [{ id: 'phone', type: 'phone', label: 'Телефон', required: true, mappedTo: 'phone' }];
+
+    // ─── Working hours check ───
+    const useWH = cfg.useWorkingHours || false;
+    const isWorking = useWH ? checkWorkingHours(cfg.workSchedule) : true;
+    const scheduleInfo = useWH ? getScheduleInfo(cfg.workSchedule, cfg.defaultTime) : null;
+
+    // ─── Title and button text based on working hours ───
+    const title = isWorking ? (cfg.callbackTitle || 'Зателефонувати Вам?') : (cfg.callbackTitleOffHours || 'Зателефонуємо Вам о:');
+    const buttonText = isWorking ? (cfg.callbackButton || 'Передзвоніть мені зараз') : (cfg.callbackButtonOffHours || 'Чекаю на дзвінок');
 
     // Create modal with proper ARIA
     const overlay = el('div', {
@@ -647,88 +749,183 @@
       'aria-labelledby': 'wp-cb-title',
       onClick: (e) => { if (e.target === overlay) closePopup(overlay); },
       onKeyDown: (e) => {
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          closePopup(overlay);
-        }
+        if (e.key === 'Escape') { e.preventDefault(); closePopup(overlay); }
       }
     });
 
     const titleId = 'wp-cb-title';
-    const box = el('div', { class: 'wp-popup-box', role: 'document' }, [
+
+    // ─── Build form children from configured fields ───
+    const formChildren = [];
+    fields.forEach((field) => {
+      const inputId = 'wp-field-' + field.id;
+      formChildren.push(el('label', { class: 'wp-sr-only', for: inputId }, field.label));
+      if (field.type === 'select') {
+        const opts = (field.options || '').split(',').map(o => o.trim()).filter(Boolean);
+        formChildren.push(el('select', {
+          id: inputId,
+          class: 'wp-form-input',
+          'data-field-id': field.id,
+          'data-mapped-to': field.mappedTo || field.id,
+          'data-field-type': field.type,
+          required: field.required || false,
+        }, opts.map(o => el('option', { value: o }, o))));
+      } else {
+        formChildren.push(el('input', {
+          id: inputId,
+          class: 'wp-form-input',
+          type: field.type === 'phone' ? 'tel' : (field.type === 'email' ? 'email' : 'text'),
+          placeholder: field.label + (field.required ? ' *' : ''),
+          'data-field-id': field.id,
+          'data-mapped-to': field.mappedTo || field.id,
+          'data-field-type': field.type,
+          'data-phone-mask': field.phoneMask || '',
+          required: field.required || false,
+          'aria-required': field.required ? 'true' : 'false',
+        }));
+      }
+    });
+
+    // ─── Time picker (only if off-hours and working hours enabled) ───
+    if (useWH && !isWorking && scheduleInfo) {
+      formChildren.push(el('input', {
+        id: 'wp-schedule-time',
+        class: 'wp-form-input',
+        type: 'time',
+        value: cfg.defaultTime || '09:30',
+        step: '900',
+        'data-field-id': 'schedule_time',
+        'data-mapped-to': 'schedule_time',
+      }));
+      formChildren.push(el('div', { style: { margin: '10px 0' } }, ''));
+    }
+
+    // ─── Submit button ───
+    formChildren.push(el('button', {
+      type: 'submit',
+      class: 'wp-form-submit',
+      style: { background: color },
+    }, buttonText));
+
+    const box = el('div', {
+      class: 'wp-popup-box',
+      role: 'document',
+      style: { background: bgColor, width: popupWidth + 'px', maxWidth: '95%', borderRadius: popupRadius + 'px', color: textColor },
+    }, [
       el('button', {
         class: 'wp-popup-close',
         'aria-label': 'Закрити',
-        onClick: () => closePopup(overlay)
+        onClick: () => closePopup(overlay),
       }, ICONS.close),
-      el('h3', { id: titleId, class: 'wp-popup-title' }, cfg.callbackTitle || 'Замовити дзвінок'),
-      el('p', { class: 'wp-popup-text' }, cfg.callbackText || 'Залиште номер і ми зателефонуємо вам'),
+      el('h3', { id: titleId, class: 'wp-popup-title', style: { color: textColor } }, title),
       el('form', {
-        onSubmit: (e) => { e.preventDefault(); submitCallback(widget, overlay); }
-      }, [
-        el('label', { class: 'wp-sr-only', for: 'wp-cb-name' }, "Ваше ім'я"),
-        el('input', {
-          id: 'wp-cb-name',
-          class: 'wp-form-input',
-          type: 'text',
-          placeholder: "Ваше ім'я",
-          'aria-required': 'false'
-        }),
-        el('label', { class: 'wp-sr-only', for: 'wp-cb-phone' }, 'Телефон'),
-        el('input', {
-          id: 'wp-cb-phone',
-          class: 'wp-form-input',
-          type: 'tel',
-          placeholder: 'Телефон *',
-          required: true,
-          'aria-required': 'true',
-          pattern: '[+]?[0-9\s\-\(\)]{10,}'
-        }),
-        el('button', {
-          type: 'submit',
-          class: 'wp-form-submit',
-          style: { background: color },
-        }, cfg.callbackButton || 'Зателефонуйте мені'),
-      ]),
+        onSubmit: (e) => { e.preventDefault(); submitCallback(widget, overlay); },
+      }, formChildren),
+      el('div', { id: 'wp-callback-msg', style: { marginTop: '10px', color: 'green', fontSize: '14px' } }, ''),
     ]);
 
     overlay.appendChild(box);
     document.body.appendChild(overlay);
+
     requestAnimationFrame(() => {
       overlay.classList.add('visible');
       applyAnimation(box, cfg.animation || 'zoom');
+
+      // ─── Apply IMask to phone fields ───
+      fields.forEach((field) => {
+        if (field.type === 'phone') {
+          const phoneInput = document.getElementById('wp-field-' + field.id);
+          if (phoneInput && field.phoneMask) {
+            loadIMask().then(IMask => {
+              IMask(phoneInput, { mask: buildMaskPattern(field.phoneMask) });
+            }).catch(e => console.warn('IMask load failed:', e));
+          }
+        }
+      });
+
       // Focus trap
       const focusable = box.querySelectorAll('button, input, [href], select, textarea, [tabindex]:not([tabindex="-1"])');
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
       first?.focus();
-      
-      // Trap focus
       box.addEventListener('keydown', (e) => {
         if (e.key !== 'Tab') return;
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last?.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first?.focus();
-        }
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       });
     });
     track('view', widget.id, 'callback_form');
   }
 
   async function submitCallback(widget, overlay) {
-    const name = document.getElementById('wp-cb-name')?.value;
-    const phone = document.getElementById('wp-cb-phone')?.value;
-    if (!phone) { document.getElementById('wp-cb-phone').style.borderColor = '#e74c3c'; return; }
+    const cfg = widget.config;
+    const fields = cfg.fields || [{ id: 'phone', type: 'phone', label: 'Телефон', required: true, mappedTo: 'phone' }];
+    const msgEl = document.getElementById('wp-callback-msg');
+    const successMsg = cfg.successMessage || 'Запит прийнято. Очікуйте дзвінка.';
+    const errorMsg = cfg.errorMessage || 'Помилка. Спробуйте ще.';
 
-    const data = { siteId, widgetId: widget.id, name, phone, page: location.href, device: DEVICE };
+    // ─── Collect field values ───
+    const data = { siteId, widgetId: widget.id, page: location.href, device: DEVICE };
+    let hasError = false;
+
+    fields.forEach((field) => {
+      const input = document.getElementById('wp-field-' + field.id);
+      if (!input) return;
+      const val = input.value.trim();
+      const key = field.mappedTo || field.id;
+
+      if (field.required && !val) {
+        input.style.borderColor = '#e74c3c';
+        hasError = true;
+      } else if (field.type === 'phone' && val) {
+        // Strip non-digits for validation
+        const digits = val.replace(/[^0-9]/g, '');
+        if (digits.length < 9) { input.style.borderColor = '#e74c3c'; hasError = true; }
+        else { data[key] = val; }
+      } else {
+        data[key] = val;
+      }
+    });
+
+    // ─── Schedule time (if off-hours) ───
+    const timeInput = document.getElementById('wp-schedule-time');
+    if (timeInput && timeInput.value) {
+      const [hour, minute] = timeInput.value.split(':');
+      const scheduleInfo = getScheduleInfo(cfg.workSchedule, cfg.defaultTime);
+      if (scheduleInfo) {
+        data.schedule = { date: scheduleInfo.date, hour, minute };
+      }
+    }
+
+    if (hasError) {
+      if (msgEl) { msgEl.textContent = 'Заповніть обовʼязкові поля'; msgEl.style.color = '#e74c3c'; }
+      return;
+    }
+
+    // ─── Send to analytics ───
     fetch(BASE_URL + '/api/analytics/form', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, credentials: 'omit' });
 
-    const box = overlay.querySelector('.wp-popup-box');
-    box.innerHTML = '<div class="wp-form-success">✓ Дякуємо! Ми зателефонуємо вам найближчим часом.</div>';
-    setTimeout(() => closePopup(overlay), 3000);
+    // ─── Send to webhook ───
+    if (cfg.webhookUrl) {
+      try {
+        const resp = await fetch(cfg.webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (msgEl) { msgEl.textContent = resp.ok ? successMsg : errorMsg; msgEl.style.color = resp.ok ? 'green' : '#e74c3c'; }
+      } catch (err) {
+        if (msgEl) { msgEl.textContent = errorMsg; msgEl.style.color = '#e74c3c'; }
+      }
+    } else {
+      if (msgEl) { msgEl.textContent = successMsg; msgEl.style.color = 'green'; }
+    }
+
+    // ─── Auto-close ───
+    if (cfg.autoClose) {
+      const delay = (cfg.autoCloseDelay || 3) * 1000;
+      setTimeout(() => closePopup(overlay), delay);
+    }
   }
 
   function renderPopupBanner(widget) {
@@ -801,6 +998,10 @@
 
   function renderPopupCallback(widget) {
     const triggers = widget.triggers || {};
+
+    // If trigger mode is 'button', do nothing here - widget is only called from FLOATING_MENU
+    if (triggers.triggerMode === 'button') return;
+
     const cookieKey = 'wp_cb_' + widget.id;
     if (triggers.frequency === 'once' && getCookie(cookieKey)) return;
 
@@ -820,10 +1021,7 @@
       window.addEventListener('scroll', handler, { passive: true });
     }
 
-    // Exit-intent trigger
     setupExitIntent(widget, show);
-
-    // Idle trigger
     setupIdleTrigger(widget, show);
 
     if (!triggers.delay && !triggers.scrollPercent && !triggers.exitIntent && !triggers.idleTimeout) {

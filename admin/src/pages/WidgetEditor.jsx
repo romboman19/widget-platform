@@ -831,28 +831,251 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
 
 // ─── POPUP CALLBACK CONFIG ───
 function PopupCallbackConfig({ cfg, triggers, update }) {
+  // ─── Trigger mode ───
+  const triggerMode = triggers.triggerMode || 'auto';
+  const setTriggerMode = (v) => update('triggers.triggerMode', v);
+
+  // ─── Fields management ───
+  const fields = cfg.fields || [
+    { id: 'phone', type: 'phone', label: 'Телефон', required: true, mappedTo: 'phone' },
+  ];
+  const setFields = (next) => update('config.fields', next);
+
+  function addField() {
+    const next = [...fields, { id: 'f_' + Date.now(), type: 'text', label: 'Нове поле', required: false, mappedTo: '' }];
+    setFields(next);
+  }
+  function removeField(id) {
+    setFields(fields.filter(f => f.id !== id));
+  }
+  function updateField(id, key, val) {
+    setFields(fields.map(f => f.id === id ? { ...f, [key]: val } : f));
+  }
+
+  // ─── Working hours management ───
+  const useWorkingHours = cfg.useWorkingHours || false;
+  const workSchedule = cfg.workSchedule || {};
+  const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд'];
+  const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+  function toggleDay(key) {
+    const current = workSchedule[key] || { enabled: false, from: '09:30', to: '18:00' };
+    update(`config.workSchedule.${key}`, { ...current, enabled: !current.enabled });
+  }
+  function setDayTime(key, field, val) {
+    const current = workSchedule[key] || { enabled: false, from: '09:30', to: '18:00' };
+    update(`config.workSchedule.${key}`, { ...current, [field]: val });
+  }
+
   return (
     <>
-      <Section title="Форма">
-        <Field label="Колір">
-          <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
+      {/* ─── Trigger Mode ─── */}
+      <Section title="Режим виклику">
+        <Field label="Як викликається віджет">
+          <Select
+            value={triggerMode}
+            onChange={v => setTriggerMode(v)}
+            options={[
+              { value: 'auto', label: 'Авто (за тригерами: затримка, скрол, idle, exit)' },
+              { value: 'button', label: 'Виклик по кнопці (з FLOATING_MENU)' },
+            ]}
+          />
         </Field>
-        <Field label="Заголовок">
-          <Input value={cfg.callbackTitle} onChange={v => update('config.callbackTitle', v)} />
+        {triggerMode === 'button' && (
+          <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded-lg">
+            Цей віджет викликається лише по кнопці з FLOATING_MENU. Інші тригери не працюють.
+          </p>
+        )}
+      </Section>
+
+      {/* ─── Form Fields ─── */}
+      <Section title="Поля форми">
+        <p className="text-xs text-slate-400 mb-3">Додавайте поля форми. Поле "Телефон" обов'язкове з маскою.</p>
+        {fields.map((field) => (
+          <div key={field.id} className="bg-slate-50 rounded-lg p-3 mb-2 border border-slate-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Select
+                value={field.type}
+                onChange={v => updateField(field.id, 'type', v)}
+                options={[
+                  { value: 'phone', label: 'Телефон (з маскою)' },
+                  { value: 'text', label: 'Текстове поле' },
+                  { value: 'name', label: 'Імʼя' },
+                  { value: 'email', label: 'Email' },
+                  { value: 'select', label: 'Випадаючий список' },
+                ]}
+                className="flex-1"
+              />
+              <button
+                onClick={() => removeField(field.id)}
+                className="p-1 text-slate-400 hover:text-red-500"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-2">
+              <Field label="Назва поля">
+                <Input value={field.label} onChange={v => updateField(field.id, 'label', v)} />
+              </Field>
+              <Field label="Мапінг у вебхук (ключ)">
+                <Input value={field.mappedTo || ''} onChange={v => updateField(field.id, 'mappedTo', v)} placeholder={field.type} />
+              </Field>
+            </div>
+            {field.type === 'phone' && (
+              <Field label="Маска телефону (країна)">
+                <Select
+                  value={field.phoneMask || '+380'}
+                  onChange={v => updateField(field.id, 'phoneMask', v)}
+                  options={[
+                    { value: '+380', label: 'Україна +380' },
+                    { value: '+48', label: 'Польща +48' },
+                    { value: '+374', label: 'Вірменія +374' },
+                    { value: '+995', label: 'Грузія +995' },
+                    { value: '+375', label: 'Білорусь +375' },
+                    { value: '+7', label: 'Росія +7' },
+                  ]}
+                />
+              </Field>
+            )}
+            {field.type === 'select' && (
+              <Field label="Варіанти (через кому)">
+                <Input value={field.options || ''} onChange={v => updateField(field.id, 'options', v)} placeholder="Варіант 1, Варіант 2" />
+              </Field>
+            )}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={field.required || false}
+                onChange={e => updateField(field.id, 'required', e.target.checked)}
+              />
+              Обов'язкове поле
+            </label>
+          </div>
+        ))}
+        <button
+          onClick={addField}
+          className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-sm text-slate-500 hover:border-blue-400 hover:text-blue-500"
+        >
+          + Додати поле
+        </button>
+      </Section>
+
+      {/* ─── Texts ─── */}
+      <Section title="Тексти">
+        <Field label="Заголовок (робочий час)">
+          <Input value={cfg.callbackTitle} onChange={v => update('config.callbackTitle', v)} placeholder="Ми на звʼязку. Зателефонувати Вам?" />
         </Field>
-        <Field label="Текст">
-          <Input value={cfg.callbackText} onChange={v => update('config.callbackText', v)} />
+        <Field label="Заголовок (поза робочим часом)">
+          <Input value={cfg.callbackTitleOffHours} onChange={v => update('config.callbackTitleOffHours', v)} placeholder="Зараз неробочий час. Зателефонуємо Вам о:" />
         </Field>
-        <Field label="Текст кнопки">
-          <Input value={cfg.callbackButton} onChange={v => update('config.callbackButton', v)} />
+        <Field label="Текст кнопки (робочий час)">
+          <Input value={cfg.callbackButton} onChange={v => update('config.callbackButton', v)} placeholder="Передзвоніть мені зараз" />
         </Field>
-        <Field label="Webhook URL (n8n)">
+        <Field label="Текст кнопки (поза робочим часом)">
+          <Input value={cfg.callbackButtonOffHours} onChange={v => update('config.callbackButtonOffHours', v)} placeholder="Чекаю на дзвінок" />
+        </Field>
+      </Section>
+
+      {/* ─── Working Hours ─── */}
+      <Section title="Робочий час">
+        <label className="flex items-center gap-2 text-sm mb-3">
+          <input
+            type="checkbox"
+            checked={useWorkingHours}
+            onChange={e => update('config.useWorkingHours', e.target.checked)}
+          />
+          Використовувати робочий час
+        </label>
+        {useWorkingHours && (
+          <div className="space-y-2">
+            <p className="text-xs text-slate-400">Графік роботи по днях:</p>
+            {days.map((day, i) => {
+              const key = dayKeys[i];
+              const dayCfg = workSchedule[key] || { enabled: false, from: '09:30', to: '18:00' };
+              return (
+                <div key={key} className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 w-16">
+                    <input
+                      type="checkbox"
+                      checked={dayCfg.enabled || false}
+                      onChange={() => toggleDay(key)}
+                    />
+                    {day}
+                  </label>
+                  {dayCfg.enabled && (
+                    <div className="flex items-center gap-2">
+                      <Input type="time" value={dayCfg.from || '09:30'} onChange={v => setDayTime(key, 'from', v)} className="w-24" />
+                      <span className="text-slate-400">-</span>
+                      <Input type="time" value={dayCfg.to || '18:00'} onChange={v => setDayTime(key, 'to', v)} className="w-24" />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <Field label="Час за замовчуванням (для планування дзвінка)">
+              <Input type="time" value={cfg.defaultTime || '09:30'} onChange={v => update('config.defaultTime', v)} className="w-24" />
+            </Field>
+          </div>
+        )}
+      </Section>
+
+      {/* ─── Webhook ─── */}
+      <Section title="Вебхук">
+        <Field label="Webhook URL (n8n)" hint="Куди надсилати дані форми">
           <Input value={cfg.webhookUrl} onChange={v => update('config.webhookUrl', v)} placeholder="https://n8n.yourdomain.ua/webhook/..." />
         </Field>
-        <AnimationConfig cfg={cfg} update={update} />
       </Section>
-      <DesignConfig cfg={cfg} update={update} />
-      <TriggersConfig triggers={triggers} update={update} />
+
+      {/* ─── Behavior after submit ─── */}
+      <Section title="Поведінка після відправки">
+        <Field label="Текст при успіху">
+          <Input value={cfg.successMessage} onChange={v => update('config.successMessage', v)} placeholder="Запит прийнято. Очікуйте дзвінка." />
+        </Field>
+        <Field label="Текст при помилці">
+          <Input value={cfg.errorMessage} onChange={v => update('config.errorMessage', v)} placeholder="Помилка. Спробуйте ще." />
+        </Field>
+        <label className="flex items-center gap-2 text-sm mb-2">
+          <input
+            type="checkbox"
+            checked={cfg.autoClose || false}
+            onChange={e => update('config.autoClose', e.target.checked)}
+          />
+          Закрити попап після відправки
+        </label>
+        {cfg.autoClose && (
+          <Field label="Закрити через (секунд)">
+            <Input type="number" value={cfg.autoCloseDelay || 3} onChange={v => update('config.autoCloseDelay', parseInt(v) || 3)} className="w-24" />
+          </Field>
+        )}
+      </Section>
+
+      {/* ─── Design ─── */}
+      <Section title="Дизайн попапа">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Колір кнопки">
+            <ColorPicker value={cfg.color} onChange={v => update('config.color', v)} />
+          </Field>
+          <Field label="Колір фону">
+            <ColorPicker value={cfg.popupBgColor} onChange={v => update('config.popupBgColor', v)} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Ширина (px)">
+            <Input type="number" value={cfg.popupWidth || 300} onChange={v => update('config.popupWidth', parseInt(v) || 300)} />
+          </Field>
+          <Field label="Радіус бордюра (px)">
+            <Input type="number" value={cfg.popupRadius || 6} onChange={v => update('config.popupRadius', parseInt(v) || 6)} />
+          </Field>
+        </div>
+        <Field label="Колір тексту">
+          <ColorPicker value={cfg.popupTextColor} onChange={v => update('config.popupTextColor', v)} />
+        </Field>
+      </Section>
+
+      <AnimationConfig cfg={cfg} update={update} />
+
+      {/* ─── Triggers (only in auto mode) ─── */}
+      {triggerMode === 'auto' && <TriggersConfig triggers={triggers} update={update} />}
     </>
   );
 }
