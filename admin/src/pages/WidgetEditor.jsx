@@ -676,26 +676,6 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                           channelType={ch.type}
                         />
                       </div>
-                      {ch.type === 'callback' && (
-                        <div className="w-full mt-1">
-                          <Field label="Віджет зворотного зв'язку" hint="Оберіть існуючий POPUP_CALLBACK віджет">
-                            <Select
-                              value={ch.callbackWidgetId || ''}
-                              onChange={v => {
-                                const next = [...(cfg.buttons || [])];
-                                const newChannels = [...(btn.channels || [])];
-                                newChannels[chIndex] = { ...ch, callbackWidgetId: v || null };
-                                next[btnIndex] = { ...btn, channels: newChannels };
-                                update('config.buttons', next);
-                              }}
-                              options={[
-                                { value: '', label: '— Не обрано —' },
-                                ...callbackWidgets.map(w => ({ value: w.id, label: w.name || 'Без назви' })),
-                              ]}
-                            />
-                          </Field>
-                        </div>
-                      )}
                       <button
                         onClick={() => {
                           const next = [...(cfg.buttons || [])];
