@@ -1099,6 +1099,17 @@
             menuStates[btnIndex] = !isOpen;
             
             if (!isOpen) {
+              // Open the menu ABOVE the top-most button of the whole stack so it never
+              // overlaps the other buttons (they stay visible below).
+              const wrapperEl = menuEl.parentElement;
+              const containerEl = wrapperEl ? wrapperEl.parentElement : null;
+              if (containerEl && wrapperEl && corner.includes('bottom')) {
+                const cRect = containerEl.getBoundingClientRect();
+                const wRect = wrapperEl.getBoundingClientRect();
+                const lift = (wRect.bottom - cRect.top) + 10;
+                menuEl.style.bottom = lift + 'px';
+                menuEl.style.marginBottom = '0';
+              }
               track('open', widget.id);
               applyAnimation(menuEl, cfg.menuAnimation || 'fade');
             }
@@ -1153,26 +1164,7 @@
             });
           }, 250);
         };
-        cycle();
-        setInterval(() => {
-          if (delay) setTimeout(cycle, delay);
-          else cycle();
-          ci = (ci + 1) % btn.channels.length;
-          const nextIcon = renderButtonIcon(btn, btn.channels[ci], _iconSize);
-          iconWrap.style.transition = 'opacity .25s, transform .25s';
-          iconWrap.style.opacity = '0';
-          iconWrap.style.transform = 'translateX(-40%)';
-          setTimeout(() => {
-            setIcon(nextIcon);
-            iconWrap.style.transition = 'none';
-            iconWrap.style.transform = 'translateX(40%)';
-            requestAnimationFrame(() => {
-              iconWrap.style.transition = 'opacity .25s, transform .25s';
-              iconWrap.style.opacity = '1';
-              iconWrap.style.transform = 'translateX(0)';
-            });
-          }, 250);
-        }, speed);
+        setInterval(cycle, speed);
       }
 
       // Attention: general (cfg) animates the WHOLE button; per-button animates the ICON.
