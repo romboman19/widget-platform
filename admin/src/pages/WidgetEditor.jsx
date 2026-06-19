@@ -708,6 +708,24 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                         <X size={14} />
                       </button>
                     </div>
+                    {ch.type === 'callback' && (
+                      <Field label="Віджет зворотного зв'язку" hint="Оберіть існуючий POPUP_CALLBACK віджет">
+                        <Select
+                          value={ch.callbackWidgetId || ''}
+                          onChange={v => {
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            newChannels[chIndex] = { ...ch, callbackWidgetId: v || null };
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                          options={[
+                            { value: '', label: '— Не обрано —' },
+                            ...callbackWidgets.map(w => ({ value: w.id, label: w.name || 'Без назви' })),
+                          ]}
+                        />
+                      </Field>
+                    )}
                     <div className="w-full grid grid-cols-3 gap-2 text-xs">
                         <label className="flex flex-col gap-1">
                           <span className="text-slate-400">Розмір (px)</span>
