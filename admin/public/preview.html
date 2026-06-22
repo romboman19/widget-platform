@@ -13,12 +13,90 @@
     }
     
     body {
-      background: #ffffff;
+      background: #f0f0f0;
       min-height: 100vh;
+      padding: 20px;
+    }
+    
+    /* Fake website content for context */
+    .fake-site {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .fake-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0 20px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 20px;
+    }
+    .fake-logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: #29574c;
+    }
+    .fake-nav {
+      display: flex;
+      gap: 15px;
+      font-size: 13px;
+      color: #666;
+    }
+    .fake-hero {
+      background: linear-gradient(135deg, #29574c, #1a3a32);
+      color: #fff;
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .fake-hero h1 { font-size: 22px; margin-bottom: 10px; }
+    .fake-hero p { font-size: 13px; opacity: .8; }
+    .fake-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+    }
+    .fake-card {
+      background: #f8f8f8;
+      border-radius: 6px;
+      padding: 15px;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+    }
+    @media (max-width: 480px) {
+      .fake-nav { display: none; }
+      .fake-hero h1 { font-size: 18px; }
+      .fake-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
+  <div class="fake-site">
+    <div class="fake-header">
+      <span class="fake-logo">HUNTER.rv</span>
+      <div class="fake-nav">
+        <span>Каталог</span>
+        <span>Доставка</span>
+        <span>Контакти</span>
+      </div>
+    </div>
+    <div class="fake-hero">
+      <h1>Магазин зброї та туристичного спорядження</h1>
+      <p>Найкращі ціни в Україні</p>
+    </div>
+    <div class="fake-grid">
+      <div class="fake-card">Товар 1</div>
+      <div class="fake-card">Товар 2</div>
+      <div class="fake-card">Товар 3</div>
+      <div class="fake-card">Товар 4</div>
+    </div>
+  </div>
   <script>
     // Get widget config from URL
     const params = new URLSearchParams(window.location.search);
