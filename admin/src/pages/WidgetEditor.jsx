@@ -284,13 +284,12 @@ export default function WidgetEditor() {
           <RulesConfig rules={rules} update={update} />
         </div>
 
-        {/* Preview */}
-        <div className="lg:col-span-1">
-          <div className="sticky top-6">
-            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Попередній перегляд</h3>
-            <PreviewPane widget={widget} siteId={siteId} />
-          </div>
-        </div>
+      </div>
+
+      {/* Preview — full width below settings */}
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">Попередній перегляд</h3>
+        <PreviewPane widget={widget} siteId={siteId} />
       </div>
     </div>
   );
@@ -1675,7 +1674,7 @@ function LegacyIconPicker({ value, onChange }) {
 // ─── PREVIEW PANE ───
 // Desktop viewport constants
 const DESKTOP_W = 1280;
-const DESKTOP_H = 800;
+const DESKTOP_H = 720;
 // Mobile viewport constants
 const MOBILE_W = 375;
 const MOBILE_H = 667;
@@ -1773,7 +1772,7 @@ function PreviewPane({ widget, siteId }) {
       <div
         ref={containerRef}
         className="relative bg-slate-100 flex items-start justify-center"
-        style={{ padding: isDesktop ? '16px' : '24px', minHeight: isDesktop ? desktopContainerH + 32 : mobileScaledH + 48 }}
+        style={{ padding: '16px', height: isDesktop ? desktopContainerH + 32 : mobileScaledH + 48 }}
       >
         {isDesktop ? (
           /* Desktop: scaled iframe in browser-like frame */
