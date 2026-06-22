@@ -84,6 +84,7 @@ export default async function siteRoutes(app) {
     const since = new Date();
     since.setDate(since.getDate() - parseInt(days));
 
+    try {
     // Events by day
     const dailyEvents = await app.prisma.$queryRaw`
       SELECT
@@ -112,10 +113,14 @@ export default async function siteRoutes(app) {
     const totals = await app.prisma.analyticsEvent.groupBy({
       by: ['event'],
       where: { siteId, createdAt: { gte: since } },
-      _count: true,
+      _count: { _all: true },
     });
 
     return { dailyEvents, topChannels, totals };
+    } catch (err) {
+      request.log.error({ err }, 'Analytics query failed');
+      return reply.status(500).send({ error: 'Analytics query failed', detail: err.message });
+    }
   });
 
   // Take screenshot of site using browserless
