@@ -10,13 +10,24 @@ export default function Analytics() {
   const [data, setData] = useState(null);
   const [days, setDays] = useState(30);
   const [loading, setLoading] = useState(true);
+  const [widgets, setWidgets] = useState([]);
+  const [selectedWidget, setSelectedWidget] = useState('');
 
-  useEffect(() => { load(); }, [siteId, days]);
+  useEffect(() => { loadWidgets(); }, [siteId]);
+  useEffect(() => { load(); }, [siteId, days, selectedWidget]);
+
+  async function loadWidgets() {
+    try {
+      const res = await api(`/sites/${siteId}/widgets`);
+      setWidgets(res);
+    } catch {}
+  }
 
   async function load() {
     setLoading(true);
     try {
-      const res = await api(`/sites/${siteId}/analytics?days=${days}`);
+      const widgetParam = selectedWidget ? `&widgetId=${selectedWidget}` : '';
+      const res = await api(`/sites/${siteId}/analytics?days=${days}${widgetParam}`);
       setData(res);
     } catch {}
     setLoading(false);
