@@ -1824,6 +1824,7 @@ function PreviewPane({ widget, siteId }) {
                   height: mobileFrameH,
                 }}
                 title="Widget Preview Mobile"
+                onLoad={handleIframeLoad}
               />
             </div>
           </div>
