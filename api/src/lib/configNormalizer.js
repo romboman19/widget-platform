@@ -96,6 +96,7 @@ export function denormalizeFloatingMenuConfig(config) {
         iconScale: ch.iconScale,
         bgColor: ch.bgColor,
         bgTransparent: ch.bgTransparent,
+        callbackWidgetId: ch.callbackWidgetId,
       })),
       style: btn.style,
       position: btn.position,
