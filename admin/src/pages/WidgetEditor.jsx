@@ -210,6 +210,7 @@ export default function WidgetEditor() {
           rules: widget.rules,
           enabled: widget.enabled,
           priority: widget.priority,
+          zIndex: widget.zIndex,
         },
       });
       setSaved(true);

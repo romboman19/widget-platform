@@ -58,7 +58,7 @@ export default async function widgetRoutes(app) {
     const site = await verifySite(request, reply);
     if (!site) return;
 
-    const { type, name, config, rules, position, triggers, enabled, priority } = request.body || {};
+    const { type, name, config, rules, position, triggers, enabled, priority, zIndex } = request.body || {};
 
     if (!isValidWidgetType(type)) {
       return reply.status(400).send({ error: 'Invalid widget type' });
@@ -81,6 +81,7 @@ export default async function widgetRoutes(app) {
         triggers: triggers ? sanitizeDeep(triggers) : null,
         enabled: enabled !== undefined ? !!enabled : true,
         priority: Math.max(0, Math.min(parseInt(priority) || 0, 999)),
+        ...(zIndex !== undefined && { zIndex: parseInt(zIndex) || 0 }),
       },
     });
     return widget;
@@ -91,7 +92,7 @@ export default async function widgetRoutes(app) {
     const widget = await verifyWidget(request, reply);
     if (!widget) return;
 
-    const { name, config, rules, position, triggers, enabled, priority } = request.body || {};
+    const { name, config, rules, position, triggers, enabled, priority, zIndex } = request.body || {};
     
     // Denormalize config before saving (for FLOATING_MENU)
     let normalizedConfig = config;
@@ -109,6 +110,7 @@ export default async function widgetRoutes(app) {
         ...(triggers !== undefined && { triggers: triggers ? sanitizeDeep(triggers) : null }),
         ...(enabled !== undefined && { enabled: !!enabled }),
         ...(priority !== undefined && { priority: Math.max(0, Math.min(parseInt(priority) || 0, 999)) }),
+        ...(zIndex !== undefined && { zIndex: parseInt(zIndex) || 0 }),
       },
     });
     return normalizeFloatingMenuConfig(updated);
