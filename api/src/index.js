@@ -61,7 +61,8 @@ app.decorate('prisma', prisma);
 const PUBLIC_URL = process.env.PUBLIC_URL || '';
 app.decorate('getEmbedScript', (siteSlug) => {
   const baseUrl = PUBLIC_URL || '';
-  return `<script src="${baseUrl}/w.js?site=${siteSlug}"></script>`;
+  const version = process.env.WIDGET_VERSION || '1.0.0';
+  return `<script src="${baseUrl}/w.js?site=${siteSlug}&v=${version}" async></script>`;
 });
 
 // ─── Auth middleware ───
