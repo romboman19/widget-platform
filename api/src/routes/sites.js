@@ -89,46 +89,40 @@ export default async function siteRoutes(app) {
       : { siteId, createdAt: { gte: since } };
 
     try {
-    // Events by day
-    const dailyEvents = await app.prisma.$queryRaw`
-      SELECT
-        DATE("createdAt") as date,
-        event,
-        COUNT(*)::int as count
-      FROM "AnalyticsEvent"
-      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
-      ${widgetId ? app.prisma.raw(`AND "widgetId" = ${widgetId}`) : app.prisma.raw('')}
-      GROUP BY DATE("createdAt"), event
-      ORDER BY date ASC
-    `;
+    // Events by day — use Prisma groupBy instead of raw SQL
+    const dailyEventsRaw = await app.prisma.analyticsEvent.groupBy({
+      by: ['createdAt', 'event'],
+      where: prismaWhere,
+      _count: { _all: true },
+    });
+    // Aggregate by date
+    const dailyMap = {};
+    dailyEventsRaw.forEach(row => {
+      const dateStr = new Date(row.createdAt).toISOString().slice(0, 10);
+      if (!dailyMap[dateStr]) dailyMap[dateStr] = { date: dateStr };
+      dailyMap[dateStr][row.event] = (dailyMap[dateStr][row.event] || 0) + row._count._all;
+    });
+    const dailyEvents = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
 
     // Top channels
-    const topChannels = await app.prisma.$queryRaw`
-      SELECT
-        channel,
-        COUNT(*)::int as count
-      FROM "AnalyticsEvent"
-      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
-      ${widgetId ? app.prisma.raw(`AND "widgetId" = ${widgetId}`) : app.prisma.raw('')}
-      AND channel IS NOT NULL
-      GROUP BY channel
-      ORDER BY count DESC
-      LIMIT 20
-    `;
+    const topChannelsRaw = await app.prisma.analyticsEvent.groupBy({
+      by: ['channel'],
+      where: { ...prismaWhere, channel: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { _all: 'desc' } },
+      take: 20,
+    });
+    const topChannels = topChannelsRaw.map(r => ({ channel: r.channel, count: r._count._all }));
 
     // Top pages
-    const topPages = await app.prisma.$queryRaw`
-      SELECT
-        page,
-        COUNT(*)::int as count
-      FROM "AnalyticsEvent"
-      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
-      ${widgetId ? app.prisma.raw(`AND "widgetId" = ${widgetId}`) : app.prisma.raw('')}
-      AND page IS NOT NULL
-      GROUP BY page
-      ORDER BY count DESC
-      LIMIT 20
-    `;
+    const topPagesRaw = await app.prisma.analyticsEvent.groupBy({
+      by: ['page'],
+      where: { ...prismaWhere, page: { not: null } },
+      _count: { _all: true },
+      orderBy: { _count: { _all: 'desc' } },
+      take: 20,
+    });
+    const topPages = topPagesRaw.map(r => ({ page: r.page, count: r._count._all }));
 
     // Totals
     const totals = await app.prisma.analyticsEvent.groupBy({
