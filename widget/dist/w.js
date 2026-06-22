@@ -611,7 +611,7 @@
           const token = cwUrl.searchParams.get('website_token');
           const base = cwUrl.origin + '/';
           if (!token) { window.open(v, '_blank'); break; }
-          window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
+          window.chatwootSettings = { baseUrl: base, websiteToken: token };
           const sdkScript = document.createElement('script');
           sdkScript.src = base + 'packs/js/sdk.js';
           sdkScript.async = true;
