@@ -1157,6 +1157,30 @@ function StickyBarConfig({ cfg, pos, triggers, update }) {
  <Input value={cfg.buttonUrl} onChange={v => update('config.buttonUrl', v)} />
  </Field>
  </div>
+ <Section title="Відступи та розмір">
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Відступ знизу/зверху (px)" hint="Відступ від краю екрана">
+ <Input type="number" value={cfg.bottomOffset ?? 0} onChange={v => update('config.bottomOffset', parseInt(v) || 0)} />
+ </Field>
+ <Field label="Відступ по боках (px)" hint="Лівий і правий одночасно">
+ <Input type="number" value={cfg.sideOffset ?? 0} onChange={v => update('config.sideOffset', parseInt(v) || 0)} />
+ </Field>
+ </div>
+ <Field label="Розмір шрифту">
+ <div className="flex items-center gap-3">
+ <input
+ type="range"
+ min="50"
+ max="200"
+ step="10"
+ value={cfg.fontScale ?? 100}
+ onChange={e => update('config.fontScale', parseInt(e.target.value))}
+ className="flex-1"
+ />
+ <span className="text-sm text-slate-600 w-12 text-right">{cfg.fontScale ?? 100}%</span>
+ </div>
+ </Field>
+ </Section>
  <AnimationConfig cfg={cfg} update={update} />
  </Section>
  <DesignConfig cfg={cfg} update={update} />

@@ -1068,10 +1068,30 @@
     if (getCookie(cookieKey)) return;
 
     const barStyle = applyDesign({ background: cfg.bgColor || '#fff', color: cfg.textColor || '#333' }, cfg);
+    const sideOffset = cfg.sideOffset ?? 0;
+    const bottomOffset = cfg.bottomOffset ?? 0;
+    const fontScale = cfg.fontScale ?? 100;
+    const stickyStyle = {
+      ...barStyle,
+      zIndex: widget.zIndex || 999990,
+    };
+    if (placement === 'bottom') {
+      stickyStyle.bottom = bottomOffset + 'px';
+      stickyStyle.left = sideOffset + 'px';
+      stickyStyle.right = sideOffset + 'px';
+      stickyStyle.width = 'auto';
+    } else {
+      stickyStyle.top = bottomOffset + 'px';
+      stickyStyle.left = sideOffset + 'px';
+      stickyStyle.right = sideOffset + 'px';
+      stickyStyle.width = 'auto';
+    }
+    if (fontScale !== 100) {
+      stickyStyle.fontSize = `calc(14px * ${fontScale / 100})`;
+    }
       const bar = el('div', {
         class: 'wp-widget wp-sticky-bar ' + placement,
-        style: { ...barStyle, zIndex: widget.zIndex || 999990 },
-        style: barStyle,
+        style: stickyStyle,
       }, [
       el('span', {}, cfg.text || ''),
       cfg.buttonText ? el('button', {
