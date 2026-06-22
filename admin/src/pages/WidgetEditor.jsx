@@ -1709,14 +1709,14 @@ function PreviewPane({ widget, siteId }) {
     return `${baseUrl}/preview.html?preview=1`;
   };
   
-  // Device frame
+  // Device frame — proper proportions
   const frameClass = device === 'mobile' 
-    ? 'rounded-[32px] border-[6px] border-slate-800 shadow-2xl' 
+    ? 'rounded-[28px] border-[5px] border-slate-800 shadow-2xl' 
     : 'rounded-lg border border-slate-300 shadow-lg';
   
   const iframeStyle = device === 'mobile'
-    ? { width: 375, height: 667 }
-    : { width: '100%', height: 500 };
+    ? { width: 320, height: 480 }
+    : { width: '100%', height: 420 };
 
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
