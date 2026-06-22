@@ -1686,12 +1686,16 @@ function PreviewPane({ widget, siteId }) {
   const containerRef = useRef(null);
   const [scale, setScale] = useState(1);
 
-  // Compute scale for desktop so it fits the container width
+  // Compute scale so iframe fits the container for both modes
   useEffect(() => {
-    if (device !== 'desktop') return;
     const compute = () => {
       const w = containerRef.current?.offsetWidth || 600;
-      setScale(Math.min((w - 32) / DESKTOP_W, 1));
+      const available = w - 32;
+      if (device === 'desktop') {
+        setScale(Math.min(available / DESKTOP_W, 1));
+      } else {
+        setScale(Math.min(available / MOBILE_W, 1));
+      }
     };
     compute();
     const ro = new ResizeObserver(compute);
@@ -1732,9 +1736,11 @@ function PreviewPane({ widget, siteId }) {
 
   // Outer wrapper height = scaled iframe height
   const desktopContainerH = Math.round(DESKTOP_H * scale);
-  // Mobile: fixed phone frame
+  // Mobile: phone frame scaled to fit container
   const mobileFrameW = MOBILE_W;
   const mobileFrameH = MOBILE_H;
+  const mobileScaledW = Math.round(mobileFrameW * scale);
+  const mobileScaledH = Math.round(mobileFrameH * scale);
 
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
@@ -1767,7 +1773,7 @@ function PreviewPane({ widget, siteId }) {
       <div
         ref={containerRef}
         className="relative bg-slate-100 flex items-start justify-center"
-        style={{ padding: isDesktop ? '16px' : '24px', minHeight: isDesktop ? desktopContainerH + 32 : mobileFrameH + 48 }}
+        style={{ padding: isDesktop ? '16px' : '24px', minHeight: isDesktop ? desktopContainerH + 32 : mobileScaledH + 48 }}
       >
         {isDesktop ? (
           /* Desktop: scaled iframe in browser-like frame */
@@ -1791,25 +1797,36 @@ function PreviewPane({ widget, siteId }) {
             />
           </div>
         ) : (
-          /* Mobile: phone frame */
-          <div
-            className="rounded-[32px] border-[6px] border-slate-800 shadow-2xl overflow-hidden"
-            style={{ width: mobileFrameW, height: mobileFrameH, position: 'relative', background: '#fff' }}
-          >
-            {/* Notch */}
-            <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 80, height: 20, background: '#1e293b', borderBottomLeftRadius: 10, borderBottomRightRadius: 10, zIndex: 10 }} />
-            <iframe
-              ref={iframeRef}
-              src={buildPreviewUrl()}
+          /* Mobile: scaled phone frame */
+          <div style={{ width: mobileScaledW, height: mobileScaledH, position: 'relative' }}>
+            <div
+              className="rounded-[32px] border-[6px] border-slate-800 shadow-2xl overflow-hidden"
               style={{
-                border: 'none',
-                display: 'block',
-                background: '#ffffff',
                 width: mobileFrameW,
                 height: mobileFrameH,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+                background: '#fff',
               }}
-              title="Widget Preview Mobile"
-            />
+            >
+              {/* Notch */}
+              <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 80, height: 20, background: '#1e293b', borderBottomLeftRadius: 10, borderBottomRightRadius: 10, zIndex: 10 }} />
+              <iframe
+                ref={iframeRef}
+                src={buildPreviewUrl()}
+                style={{
+                  border: 'none',
+                  display: 'block',
+                  background: '#ffffff',
+                  width: mobileFrameW,
+                  height: mobileFrameH,
+                }}
+                title="Widget Preview Mobile"
+              />
+            </div>
           </div>
         )}
       </div>
