@@ -771,7 +771,11 @@
       const dayMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
       const nextDate = new Date(scheduleInfo.date + 'T00:00:00');
       const nextDayKey = dayMap[nextDate.getDay()];
-      const nextDayName = dayNames[nextDayKey] || scheduleInfo.label.toLowerCase();
+      // Tomorrow = next calendar day
+      const now = new Date();
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      const isTomorrow = nextDate.toDateString() === tomorrow.toDateString();
+      const nextDayName = isTomorrow ? 'завтра' : (dayNames[nextDayKey] || scheduleInfo.label.toLowerCase());
       title = title.replace(/\{nextWorkDay\}/g, nextDayName);
     }
     const buttonText = isWorking ? (cfg.callbackButton || 'Передзвоніть мені зараз') : (cfg.callbackButtonOffHours || 'Чекаю на дзвінок');
