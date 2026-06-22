@@ -93,14 +93,14 @@ export default async function siteRoutes(app) {
     const dailyEventsRaw = await app.prisma.analyticsEvent.groupBy({
       by: ['createdAt', 'event'],
       where: prismaWhere,
-      _count: { _all: true },
+      _count: { id: true },
     });
     // Aggregate by date
     const dailyMap = {};
     dailyEventsRaw.forEach(row => {
       const dateStr = new Date(row.createdAt).toISOString().slice(0, 10);
       if (!dailyMap[dateStr]) dailyMap[dateStr] = { date: dateStr };
-      dailyMap[dateStr][row.event] = (dailyMap[dateStr][row.event] || 0) + row._count._all;
+      dailyMap[dateStr][row.event] = (dailyMap[dateStr][row.event] || 0) + row._count.id;
     });
     const dailyEvents = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));
 
@@ -108,34 +108,34 @@ export default async function siteRoutes(app) {
     const topChannelsRaw = await app.prisma.analyticsEvent.groupBy({
       by: ['channel'],
       where: { ...prismaWhere, channel: { not: null } },
-      _count: { _all: true },
-      orderBy: { _count: { _all: 'desc' } },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
       take: 20,
     });
-    const topChannels = topChannelsRaw.map(r => ({ channel: r.channel, count: r._count._all }));
+    const topChannels = topChannelsRaw.map(r => ({ channel: r.channel, count: r._count.id }));
 
     // Top pages
     const topPagesRaw = await app.prisma.analyticsEvent.groupBy({
       by: ['page'],
       where: { ...prismaWhere, page: { not: null } },
-      _count: { _all: true },
-      orderBy: { _count: { _all: 'desc' } },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
       take: 20,
     });
-    const topPages = topPagesRaw.map(r => ({ page: r.page, count: r._count._all }));
+    const topPages = topPagesRaw.map(r => ({ page: r.page, count: r._count.id }));
 
     // Totals
     const totals = await app.prisma.analyticsEvent.groupBy({
       by: ['event'],
       where: prismaWhere,
-      _count: { _all: true },
+      _count: { id: true },
     });
 
     // Widget breakdown (if no specific widget selected)
     const widgetBreakdown = !widgetId ? await app.prisma.analyticsEvent.groupBy({
       by: ['widgetId'],
       where: { siteId, createdAt: { gte: since } },
-      _count: { _all: true },
+      _count: { id: true },
     }) : [];
 
     return { dailyEvents, topChannels, topPages, totals, widgetBreakdown };
