@@ -1716,7 +1716,7 @@ function PreviewPane({ widget, siteId }) {
   
   const iframeStyle = device === 'mobile'
     ? { width: 280, height: 500 }
-    : { width: '100%', maxWidth: 600, height: 340 };
+    : { width: '100%', maxWidth: 800, height: 300 };
 
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
@@ -1756,7 +1756,15 @@ function PreviewPane({ widget, siteId }) {
             ref={iframeRef}
             src={buildPreviewUrl()}
             className="w-full h-full"
-            style={{ border: 'none', display: 'block', background: '#ffffff' }}
+            style={{
+              border: 'none',
+              display: 'block',
+              background: '#ffffff',
+              width: device === 'mobile' ? '280px' : '1200px',
+              height: device === 'mobile' ? '500px' : '800px',
+              transform: device === 'mobile' ? 'none' : 'scale(0.25)',
+              transformOrigin: 'top left',
+            }}
             title="Widget Preview"
           />
         </div>
