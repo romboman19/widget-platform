@@ -1477,6 +1477,21 @@
     const _ft = widget.triggers || {};
     const showContainer = () => {
       document.body.appendChild(container);
+
+      // Adjust position if sticky bar is present (avoid overlap)
+      function adjustForStickyBar() {
+        const stickyBar = document.querySelector('.wp-sticky-bar');
+        if (stickyBar && corner.includes('bottom')) {
+          const barHeight = stickyBar.offsetHeight || 50;
+          const currentBottom = parseInt(container.style.bottom) || 20;
+          if (currentBottom < barHeight + 10) {
+            container.style.bottom = (barHeight + 10) + 'px';
+          }
+        }
+      }
+      requestAnimationFrame(adjustForStickyBar);
+      setTimeout(adjustForStickyBar, 1500);
+
       track('view', widget.id);
     };
     if (_ft.delay) setTimeout(showContainer, _ft.delay * 1000);
