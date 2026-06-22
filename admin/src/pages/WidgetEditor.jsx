@@ -389,6 +389,17 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
           </div>
           
         </Section>
+
+        <Section title="Відступи">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Між кнопками (px)">
+              <Input type="number" value={cfg.buttonGap ?? 10} onChange={v => update('config.buttonGap', parseInt(v) || 0)} />
+            </Field>
+            <Field label="Між каналами (px)">
+              <Input type="number" value={cfg.channelGap ?? 10} onChange={v => update('config.channelGap', parseInt(v) || 0)} />
+            </Field>
+          </div>
+        </Section>
       </Section>
 
       {/* Legacy channels section — show only if no v2 buttons */}

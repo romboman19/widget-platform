@@ -601,11 +601,33 @@
       case 'instagram': window.open(isFullUrl ? v : 'https://instagram.com/' + v, '_blank'); break;
       case 'facebook': window.open(isFullUrl ? v : 'https://facebook.com/' + v, '_blank'); break;
       case 'tiktok': window.open(isFullUrl ? v : 'https://tiktok.com/@' + v, '_blank'); break;
-      case 'chatwoot':
-        // Toggle Chatwoot widget if available
-        if (window.$chatwoot) window.$chatwoot.toggle('open');
-        else if (channel.value) window.open(channel.value, '_blank');
+      case 'chatwoot': {
+        // Parse baseUrl and token from channel value
+        // Expected: https://chat.huntervua.pp.ua/widget?website_token=xQfswSV1piDGDqtrDAjT45Tc
+        if (window.$chatwoot) { window.$chatwoot.toggle('open'); break; }
+        if (!v) break;
+        try {
+          const cwUrl = new URL(v);
+          const token = cwUrl.searchParams.get('website_token');
+          const base = cwUrl.origin + '/';
+          if (!token) { window.open(v, '_blank'); break; }
+          window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
+          const sdkScript = document.createElement('script');
+          sdkScript.src = base + 'packs/js/sdk.js';
+          sdkScript.async = true;
+          sdkScript.defer = true;
+          sdkScript.onload = () => {
+            if (window.chatwootSDK) {
+              window.chatwootSDK.run(window.chatwootSettings);
+              window.addEventListener('chatwoot:ready', () => {
+                window.$chatwoot.toggle('open');
+              });
+            }
+          };
+          document.body.appendChild(sdkScript);
+        } catch(e) { window.open(v, '_blank'); }
         break;
+      }
       case 'callback': {
         // If channel has callbackWidgetId, find and render that specific POPUP_CALLBACK widget directly
         if (channel.callbackWidgetId && siteConfig) {
@@ -1259,7 +1281,7 @@
         display: 'flex',
         flexDirection: layout === 'vertical' ? 'column' : 
                        layout === 'horizontal' ? 'row' : 'column',
-        gap: '10px',
+        gap: (cfg.buttonGap ?? 10) + 'px',
         alignItems: corner.includes('right') ? 'flex-end' : 'flex-start',
       }
     });
@@ -1404,7 +1426,7 @@
             position: 'absolute',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
+            gap: (cfg.channelGap ?? 10) + 'px',
             transition: 'opacity .25s, transform .25s',
             // Position relative to wrapper, not viewport
             ...(corner.includes('bottom') ? { bottom: '100%', marginBottom: '10px' } : { top: '100%', marginTop: '10px' }),
