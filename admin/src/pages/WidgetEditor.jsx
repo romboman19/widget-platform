@@ -1673,9 +1673,31 @@ function LegacyIconPicker({ value, onChange }) {
 }
 
 // ─── PREVIEW PANE ───
+// Desktop viewport constants
+const DESKTOP_W = 1280;
+const DESKTOP_H = 800;
+// Mobile viewport constants
+const MOBILE_W = 375;
+const MOBILE_H = 667;
+
 function PreviewPane({ widget, siteId }) {
   const [device, setDevice] = useState('desktop');
   const iframeRef = useRef(null);
+  const containerRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  // Compute scale for desktop so it fits the container width
+  useEffect(() => {
+    if (device !== 'desktop') return;
+    const compute = () => {
+      const w = containerRef.current?.offsetWidth || 600;
+      setScale(Math.min((w - 32) / DESKTOP_W, 1));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [device]);
 
   // Send updated config to iframe via postMessage
   useEffect(() => {
@@ -1689,34 +1711,30 @@ function PreviewPane({ widget, siteId }) {
             triggers: null,
           }]
         };
-        
         iframeRef.current.contentWindow.postMessage({
           type: 'UPDATE_WIDGET_CONFIG',
           config: previewConfig
         }, '*');
       }
     }, 300);
-    
     return () => clearTimeout(timer);
   }, [widget, siteId]);
 
-  // Build iframe URL - uses w.js with ?preview=1 to activate preview mode
+  // Build iframe URL
   const buildPreviewUrl = () => {
-    // Use absolute URL to widget/preview.html
-    const baseUrl = window.location.origin.includes('localhost') 
-      ? 'http://localhost:8090' 
+    const baseUrl = window.location.origin.includes('localhost')
+      ? 'http://localhost:8090'
       : 'https://widget.hunter.rv.ua';
     return `${baseUrl}/preview.html?preview=1`;
   };
-  
-  // Device frame — desktop = wide horizontal, mobile = narrow vertical
-  const frameClass = device === 'mobile' 
-    ? 'rounded-[28px] border-[5px] border-slate-800 shadow-2xl' 
-    : 'rounded-lg border border-slate-300 shadow-lg';
-  
-  const iframeStyle = device === 'mobile'
-    ? { width: 280, height: 500 }
-    : { width: '100%', maxWidth: 800, height: 300 };
+
+  const isDesktop = device === 'desktop';
+
+  // Outer wrapper height = scaled iframe height
+  const desktopContainerH = Math.round(DESKTOP_H * scale);
+  // Mobile: fixed phone frame
+  const mobileFrameW = MOBILE_W;
+  const mobileFrameH = MOBILE_H;
 
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
@@ -1727,9 +1745,7 @@ function PreviewPane({ widget, siteId }) {
           <button
             onClick={() => setDevice('desktop')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              device === 'desktop' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+              isDesktop ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Monitor size={14} />
@@ -1738,9 +1754,7 @@ function PreviewPane({ widget, siteId }) {
           <button
             onClick={() => setDevice('mobile')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-              device === 'mobile' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-700'
+              !isDesktop ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <Smartphone size={14} />
@@ -1749,30 +1763,59 @@ function PreviewPane({ widget, siteId }) {
         </div>
       </div>
 
-      {/* Preview iframe */}
-      <div className={`relative bg-slate-100 flex items-center justify-center p-4 ${device === 'mobile' ? 'py-8' : ''}`}>
-        <div className={`overflow-hidden ${frameClass}`} style={iframeStyle}>
-          <iframe
-            ref={iframeRef}
-            src={buildPreviewUrl()}
-            className="w-full h-full"
-            style={{
-              border: 'none',
-              display: 'block',
-              background: '#ffffff',
-              width: device === 'mobile' ? '280px' : '1200px',
-              height: device === 'mobile' ? '500px' : '800px',
-              transform: device === 'mobile' ? 'none' : 'scale(0.25)',
-              transformOrigin: 'top left',
-            }}
-            title="Widget Preview"
-          />
-        </div>
+      {/* Preview area */}
+      <div
+        ref={containerRef}
+        className="relative bg-slate-100 flex items-start justify-center"
+        style={{ padding: isDesktop ? '16px' : '24px', minHeight: isDesktop ? desktopContainerH + 32 : mobileFrameH + 48 }}
+      >
+        {isDesktop ? (
+          /* Desktop: scaled iframe in browser-like frame */
+          <div
+            className="rounded-lg border border-slate-300 shadow-lg overflow-hidden"
+            style={{ width: DESKTOP_W * scale, height: desktopContainerH, position: 'relative' }}
+          >
+            <iframe
+              ref={iframeRef}
+              src={buildPreviewUrl()}
+              style={{
+                border: 'none',
+                display: 'block',
+                background: '#ffffff',
+                width: DESKTOP_W,
+                height: DESKTOP_H,
+                transform: `scale(${scale})`,
+                transformOrigin: 'top left',
+              }}
+              title="Widget Preview Desktop"
+            />
+          </div>
+        ) : (
+          /* Mobile: phone frame */
+          <div
+            className="rounded-[32px] border-[6px] border-slate-800 shadow-2xl overflow-hidden"
+            style={{ width: mobileFrameW, height: mobileFrameH, position: 'relative', background: '#fff' }}
+          >
+            {/* Notch */}
+            <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: 80, height: 20, background: '#1e293b', borderBottomLeftRadius: 10, borderBottomRightRadius: 10, zIndex: 10 }} />
+            <iframe
+              ref={iframeRef}
+              src={buildPreviewUrl()}
+              style={{
+                border: 'none',
+                display: 'block',
+                background: '#ffffff',
+                width: mobileFrameW,
+                height: mobileFrameH,
+              }}
+              title="Widget Preview Mobile"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
 // ─── A/B TEST CONFIG ───
 function ABTestConfig({ widget, siteId, update }) {
   const [experiments, setExperiments] = useState([]);
