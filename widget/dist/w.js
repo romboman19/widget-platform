@@ -590,15 +590,17 @@
   function handleChannelClick(channel, widget) {
     track('click', widget.id, channel.type);
 
+    const v = (channel.value || '').trim();
+    const isFullUrl = /^(https?:|viber:|tg:|tel:|mailto:)/i.test(v);
     switch (channel.type) {
-      case 'phone': window.open('tel:' + channel.value, '_self'); break;
-      case 'telegram': window.open('https://t.me/' + channel.value, '_blank'); break;
-      case 'viber': window.open('viber://chat?number=' + channel.value, '_blank'); break;
-      case 'whatsapp': window.open('https://wa.me/' + channel.value.replace(/[^0-9]/g, ''), '_blank'); break;
-      case 'email': window.open('mailto:' + channel.value, '_self'); break;
-      case 'instagram': window.open('https://instagram.com/' + channel.value, '_blank'); break;
-      case 'facebook': window.open(channel.value, '_blank'); break;
-      case 'tiktok': window.open('https://tiktok.com/@' + channel.value, '_blank'); break;
+      case 'phone': window.open(isFullUrl ? v : 'tel:' + v, '_self'); break;
+      case 'telegram': window.open(isFullUrl ? v : 'https://t.me/' + v, '_blank'); break;
+      case 'viber': window.open(isFullUrl ? v : 'viber://chat?number=' + v, '_blank'); break;
+      case 'whatsapp': window.open(isFullUrl ? v : 'https://wa.me/' + v.replace(/[^0-9]/g, ''), '_blank'); break;
+      case 'email': window.open(isFullUrl ? v : 'mailto:' + v, '_self'); break;
+      case 'instagram': window.open(isFullUrl ? v : 'https://instagram.com/' + v, '_blank'); break;
+      case 'facebook': window.open(isFullUrl ? v : 'https://facebook.com/' + v, '_blank'); break;
+      case 'tiktok': window.open(isFullUrl ? v : 'https://tiktok.com/@' + v, '_blank'); break;
       case 'chatwoot':
         // Toggle Chatwoot widget if available
         if (window.$chatwoot) window.$chatwoot.toggle('open');
