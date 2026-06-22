@@ -433,20 +433,20 @@
       }
       
       .wp-widget * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-      .wp-floating-btn { position: fixed; z-index: 999999; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
+      .wp-floating-btn { position: fixed; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
       .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
       .wp-floating-btn-v2 { display: flex; align-items: center; justify-content: center; }
       .wp-floating-btn-v2 svg { color: #fff; }
       .wp-floating-btn-v2 { overflow: hidden; }
-      .wp-floating-menu { position: fixed; z-index: 999998; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
+      .wp-floating-menu { position: fixed; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
       .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; visibility: hidden; transition: opacity .25s, transform .25s, visibility 0s .25s; }
       .wp-channel-btn { width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; }
       .wp-channel-btn:hover { transform: scale(1.15); }
       .wp-channel-btn svg { width: 22px; height: 22px; color: #fff; }
       .wp-channel-btn .wp-tooltip { position: absolute; right: 56px; top: 50%; transform: translateY(-50%); background: #333; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
       .wp-channel-btn:hover .wp-tooltip { opacity: 1; }
-      .wp-popup-overlay { position: fixed; z-index: 9999999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .3s; }
+      .wp-popup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .3s; }
       .wp-popup-overlay.visible { opacity: 1; }
       .wp-popup-box { background: #fff; border-radius: 12px; max-width: 420px; width: 90%; padding: 28px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
       .wp-popup-close { position: absolute; top: 10px; right: 10px; background: none; border: none; cursor: pointer; padding: 4px; }
@@ -458,13 +458,13 @@
       .wp-form-submit { width: 100%; padding: 13px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; transition: opacity .2s; }
       .wp-form-submit:hover { opacity: .9; }
       .wp-form-success { text-align: center; padding: 20px; font-size: 16px; color: #2ecc71; }
-      .wp-sticky-bar { position: fixed; z-index: 999990; left: 0; width: 100%; padding: 10px 20px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); transition: transform .3s; }
+      .wp-sticky-bar { position: fixed; left: 0; width: 100%; padding: 10px 20px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.15); transition: transform .3s; }
       .wp-sticky-bar.top { top: 0; }
       .wp-sticky-bar.bottom { bottom: 0; }
       .wp-sticky-bar-close { background: none; border: none; cursor: pointer; margin-left: 8px; }
       .wp-sticky-bar-close svg { width: 16px; height: 16px; }
       .wp-sticky-btn { padding: 6px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-      .wp-side-tab { position: fixed; z-index: 999995; writing-mode: vertical-rl; text-orientation: mixed; padding: 14px 8px; border-radius: 8px 0 0 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: -2px 0 8px rgba(0,0,0,.15); border: none; transition: transform .2s; }
+      .wp-side-tab { position: fixed; writing-mode: vertical-rl; text-orientation: mixed; padding: 14px 8px; border-radius: 8px 0 0 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: -2px 0 8px rgba(0,0,0,.15); border: none; transition: transform .2s; }
       .wp-side-tab:hover { transform: translateX(-3px); }
       .wp-banner-img { width: 100%; border-radius: 8px; margin-bottom: 16px; }
       @media (max-width: 480px) {
@@ -500,7 +500,7 @@
       role: 'menu',
       'aria-label': 'Канали зв\'язку',
       'aria-expanded': 'false',
-      style: { ...posStyle, [corner.includes('bottom') ? 'bottom' : 'top']: (pos.offsetY || 20) + 66 + 'px' }
+      style: { ...posStyle, [corner.includes('bottom') ? 'bottom' : 'top']: (pos.offsetY || 20) + 66 + 'px', zIndex: (widget.zIndex || 999999) + 1 }
     });
 
     const menuItems = [];
@@ -527,7 +527,7 @@
       'aria-label': floatingOpen ? 'Закрити меню' : (cfg.greeting || 'Відкрити меню зв\'язку'),
       'aria-expanded': 'false',
       'aria-controls': 'wp-floating-menu',
-      style: { ...posStyle, background: mainColor },
+      style: { ...posStyle, background: mainColor, zIndex: widget.zIndex || 999999 },
       onClick: () => {
         floatingOpen = !floatingOpen;
         menuEl.classList.toggle('hidden', !floatingOpen);
