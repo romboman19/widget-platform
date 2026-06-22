@@ -1702,28 +1702,30 @@ function PreviewPane({ widget, siteId }) {
     return () => ro.disconnect();
   }, [device]);
 
-  // Send updated config to iframe via postMessage
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (iframeRef.current?.contentWindow && widget) {
-        const previewConfig = {
-          siteId: siteId,
-          widgets: [{
-            ...widget,
-            enabled: true,
-            triggers: null,
-          }]
-        };
-        iframeRef.current.contentWindow.postMessage({
-          type: 'UPDATE_WIDGET_CONFIG',
-          config: previewConfig
-        }, '*');
-      }
-    }, 300);
-    return () => clearTimeout(timer);
+  // Send config to iframe
+  const sendConfig = useCallback(() => {
+    if (iframeRef.current?.contentWindow && widget) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'UPDATE_WIDGET_CONFIG',
+        config: {
+          siteId,
+          widgets: [{ ...widget, enabled: true, triggers: null }]
+        }
+      }, '*');
+    }
   }, [widget, siteId]);
 
-  // Build iframe URL
+  // Re-send on widget/siteId change
+  useEffect(() => {
+    const t = setTimeout(sendConfig, 300);
+    return () => clearTimeout(t);
+  }, [sendConfig]);
+
+  // Re-send after iframe loads (device switch mounts a new iframe)
+  const handleIframeLoad = useCallback(() => {
+    setTimeout(sendConfig, 100);
+  }, [sendConfig]);
+
   const buildPreviewUrl = () => {
     const baseUrl = window.location.origin.includes('localhost')
       ? 'http://localhost:8090'
@@ -1732,10 +1734,7 @@ function PreviewPane({ widget, siteId }) {
   };
 
   const isDesktop = device === 'desktop';
-
-  // Outer wrapper height = scaled iframe height
   const desktopContainerH = Math.round(DESKTOP_H * scale);
-  // Mobile: phone frame scaled to fit container
   const mobileFrameW = MOBILE_W;
   const mobileFrameH = MOBILE_H;
   const mobileScaledW = Math.round(mobileFrameW * scale);
@@ -1775,14 +1774,15 @@ function PreviewPane({ widget, siteId }) {
         style={{ padding: '16px', height: isDesktop ? desktopContainerH + 32 : mobileScaledH + 48 }}
       >
         {isDesktop ? (
-          /* Desktop: scaled iframe in browser-like frame */
+          /* Desktop: full-width scaled iframe */
           <div
             className="rounded-lg border border-slate-300 shadow-lg overflow-hidden"
-            style={{ width: DESKTOP_W * scale, height: desktopContainerH, position: 'relative' }}
+            style={{ width: DESKTOP_W * scale, height: desktopContainerH, flexShrink: 0 }}
           >
             <iframe
               ref={iframeRef}
               src={buildPreviewUrl()}
+              onLoad={handleIframeLoad}
               style={{
                 border: 'none',
                 display: 'block',
@@ -1797,7 +1797,7 @@ function PreviewPane({ widget, siteId }) {
           </div>
         ) : (
           /* Mobile: scaled phone frame */
-          <div style={{ width: mobileScaledW, height: mobileScaledH, position: 'relative' }}>
+          <div style={{ width: mobileScaledW, height: mobileScaledH, position: 'relative', flexShrink: 0 }}>
             <div
               className="rounded-[32px] border-[6px] border-slate-800 shadow-2xl overflow-hidden"
               style={{
@@ -1816,6 +1816,7 @@ function PreviewPane({ widget, siteId }) {
               <iframe
                 ref={iframeRef}
                 src={buildPreviewUrl()}
+                onLoad={handleIframeLoad}
                 style={{
                   border: 'none',
                   display: 'block',
@@ -1824,7 +1825,6 @@ function PreviewPane({ widget, siteId }) {
                   height: mobileFrameH,
                 }}
                 title="Widget Preview Mobile"
-                onLoad={handleIframeLoad}
               />
             </div>
           </div>
@@ -1833,6 +1833,7 @@ function PreviewPane({ widget, siteId }) {
     </div>
   );
 }
+
 // ─── A/B TEST CONFIG ───
 function ABTestConfig({ widget, siteId, update }) {
   const [experiments, setExperiments] = useState([]);
