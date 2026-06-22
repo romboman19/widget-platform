@@ -1715,8 +1715,8 @@ function PreviewPane({ widget, siteId }) {
     : 'rounded-lg border border-slate-300 shadow-lg';
   
   const iframeStyle = device === 'mobile'
-    ? { width: 320, height: 480 }
-    : { width: '100%', height: 420 };
+    ? { width: 300, height: 400 }
+    : { width: '100%', height: 380 };
 
   return (
     <div className="bg-slate-50 rounded-xl border border-slate-200 overflow-hidden">
