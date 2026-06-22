@@ -765,7 +765,15 @@
     const scheduleInfo = useWH ? getScheduleInfo(cfg.workSchedule, cfg.defaultTime) : null;
 
     // ─── Title and button text based on working hours ───
-    const title = isWorking ? (cfg.callbackTitle || 'Зателефонувати Вам?') : (cfg.callbackTitleOffHours || 'Зателефонуємо Вам о:');
+    let title = isWorking ? (cfg.callbackTitle || 'Зателефонувати Вам?') : (cfg.callbackTitleOffHours || 'Зателефонуємо Вам о:');
+    if (!isWorking && scheduleInfo && title.includes('{nextWorkDay}')) {
+      const dayNames = { mon: 'понеділок', tue: 'вівторок', wed: 'середу', thu: 'четвер', fri: 'п\u2019ятницю', sat: 'суботу', sun: 'неділю' };
+      const dayMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+      const nextDate = new Date(scheduleInfo.date + 'T00:00:00');
+      const nextDayKey = dayMap[nextDate.getDay()];
+      const nextDayName = dayNames[nextDayKey] || scheduleInfo.label.toLowerCase();
+      title = title.replace(/\{nextWorkDay\}/g, nextDayName);
+    }
     const buttonText = isWorking ? (cfg.callbackButton || 'Передзвоніть мені зараз') : (cfg.callbackButtonOffHours || 'Чекаю на дзвінок');
 
     // Create modal with proper ARIA
