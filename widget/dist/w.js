@@ -617,12 +617,16 @@
           sdkScript.async = true;
           sdkScript.defer = true;
           sdkScript.onload = () => {
-            if (window.chatwootSDK) {
-              window.chatwootSDK.run(window.chatwootSettings);
-              window.addEventListener('chatwoot:ready', () => {
-                window.$chatwoot.toggle('open');
-              });
-            }
+            if (!window.chatwootSDK) return;
+            window.chatwootSDK.run(window.chatwootSettings);
+            // Wait for $chatwoot to be ready (event or poll)
+            let tries = 0;
+            const tryOpen = () => {
+              if (window.$chatwoot) { window.$chatwoot.toggle('open'); }
+              else if (tries++ < 20) setTimeout(tryOpen, 200);
+            };
+            window.addEventListener('chatwoot:ready', tryOpen);
+            tryOpen(); // also try immediately in case event already fired
           };
           document.body.appendChild(sdkScript);
         } catch(e) { window.open(v, '_blank'); }
