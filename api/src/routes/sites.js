@@ -88,12 +88,12 @@ export default async function siteRoutes(app) {
     // Events by day
     const dailyEvents = await app.prisma.$queryRaw`
       SELECT
-        DATE(created_at) as date,
+        DATE("createdAt") as date,
         event,
         COUNT(*)::int as count
       FROM "AnalyticsEvent"
-      WHERE site_id = ${siteId} AND created_at >= ${since}
-      GROUP BY DATE(created_at), event
+      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
+      GROUP BY DATE("createdAt"), event
       ORDER BY date ASC
     `;
 
@@ -103,7 +103,7 @@ export default async function siteRoutes(app) {
         channel,
         COUNT(*)::int as count
       FROM "AnalyticsEvent"
-      WHERE site_id = ${siteId} AND created_at >= ${since} AND channel IS NOT NULL
+      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since} AND channel IS NOT NULL
       GROUP BY channel
       ORDER BY count DESC
       LIMIT 20
