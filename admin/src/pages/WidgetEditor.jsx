@@ -266,6 +266,9 @@ export default function WidgetEditor() {
               <Field label="Пріоритет">
                 <Input type="number" value={widget.priority} onChange={v => update('priority', parseInt(v) || 0)} />
               </Field>
+              <Field label="Z-index" hint="Шар поверхності. Більше = зверху">
+                <Input type="number" value={widget.zIndex ?? 999990} onChange={v => update('zIndex', parseInt(v) || 0)} />
+              </Field>
             </div>
           </Section>
 

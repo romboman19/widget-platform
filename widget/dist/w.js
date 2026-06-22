@@ -774,6 +774,7 @@
       role: 'dialog',
       'aria-modal': 'true',
       'aria-labelledby': 'wp-cb-title',
+      style: { zIndex: widget.zIndex || 9999999 },
       onClick: (e) => { if (e.target === overlay) closePopup(overlay); },
       onKeyDown: (e) => {
         if (e.key === 'Escape') { e.preventDefault(); closePopup(overlay); }
@@ -970,7 +971,7 @@
       setCookie(cookieKey + '_shown', '1', 0.01); // prevent double show in same pageview
 
       const color = cfg.color || '#1f93ff';
-      const overlay = el('div', { class: 'wp-widget wp-popup-overlay', onClick: (e) => { if (e.target === overlay) closePopup(overlay, cookieKey, triggers); } });
+      const overlay = el('div', { class: 'wp-widget wp-popup-overlay', style: { zIndex: widget.zIndex || 9999999 }, onClick: (e) => { if (e.target === overlay) closePopup(overlay, cookieKey, triggers); } });
 
       const children = [
         el('button', { class: 'wp-popup-close', onClick: () => closePopup(overlay, cookieKey, triggers) }, ICONS.close),
@@ -1069,6 +1070,7 @@
     const barStyle = applyDesign({ background: cfg.bgColor || '#fff', color: cfg.textColor || '#333' }, cfg);
       const bar = el('div', {
         class: 'wp-widget wp-sticky-bar ' + placement,
+        style: { ...barStyle, zIndex: widget.zIndex || 999990 },
         style: barStyle,
       }, [
       el('span', {}, cfg.text || ''),
@@ -1108,6 +1110,7 @@
       }, cfg);
       const tab = el('button', {
         class: 'wp-widget wp-side-tab',
+        style: { zIndex: widget.zIndex || 999995 },
         style: tabStyle,
         onClick: () => {
           track('click', widget.id, 'side_tab');
@@ -1280,7 +1283,7 @@
       class: 'wp-widget wp-floating-container',
       style: {
         position: 'fixed',
-        zIndex: 999999,
+        zIndex: widget.zIndex || 999999,
         ...posStyle,
         display: 'flex',
         flexDirection: layout === 'vertical' ? 'column' : 
@@ -1477,21 +1480,6 @@
     const _ft = widget.triggers || {};
     const showContainer = () => {
       document.body.appendChild(container);
-
-      // Adjust position if sticky bar is present (avoid overlap)
-      function adjustForStickyBar() {
-        const stickyBar = document.querySelector('.wp-sticky-bar');
-        if (stickyBar && corner.includes('bottom')) {
-          const barHeight = stickyBar.offsetHeight || 50;
-          const currentBottom = parseInt(container.style.bottom) || 20;
-          if (currentBottom < barHeight + 10) {
-            container.style.bottom = (barHeight + 10) + 'px';
-          }
-        }
-      }
-      requestAnimationFrame(adjustForStickyBar);
-      setTimeout(adjustForStickyBar, 1500);
-
       track('view', widget.id);
     };
     if (_ft.delay) setTimeout(showContainer, _ft.delay * 1000);
