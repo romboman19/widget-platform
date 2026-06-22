@@ -74,7 +74,7 @@ export default async function siteRoutes(app) {
   // Analytics summary for site
   app.get('/:siteId/analytics', { preHandler: [app.authenticate] }, async (request, reply) => {
     const { siteId } = request.params;
-    const { days = 30 } = request.query;
+    const { days = 30, widgetId } = request.query;
 
     const existing = await app.prisma.site.findFirst({
       where: { id: siteId, userId: request.user.id },
@@ -83,6 +83,10 @@ export default async function siteRoutes(app) {
 
     const since = new Date();
     since.setDate(since.getDate() - parseInt(days));
+
+    const prismaWhere = widgetId
+      ? { siteId, createdAt: { gte: since }, widgetId }
+      : { siteId, createdAt: { gte: since } };
 
     try {
     // Events by day
@@ -93,6 +97,7 @@ export default async function siteRoutes(app) {
         COUNT(*)::int as count
       FROM "AnalyticsEvent"
       WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
+      ${widgetId ? app.prisma.raw(`AND "widgetId" = ${widgetId}`) : app.prisma.raw('')}
       GROUP BY DATE("createdAt"), event
       ORDER BY date ASC
     `;
@@ -103,8 +108,24 @@ export default async function siteRoutes(app) {
         channel,
         COUNT(*)::int as count
       FROM "AnalyticsEvent"
-      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since} AND channel IS NOT NULL
+      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
+      ${widgetId ? app.prisma.raw(`AND "widgetId" = ${widgetId}`) : app.prisma.raw('')}
+      AND channel IS NOT NULL
       GROUP BY channel
+      ORDER BY count DESC
+      LIMIT 20
+    `;
+
+    // Top pages
+    const topPages = await app.prisma.$queryRaw`
+      SELECT
+        page,
+        COUNT(*)::int as count
+      FROM "AnalyticsEvent"
+      WHERE "siteId" = ${siteId} AND "createdAt" >= ${since}
+      ${widgetId ? app.prisma.raw(`AND "widgetId" = ${widgetId}`) : app.prisma.raw('')}
+      AND page IS NOT NULL
+      GROUP BY page
       ORDER BY count DESC
       LIMIT 20
     `;
@@ -112,11 +133,18 @@ export default async function siteRoutes(app) {
     // Totals
     const totals = await app.prisma.analyticsEvent.groupBy({
       by: ['event'],
-      where: { siteId, createdAt: { gte: since } },
+      where: prismaWhere,
       _count: { _all: true },
     });
 
-    return { dailyEvents, topChannels, totals };
+    // Widget breakdown (if no specific widget selected)
+    const widgetBreakdown = !widgetId ? await app.prisma.analyticsEvent.groupBy({
+      by: ['widgetId'],
+      where: { siteId, createdAt: { gte: since } },
+      _count: { _all: true },
+    }) : [];
+
+    return { dailyEvents, topChannels, topPages, totals, widgetBreakdown };
     } catch (err) {
       request.log.error({ err }, 'Analytics query failed');
       return reply.status(500).send({ error: 'Analytics query failed', detail: err.message });

@@ -48,7 +48,8 @@ export default function Analytics() {
 
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-slate-800">Аналітика</h2>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1">
           {[7, 14, 30, 90].map(d => (
             <button key={d} onClick={() => setDays(d)}
               className={`px-3 py-1.5 rounded-lg text-sm ${days === d ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
@@ -56,6 +57,17 @@ export default function Analytics() {
             </button>
           ))}
         </div>
+        <select
+          value={selectedWidget}
+          onChange={e => setSelectedWidget(e.target.value)}
+          className="px-3 py-1.5 rounded-lg text-sm border border-slate-200 bg-white text-slate-600"
+        >
+          <option value="">Всі віджети</option>
+          {widgets.map(w => (
+            <option key={w.id} value={w.id}>{w.name || w.type}</option>
+          ))}
+        </select>
+      </div>
       </div>
 
       {/* Summary cards */}
@@ -88,7 +100,7 @@ export default function Analytics() {
       </div>
 
       {/* Top channels */}
-      <div className="bg-white rounded-xl p-5 border border-slate-200">
+      <div className="bg-white rounded-xl p-5 border border-slate-200 mb-6">
         <h3 className="font-semibold text-slate-700 mb-4">Топ канали</h3>
         {topChannels.length === 0 ? (
           <p className="text-slate-400 text-sm py-4 text-center">Немає даних</p>
@@ -102,6 +114,23 @@ export default function Analytics() {
               <Bar dataKey="count" name="Кліки" fill="#3b82f6" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Top pages */}
+      <div className="bg-white rounded-xl p-5 border border-slate-200">
+        <h3 className="font-semibold text-slate-700 mb-4">Топ сторінки</h3>
+        {(data.topPages || []).length === 0 ? (
+          <p className="text-slate-400 text-sm py-4 text-center">Немає даних</p>
+        ) : (
+          <div className="space-y-2">
+            {(data.topPages || []).map((p, i) => (
+              <div key={i} className="flex items-center justify-between text-sm border-b border-slate-100 pb-2">
+                <span className="text-slate-600 truncate flex-1 mr-3" title={p.page}>{p.page}</span>
+                <span className="font-semibold text-blue-600">{p.count}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>
