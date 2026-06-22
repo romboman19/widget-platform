@@ -62,6 +62,7 @@ export default async function publicRoutes(app) {
             position: true,
             triggers: true,
             experimentId: true,
+            zIndex: true,
           },
         },
         experiments: {
@@ -91,6 +92,7 @@ export default async function publicRoutes(app) {
               position: true,
               triggers: true,
               experimentId: true,
+              zIndex: true,
             },
           },
           experiments: {
