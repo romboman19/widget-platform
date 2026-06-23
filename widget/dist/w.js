@@ -615,8 +615,17 @@
       case 'facebook': window.open(isFullUrl ? v : 'https://facebook.com/' + v, '_blank'); break;
       case 'tiktok': window.open(isFullUrl ? v : 'https://tiktok.com/@' + v, '_blank'); break;
       case 'chatwoot': {
-        // SDK should already be loaded from init — just toggle
-        if (window.$chatwoot) { window.$chatwoot.toggle('open'); }
+        if (window.$chatwoot) {
+          window.$chatwoot.toggle('open');
+        } else {
+          let tries = 0;
+          const tryOpen = () => {
+            if (window.$chatwoot) { window.$chatwoot.toggle('open'); }
+            else if (tries++ < 30) setTimeout(tryOpen, 200);
+          };
+          window.addEventListener('chatwoot:ready', tryOpen);
+          tryOpen();
+        }
         break;
       }
       case 'callback': {
