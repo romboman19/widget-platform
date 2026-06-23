@@ -792,7 +792,8 @@
       const now = new Date();
       const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
       const isTomorrow = nextDate.toDateString() === tomorrow.toDateString();
-      const nextDayName = isTomorrow ? 'завтра' : (dayNames[nextDayKey] || scheduleInfo.label.toLowerCase());
+      const isToday = nextDate.toDateString() === now.toDateString();
+      const nextDayName = isToday ? 'сьогодні' : (isTomorrow ? 'завтра' : (dayNames[nextDayKey] || scheduleInfo.label.toLowerCase()));
       title = title.replace(/\{nextWorkDay\}/g, nextDayName);
     }
     const buttonText = isWorking ? (cfg.callbackButton || 'Передзвоніть мені зараз') : (cfg.callbackButtonOffHours || 'Чекаю на дзвінок');
