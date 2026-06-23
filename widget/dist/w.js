@@ -1586,7 +1586,7 @@
                 if (!token) return;
                 // Hide Chatwoot default launcher
                 const hideStyle = document.createElement('style');
-                hideStyle.textContent = '#woot-launcher, #woot-launcher * { display: none !important; }';
+                hideStyle.textContent = '#woot-launcher, #woot-launcher * { display: none !important; } #woot-widget-bubble, #woot-widget-bubble * { z-index: 2147483000 !important; } .woot-widget-wrap { z-index: 2147483000 !important; }';
                 document.head.appendChild(hideStyle);
                 // Set settings BEFORE loading SDK (like old widget)
                 window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
