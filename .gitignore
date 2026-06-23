@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+*/node_modules/
+# Keep package-lock.json for reproducible builds
+yarn.lock
+*/yarn.lock
+
+# Environment
+.env
+*/.env
+
+# Build outputs — specific paths only
+admin/dist/
+build/
+*/build/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Testing
+coverage/
+.nyc_output/
+screenshots/
+test/**/*.png
+test/**/*.jpg
+test/**/*.jpeg
+
+# Misc
+.cache/
+temp/
+tmp/

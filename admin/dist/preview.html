@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #ffffff; overflow: hidden; }  </style>
+</head>
+<body>
+  <script>
+    // Get widget config from URL
+    const params = new URLSearchParams(window.location.search);
+    const configParam = params.get('config');
+    
+    if (configParam) {
+      try {
+        const jsonStr = decodeURIComponent(escape(atob(configParam)));
+        const widgetConfig = JSON.parse(jsonStr);
+        if (widgetConfig.widgets && widgetConfig.widgets[0]) {
+          widgetConfig.widgets[0].triggers = null;
+          widgetConfig.widgets[0].enabled = true;
+        }
+        window.__WIDGET_PREVIEW__ = widgetConfig;
+      } catch (e) {
+        console.error('Failed to parse preview config:', e);
+      }
+    }
+
+    // Always load w.js so postMessage updates can re-init the widget
+    const script = document.createElement('script');
+    script.src = '/w.js?preview=1';
+    script.async = true;
+    document.head.appendChild(script);
+    
+    // Listen for updates from editor
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'UPDATE_WIDGET_CONFIG') {
+        window.__WIDGET_PREVIEW__ = event.data.config;
+        if (window.__WIDGET_REINIT__) {
+          window.__WIDGET_REINIT__();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

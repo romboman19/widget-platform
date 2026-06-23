@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Widget Platform Test - FLOATING_MENU v2</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    h1 { color: #333; }
+    .test-info { background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    .test-info code { background: #e0e0e0; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>FLOATING_MENU v2 Test Page</h1>
+  
+  <div class="test-info">
+    <h3>Тестовий конфіг:</h3>
+    <ul>
+      <li>Layout: <code>horizontal</code></li>
+      <li>Button 1: <code>mode: "direct"</code> (phone) — має відкрити tel:</li>
+      <li>Button 2: <code>mode: "menu"</code> з 3 каналами — має відкрити меню</li>
+    </ul>
+    <p><strong>Очікувана поведінка:</strong></p>
+    <ul>
+      <li>Дві кнопки стоять поруч горизонтально (не перекриваються)</li>
+      <li>Меню відкривається над своєю кнопкою (не перекриває сусідню)</li>
+      <li>Direct-кнопка відкриває tel:+380...</li>
+    </ul>
+  </div>
+
+  <script>
+    // Інлайн-конфіг для тестування без API
+    window.__WIDGET_PREVIEW__ = {
+      siteId: 'test-site',
+      widgets: [{
+        id: 'test-widget-1',
+        type: 'FLOATING_MENU',
+        config: {
+          layout: 'horizontal',
+          buttonShape: { type: 'circle', borderWidth: 0 },
+          menuAnimation: 'fade',
+          buttons: [
+            {
+              id: 'btn-direct',
+              mode: 'direct',
+              channels: [{
+                type: 'phone',
+                value: '+380991234567',
+                label: 'Подзвонити',
+                iconId: null
+              }],
+              style: { bgColor: '#2ecc71', iconColor: '#ffffff', size: 'md' }
+            },
+            {
+              id: 'btn-menu',
+              mode: 'menu',
+              channels: [
+                { type: 'telegram', value: 'testchannel', label: 'Telegram', iconId: null },
+                { type: 'viber', value: '+380991234567', label: 'Viber', iconId: null },
+                { type: 'whatsapp', value: '+380991234567', label: 'WhatsApp', iconId: null }
+              ],
+              style: { bgColor: '#0088cc', iconColor: '#ffffff', size: 'md' }
+            }
+          ]
+        },
+        position: { corner: 'bottom-right', offsetX: 20, offsetY: 20 },
+        enabled: true
+      }]
+    };
+  </script>
+  
+  <!-- Завантаження w.js з твоєго сервера -->
+  <script src="https://widget.hunter.rv.ua/w.js?site=test"></script>
+</body>
+</html>
