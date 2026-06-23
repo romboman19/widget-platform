@@ -221,8 +221,10 @@ export default function WidgetEditor() {
 
   async function remove() {
     if (!confirm('Видалити цей віджет?')) return;
-    await api(`/sites/${siteId}/widgets/${widgetId}`, { method: 'DELETE' });
-    navigate(`/sites/${siteId}`);
+    try {
+      await api(`/sites/${siteId}/widgets/${widgetId}`, { method: 'DELETE' });
+      navigate(`/sites/${siteId}`);
+    } catch (e) { alert('Помилка видалення: ' + e.message); }
   }
 
   if (!widget) return <div className="text-slate-400">Завантаження...</div>;

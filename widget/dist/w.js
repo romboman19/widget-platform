@@ -92,7 +92,11 @@
       else e.setAttribute(k, v);
     });
     if (children) {
-      if (typeof children === 'string') e.innerHTML = children;
+      if (typeof children === 'string') {
+        // Allow SVG content (from our ICONS), use textContent for everything else
+        if (children.trim().startsWith('<svg')) e.innerHTML = children;
+        else e.textContent = children;
+      }
       else if (Array.isArray(children)) children.forEach(c => c && e.appendChild(c));
       else e.appendChild(children);
     }
@@ -123,7 +127,10 @@
       return rules.urlRules.some(r => {
         if (r.type === 'contains') return url.includes(r.value);
         if (r.type === 'exact') return path === r.value;
-        if (r.type === 'regex') return new RegExp(r.value).test(url);
+        if (r.type === 'regex') {
+          if (!r.value || r.value.length > 200) return false;
+          try { return new RegExp(r.value).test(url); } catch { return false; }
+        }
         return true;
       });
     }
@@ -150,8 +157,6 @@
 
     // Check days of week
     if (schedule.daysOfWeek?.length) {
-      // Convert Sunday=0 to Sunday=7 for easier comparison if needed
-      const dayIndex = currentDay === 0 ? 7 : currentDay;
       const daysMap = { 'sun': 0, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6 };
       const allowedDays = schedule.daysOfWeek.map(d => typeof d === 'string' ? daysMap[d.toLowerCase()] : d);
       if (!allowedDays.includes(currentDay)) return false;

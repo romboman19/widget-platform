@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: widget_platform
       POSTGRES_USER: widget
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
@@ -27,10 +27,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://widget:${DB_PASSWORD:-changeme}@postgres:5432/widget_platform
-      JWT_SECRET: ${JWT_SECRET:-change-this-secret}
+      DATABASE_URL: postgresql://widget:${DB_PASSWORD:?DB_PASSWORD required}@postgres:5432/widget_platform
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@yourdomain.ua}
-      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8090}
       WIDGET_VERSION: ${WIDGET_VERSION:-1.0.0}
       NODE_ENV: production

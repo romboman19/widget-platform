@@ -42,7 +42,7 @@ const BLOCKED_HOSTS = [
 
 const DOCKER_NAMES = ['postgres', 'api', 'admin', 'nginx', 'host.docker.internal', 'redis', 'db'];
 
-export function isAllowedWebhookUrl(url) {
+export async function isAllowedWebhookUrl(url) {
   if (typeof url !== 'string') return false;
   let parsed;
   try { parsed = new URL(url); } catch { return false; }
@@ -51,6 +51,16 @@ export function isAllowedWebhookUrl(url) {
   const h = parsed.hostname.toLowerCase();
   if (DOCKER_NAMES.includes(h)) return false;
   for (const p of BLOCKED_HOSTS) { if (p.test(h)) return false; }
+  // DNS rebinding protection — resolve and check IP
+  try {
+    const dns = await import('dns/promises');
+    const addresses = await dns.resolve4(h);
+    for (const ip of addresses) {
+      for (const p of BLOCKED_HOSTS) {
+        if (p.test(ip)) return false;
+      }
+    }
+  } catch { return false; }
   return true;
 }
 

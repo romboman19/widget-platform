@@ -20,7 +20,7 @@ export default function Analytics() {
     try {
       const res = await api(`/sites/${siteId}/widgets`);
       setWidgets(res);
-    } catch {}
+    } catch (e) { console.error('loadWidgets failed:', e); }
   }
 
   async function load() {
@@ -29,7 +29,7 @@ export default function Analytics() {
       const widgetParam = selectedWidget ? `&widgetId=${selectedWidget}` : '';
       const res = await api(`/sites/${siteId}/analytics?days=${days}${widgetParam}`);
       setData(res);
-    } catch {}
+    } catch (e) { console.error('analytics load failed:', e); }
     setLoading(false);
   }
 

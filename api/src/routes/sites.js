@@ -29,8 +29,17 @@ export default async function siteRoutes(app) {
   });
 
   // Create site
-  app.post('/', { preHandler: [app.authenticate] }, async (request) => {
-    const { name, slug, domain } = request.body;
+  app.post('/', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const { name, slug, domain } = request.body || {};
+    if (!name || typeof name !== 'string' || name.length > 200) {
+      return reply.status(400).send({ error: 'Invalid name' });
+    }
+    if (!slug || !/^[a-z0-9][a-z0-9-]{0,99}$/.test(slug)) {
+      return reply.status(400).send({ error: 'Invalid slug' });
+    }
+    if (domain && (typeof domain !== 'string' || domain.length > 253)) {
+      return reply.status(400).send({ error: 'Invalid domain' });
+    }
     const site = await app.prisma.site.create({
       data: { name, slug, domain, userId: request.user.id },
     });
