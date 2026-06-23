@@ -1584,19 +1584,25 @@
                 const token = cwUrl.searchParams.get('website_token');
                 const base = cwUrl.origin + '/';
                 if (!token) return;
-                window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
                 // Hide Chatwoot default launcher
                 const hideStyle = document.createElement('style');
                 hideStyle.textContent = '#woot-launcher, #woot-launcher * { display: none !important; }';
                 document.head.appendChild(hideStyle);
-                // Load SDK
+                // Set settings BEFORE loading SDK (like old widget)
+                window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
+                // Load SDK and run immediately on load
                 const sdkScript = document.createElement('script');
                 sdkScript.src = base + 'packs/js/sdk.js';
                 sdkScript.async = true;
                 sdkScript.defer = true;
                 sdkScript.onload = () => {
+                  console.log('[Widget] Chatwoot SDK loaded, calling run()');
                   if (window.chatwootSDK) {
+                    console.log('[Widget] chatwootSDK found, settings:', JSON.stringify(window.chatwootSettings));
                     window.chatwootSDK.run(window.chatwootSettings);
+                    console.log('[Widget] chatwootSDK.run() called');
+                  } else {
+                    console.warn('[Widget] chatwootSDK not found after SDK load');
                   }
                 };
                 document.body.appendChild(sdkScript);
