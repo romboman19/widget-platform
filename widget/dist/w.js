@@ -3,8 +3,9 @@
 
   // ─── Config ───
   const SCRIPT = document.currentScript;
-  const BASE_URL = SCRIPT ? new URL(SCRIPT.src).origin : '';
-  const SCRIPT_PARAMS = new URL(SCRIPT.src).searchParams;
+  const SCRIPT_SRC = SCRIPT?.src || '';
+  const BASE_URL = SCRIPT_SRC ? new URL(SCRIPT_SRC).origin : '';
+  const SCRIPT_PARAMS = SCRIPT_SRC ? new URL(SCRIPT_SRC).searchParams : new URLSearchParams();
   const SITE_SLUG = SCRIPT_PARAMS.get('site');
   const IS_PREVIEW = SCRIPT_PARAMS.get('preview') === '1' || SCRIPT_PARAMS.get('__widget_preview__') === '1';
   if (!SITE_SLUG && !IS_PREVIEW) return console.warn('[Widget] Missing ?site= parameter');
@@ -263,8 +264,15 @@
 
     idleTimer = setTimeout(show, timeoutMs);
 
-    ['mousemove', 'click', 'scroll', 'keydown', 'touchstart'].forEach(evt => {
+    const idleEvents = ['mousemove', 'click', 'scroll', 'keydown', 'touchstart'];
+    idleEvents.forEach(evt => {
       document.addEventListener(evt, resetTimer, { passive: true });
+    });
+    // Track for cleanup on reinit
+    window.__WIDGET_IDLE_CLEANUPS__ = window.__WIDGET_IDLE_CLEANUPS__ || [];
+    window.__WIDGET_IDLE_CLEANUPS__.push(() => {
+      clearTimeout(idleTimer);
+      idleEvents.forEach(evt => document.removeEventListener(evt, resetTimer));
     });
   }
 
@@ -1142,8 +1150,7 @@
       }, cfg);
       const tab = el('button', {
         class: 'wp-widget wp-side-tab',
-        style: { zIndex: widget.zIndex || 999995 },
-        style: tabStyle,
+        style: { ...tabStyle, zIndex: widget.zIndex || 999995 },
         onClick: () => {
           track('click', widget.id, 'side_tab');
           if (cfg.action === 'callback') showCallbackForm(widget);
@@ -1433,7 +1440,8 @@
             });
           }, 250);
         };
-        setInterval(cycle, speed);
+        window.__WIDGET_INTERVALS__ = window.__WIDGET_INTERVALS__ || [];
+        window.__WIDGET_INTERVALS__.push(setInterval(cycle, speed));
       }
 
       // Attention: general (cfg) animates the WHOLE button; per-button animates the ICON.
@@ -1569,7 +1577,7 @@
         const allowedOrigins = [window.location.origin];
         if (allowedOrigins.includes(e.origin)) {
           window.__WIDGET_PREVIEW__ = e.data.config;
-          window.__WIDGET_REINIT__();
+          if (window.__WIDGET_REINIT__) window.__WIDGET_REINIT__();
         }
       }
     });
@@ -1607,6 +1615,16 @@
 
   // Expose reinit function for preview updates
   window.__WIDGET_REINIT__ = function() {
+    // Clear existing intervals
+    if (window.__WIDGET_INTERVALS__) {
+      window.__WIDGET_INTERVALS__.forEach(clearInterval);
+      window.__WIDGET_INTERVALS__ = [];
+    }
+    // Clear idle trigger listeners
+    if (window.__WIDGET_IDLE_CLEANUPS__) {
+      window.__WIDGET_IDLE_CLEANUPS__.forEach(fn => fn());
+      window.__WIDGET_IDLE_CLEANUPS__ = [];
+    }
     // Clear existing widgets (use .wp-widget class which all renderers add)
     document.querySelectorAll('.wp-widget').forEach(el => el.remove());
     // Re-init with current config

@@ -158,7 +158,7 @@ export default function WidgetEditor() {
   useEffect(() => { 
     loadWidget(); 
     loadSite();
-  }, [widgetId]);
+  }, [widgetId, siteId]);
 
   async function loadWidget() {
     try {
@@ -772,17 +772,6 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                           </label>
                         </label>
                       </div>
-                      <button
-                        onClick={() => {
-                          const next = [...(cfg.buttons || [])];
-                          const newChannels = (btn.channels || []).filter((_, i) => i !== chIndex);
-                          next[btnIndex] = { ...btn, channels: newChannels };
-                          update('config.buttons', next);
-                        }}
-                        className="p-1 text-slate-400 hover:text-red-500"
-                      >
-                        <X size={14} />
-                      </button>
                     </div>
                   ))}
                   <button

@@ -47,8 +47,14 @@ app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, 
   }
 });
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error('JWT_SECRET must be set and at least 32 characters');
+  process.exit(1);
+}
+
 await app.register(jwt, {
-  secret: process.env.JWT_SECRET || 'dev-secret',
+  secret: JWT_SECRET,
   sign: {
     expiresIn: '24h',
   },

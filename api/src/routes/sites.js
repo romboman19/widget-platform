@@ -156,6 +156,21 @@ export default async function siteRoutes(app) {
     const domain = site.domain || site.slug + '.example.com';
     const url = domain.startsWith('http') ? domain : `https://${domain}`;
 
+    // SSRF protection: block internal/private addresses
+    try {
+      const parsedUrl = new URL(url);
+      const dns = await import('dns/promises');
+      const addresses = await dns.resolve4(parsedUrl.hostname);
+      const BLOCKED = [/^127\./, /^10\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./, /^169\.254\./, /^0\./];
+      for (const ip of addresses) {
+        if (BLOCKED.some(p => p.test(ip))) {
+          return reply.status(400).send({ error: 'Internal addresses blocked for screenshots' });
+        }
+      }
+    } catch (dnsErr) {
+      return reply.status(400).send({ error: 'Cannot resolve domain for screenshot' });
+    }
+
     try {
       // Import puppeteer dynamically
       const puppeteer = await import('puppeteer-core');
@@ -232,7 +247,11 @@ export default async function siteRoutes(app) {
     }
 
     const fs = await import('fs');
-    const filepath = `/app${site.screenshotUrl}`;
+    const path = await import('path');
+    const filepath = path.resolve('/app/uploads/screenshots', path.basename(site.screenshotUrl));
+    if (!filepath.startsWith('/app/uploads/screenshots/')) {
+      return reply.status(400).send({ error: 'Invalid screenshot path' });
+    }
     
     if (!fs.existsSync(filepath)) {
       return reply.status(404).send({ error: 'Screenshot file not found' });
