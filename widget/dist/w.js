@@ -1594,6 +1594,11 @@
                 sdkScript.src = base + 'packs/js/sdk.js';
                 sdkScript.async = true;
                 sdkScript.defer = true;
+                sdkScript.onload = () => {
+                  if (window.chatwootSDK) {
+                    window.chatwootSDK.run(window.chatwootSettings);
+                  }
+                };
                 document.body.appendChild(sdkScript);
                 return; // Only load once
               } catch (e) {}
