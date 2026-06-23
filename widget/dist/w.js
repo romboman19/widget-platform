@@ -615,38 +615,8 @@
       case 'facebook': window.open(isFullUrl ? v : 'https://facebook.com/' + v, '_blank'); break;
       case 'tiktok': window.open(isFullUrl ? v : 'https://tiktok.com/@' + v, '_blank'); break;
       case 'chatwoot': {
-        // Parse baseUrl and token from channel value
-        // Expected: https://chat.huntervua.pp.ua/widget?website_token=xQfswSV1piDGDqtrDAjT45Tc
-        if (window.$chatwoot) { window.$chatwoot.toggle('open'); break; }
-        if (!v) break;
-        try {
-          const cwUrl = new URL(v);
-          const token = cwUrl.searchParams.get('website_token');
-          const base = cwUrl.origin + '/';
-          if (!token) { window.open(v, '_blank'); break; }
-          window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
-          // Hide Chatwoot launcher button — we use our own widget button
-          const hideWootStyle = document.createElement('style');
-          hideWootStyle.textContent = '#woot-launcher, #woot-launcher * { display: none !important; }';
-          document.head.appendChild(hideWootStyle);
-          const sdkScript = document.createElement('script');
-          sdkScript.src = base + 'packs/js/sdk.js';
-          sdkScript.async = true;
-          sdkScript.defer = true;
-          sdkScript.onload = () => {
-            if (!window.chatwootSDK) return;
-            window.chatwootSDK.run(window.chatwootSettings);
-            // Wait for $chatwoot to be ready (event or poll)
-            let tries = 0;
-            const tryOpen = () => {
-              if (window.$chatwoot) { window.$chatwoot.toggle('open'); }
-              else if (tries++ < 20) setTimeout(tryOpen, 200);
-            };
-            window.addEventListener('chatwoot:ready', tryOpen);
-            tryOpen(); // also try immediately in case event already fired
-          };
-          document.body.appendChild(sdkScript);
-        } catch(e) { window.open(v, '_blank'); }
+        // SDK should already be loaded from init — just toggle
+        if (window.$chatwoot) { window.$chatwoot.toggle('open'); }
         break;
       }
       case 'callback': {
@@ -1593,6 +1563,38 @@
     });
   }
 
+  // ─── Preload Chatwoot SDK if any widget has a chatwoot channel ───
+  function preloadChatwoot(widgets) {
+    for (const w of widgets) {
+      if (w.config?.buttons) {
+        for (const btn of w.config.buttons) {
+          for (const ch of (btn.channels || [])) {
+            if (ch.type === 'chatwoot' && ch.value) {
+              try {
+                const cwUrl = new URL(ch.value);
+                const token = cwUrl.searchParams.get('website_token');
+                const base = cwUrl.origin + '/';
+                if (!token) return;
+                window.chatwootSettings = { baseUrl: base, websiteToken: token, hideMessageBubble: true };
+                // Hide Chatwoot default launcher
+                const hideStyle = document.createElement('style');
+                hideStyle.textContent = '#woot-launcher, #woot-launcher * { display: none !important; }';
+                document.head.appendChild(hideStyle);
+                // Load SDK
+                const sdkScript = document.createElement('script');
+                sdkScript.src = base + 'packs/js/sdk.js';
+                sdkScript.async = true;
+                sdkScript.defer = true;
+                document.body.appendChild(sdkScript);
+                return; // Only load once
+              } catch (e) {}
+            }
+          }
+        }
+      }
+    }
+  }
+
   // ─── Init ───
   async function init() {
     try {
@@ -1601,6 +1603,7 @@
         siteConfig = window.__WIDGET_PREVIEW__;
         siteId = siteConfig.siteId;
         injectStyles();
+        preloadChatwoot(siteConfig.widgets || []);
         // In preview, ignore display rules and triggers so the widget always shows
         (siteConfig.widgets || []).forEach((wgt) => {
           wgt.rules = null;
@@ -1617,6 +1620,7 @@
       siteId = siteConfig.siteId;
 
       injectStyles();
+      preloadChatwoot(siteConfig.widgets);
       siteConfig.widgets.forEach(renderWidget);
     } catch (err) {
       console.warn('[Widget] Init failed:', err);
