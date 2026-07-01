@@ -108,8 +108,10 @@
     if (window.__WIDGET_PREVIEW__) return;
     const data = { siteId, widgetId, event, channel, page: location.href, device: DEVICE, meta };
     const trackUrl = BASE_URL + '/api/analytics/track?siteId=' + encodeURIComponent(siteId);
-    navigator.sendBeacon?.(trackUrl, new Blob([JSON.stringify(data)], { type: 'application/json' }))
-      || fetch(trackUrl, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId }, keepalive: true, credentials: 'omit' });
+    const payload = JSON.stringify(data);
+    navigator.sendBeacon?.(trackUrl, new Blob([payload], { type: 'text/plain;charset=UTF-8' }))
+      || fetch(trackUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, keepalive: true, credentials: 'omit', mode: 'no-cors' });
+  }
   }
 
   function matchRules(rules) {
@@ -467,7 +469,7 @@
       .wp-floating-btn { position: fixed; width: 56px; height: 56px; min-width: 56px; max-width: 56px; min-height: 56px; max-height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
       .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
-      .wp-floating-btn-v2 { all: initial; position: relative; display: inline-flex !important; align-items: center !important; justify-content: center !important; vertical-align: middle; padding: 0 !important; margin: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; aspect-ratio: 1 / 1; flex: 0 0 auto !important; flex-shrink: 0 !important; width: auto !important; min-width: 0 !important; max-width: none !important; height: auto !important; min-height: 0 !important; max-height: none !important; line-height: 0 !important; font-size: 0 !important; font-family: inherit !important; appearance: none !important; -webkit-appearance: none !important; background-image: none !important; box-sizing: border-box !important; overflow: hidden; cursor: pointer; white-space: nowrap; writing-mode: horizontal-tb !important; text-indent: 0 !important; letter-spacing: normal !important; text-transform: none !important; }
+      .wp-floating-btn-v2 { all: initial; position: relative; display: inline-flex !important; align-items: center !important; justify-content: center !important; vertical-align: middle; padding: 0 !important; margin: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; aspect-ratio: 1 / 1; flex: 0 0 auto !important; flex-shrink: 0 !important; line-height: 0 !important; font-size: 0 !important; font-family: inherit !important; appearance: none !important; -webkit-appearance: none !important; background-image: none !important; box-sizing: border-box !important; overflow: hidden; cursor: pointer; white-space: nowrap; writing-mode: horizontal-tb !important; text-indent: 0 !important; letter-spacing: normal !important; text-transform: none !important; }
       .wp-floating-btn-v2 > * { box-sizing: border-box !important; flex: 0 0 auto !important; flex-shrink: 0 !important; }
       .wp-floating-btn-v2 svg { color: #fff; }
       .wp-floating-menu { display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
@@ -959,7 +961,7 @@
     }
 
     // ─── Send to analytics ───
-    fetch(BASE_URL + '/api/analytics/form?siteId=' + encodeURIComponent(siteId), { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId }, credentials: 'omit' });
+    fetch(BASE_URL + '/api/analytics/form?siteId=' + encodeURIComponent(siteId), { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, credentials: 'omit' });
 
     // ─── Send to webhook ───
     if (cfg.webhookUrl) {
