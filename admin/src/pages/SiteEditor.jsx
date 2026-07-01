@@ -68,7 +68,7 @@ const DEFAULT_CONFIGS = {
 
 export default function SiteEditor() {
   const { siteId } = useParams();
-  const { api } = useAuth();
+  const { api, user } = useAuth();
   const { loadSites } = useOutletContext();
   const navigate = useNavigate();
   const [site, setSite] = useState(null);
@@ -76,8 +76,17 @@ export default function SiteEditor() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: '', domain: '' });
   const [showTemplates, setShowTemplates] = useState(false);
+  const [availableUsers, setAvailableUsers] = useState([]);
+  const [siteMembers, setSiteMembers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [membersLoading, setMembersLoading] = useState(false);
 
   useEffect(() => { load(); }, [siteId]);
+  useEffect(() => {
+    if (user?.role === 'OWNER') {
+      loadUsersAndMembers();
+    }
+  }, [siteId, user?.role]);
 
   async function load() {
     try {
@@ -86,6 +95,35 @@ export default function SiteEditor() {
       setWidgets(data.widgets || []);
       setForm({ name: data.name, domain: data.domain });
     } catch { navigate('/'); }
+  }
+
+  async function loadUsersAndMembers() {
+    setMembersLoading(true);
+    try {
+      const [users, membersRes] = await Promise.all([
+        api('/users'),
+        api(`/sites/${siteId}/members`),
+      ]);
+      setAvailableUsers(users.filter((u) => u.isActive && u.role !== 'OWNER'));
+      setSiteMembers(membersRes.members || []);
+    } finally {
+      setMembersLoading(false);
+    }
+  }
+
+  async function addSiteMember() {
+    if (!selectedUserId) return;
+    await api(`/sites/${siteId}/members`, {
+      method: 'POST',
+      body: { userId: selectedUserId, role: 'EDITOR' },
+    });
+    setSelectedUserId('');
+    await loadUsersAndMembers();
+  }
+
+  async function removeSiteMember(userId) {
+    await api(`/sites/${siteId}/members/${userId}`, { method: 'DELETE' });
+    await loadUsersAndMembers();
   }
 
   async function saveSite() {
@@ -158,6 +196,8 @@ export default function SiteEditor() {
   if (!site) return <div className="text-slate-400">Завантаження...</div>;
 
   const activeWidgets = widgets.filter(w => w.enabled);
+  const assignedUserIds = new Set(siteMembers.map((member) => member.user.id));
+  const unassignedUsers = availableUsers.filter((candidate) => !assignedUserIds.has(candidate.id));
 
   return (
     <div>
@@ -212,6 +252,63 @@ export default function SiteEditor() {
           </div>
         )}
       </div>
+
+      {user?.role === 'OWNER' ? (
+        <div className="bg-white rounded-xl p-5 border border-slate-200 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-800">Доступ користувачів</h3>
+              <p className="text-sm text-slate-500 mt-1">Власник має повний доступ автоматично. Тут ти керуєш редакторами сайту.</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-3 mb-4">
+            <select
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Оберіть користувача для доступу</option>
+              {unassignedUsers.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>{candidate.name || candidate.email} — {candidate.email}</option>
+              ))}
+            </select>
+            <button
+              onClick={addSiteMember}
+              disabled={!selectedUserId}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+            >
+              Додати доступ
+            </button>
+          </div>
+
+          {membersLoading ? (
+            <div className="text-sm text-slate-400">Завантаження доступів...</div>
+          ) : siteMembers.length === 0 ? (
+            <div className="text-sm text-slate-400">Поки що нікому не видано доступ до цього сайту.</div>
+          ) : (
+            <div className="space-y-3">
+              {siteMembers.map((member) => (
+                <div key={member.id} className="flex items-center justify-between gap-3 border border-slate-100 rounded-lg px-4 py-3">
+                  <div>
+                    <div className="font-medium text-slate-800">{member.user.name || 'Без імені'}</div>
+                    <div className="text-sm text-slate-500">{member.user.email}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-700 text-xs">{member.role}</span>
+                    <button
+                      onClick={() => removeSiteMember(member.user.id)}
+                      className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                    >
+                      Забрати доступ
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : null}
 
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-slate-700">Віджети ({activeWidgets.length} активних з {widgets.length})</h3>
