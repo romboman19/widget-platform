@@ -36,8 +36,8 @@ await app.register(multipart.default || multipart, {
   },
 });
 
-// ─── Allow empty JSON body ───
-app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+// ─── Allow empty JSON/text body ───
+const parseJsonLikeBody = (req, body, done) => {
   if (!body || body.length === 0) return done(null, {});
   try {
     done(null, JSON.parse(body));
@@ -45,7 +45,9 @@ app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, 
     err.statusCode = 400;
     done(err, undefined);
   }
-});
+};
+app.addContentTypeParser('application/json', { parseAs: 'string' }, parseJsonLikeBody);
+app.addContentTypeParser('text/plain', { parseAs: 'string' }, parseJsonLikeBody);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
