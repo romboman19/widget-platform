@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { denormalizeFloatingMenuConfig } from '../lib/configNormalizer.js';
 import IconPicker from '../components/IconPicker.jsx';
-import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone, Phone, Mail, MessageCircle, Link2 } from 'lucide-react';
+import { ChevronLeft, Save, Trash2, Plus, GripVertical, X, Monitor, Smartphone, Phone, Mail, MessageCircle, Link2, ArrowUp, ArrowDown } from 'lucide-react';
 
 // Brand SVG Icons
 const TelegramIcon = () => (
@@ -664,17 +664,52 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                           channelType={ch.type}
                         />
                       </div>
-                      <button
-                        onClick={() => {
-                          const next = [...(cfg.buttons || [])];
-                          const newChannels = (btn.channels || []).filter((_, i) => i !== chIndex);
-                          next[btnIndex] = { ...btn, channels: newChannels };
-                          update("config.buttons", next);
-                        }}
-                        className="p-1 text-slate-400 hover:text-red-500"
-                      >
-                        <X size={14} />
-                      </button>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          type="button"
+                          disabled={chIndex === 0}
+                          onClick={() => {
+                            if (chIndex === 0) return;
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            [newChannels[chIndex - 1], newChannels[chIndex]] = [newChannels[chIndex], newChannels[chIndex - 1]];
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                          className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Перемістити вище"
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={chIndex === (btn.channels || []).length - 1}
+                          onClick={() => {
+                            if (chIndex === (btn.channels || []).length - 1) return;
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = [...(btn.channels || [])];
+                            [newChannels[chIndex], newChannels[chIndex + 1]] = [newChannels[chIndex + 1], newChannels[chIndex]];
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update('config.buttons', next);
+                          }}
+                          className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Перемістити нижче"
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const next = [...(cfg.buttons || [])];
+                            const newChannels = (btn.channels || []).filter((_, i) => i !== chIndex);
+                            next[btnIndex] = { ...btn, channels: newChannels };
+                            update("config.buttons", next);
+                          }}
+                          className="p-1 text-slate-400 hover:text-red-500"
+                          title="Видалити канал"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     </div>
                     {ch.type === 'callback' && (
                       <Field label="Віджет зворотного зв'язку" hint="Оберіть існуючий POPUP_CALLBACK віджет">
