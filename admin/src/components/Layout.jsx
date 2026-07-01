@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users, Github, Star } from 'lucide-react';
+import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users, Github } from 'lucide-react';
 import CreateSiteModal from './CreateSiteModal.jsx';
 import BrandLogo from './BrandLogo.jsx';
 
@@ -68,12 +68,9 @@ export default function Layout() {
         </nav>
 
         <div className="p-3 border-t border-slate-700 space-y-2">
-          <div className="px-3 py-2 flex items-center justify-center gap-3 text-sm border border-slate-800 rounded-lg">
+          <div className="px-3 py-2 flex items-center justify-center text-sm border border-slate-800 rounded-lg">
             <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white">
               <Github size={16} /> GitHub
-            </a>
-            <a href={`${GITHUB_REPO_URL}/stargazers`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300">
-              <Star size={16} /> Star
             </a>
           </div>
           <button onClick={() => { logout(); navigate('/login'); }}
