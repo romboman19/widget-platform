@@ -1,8 +1,17 @@
+import { isOwner, requireSiteAccess } from '../lib/acl.js';
+
 export default async function siteRoutes(app) {
   // List sites
   app.get('/', { preHandler: [app.authenticate] }, async (request) => {
     const sites = await app.prisma.site.findMany({
-      where: { userId: request.user.id },
+      where: isOwner(request.user)
+        ? {}
+        : {
+            OR: [
+              { userId: request.user.id },
+              { memberships: { some: { userId: request.user.id } } },
+            ],
+          },
       include: { _count: { select: { widgets: { where: { enabled: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -16,8 +25,10 @@ export default async function siteRoutes(app) {
 
   // Get site by id
   app.get('/:siteId', { preHandler: [app.authenticate] }, async (request, reply) => {
+    const denied = await requireSiteAccess(request, reply, request.params.siteId);
+    if (denied || reply.sent) return;
     const site = await app.prisma.site.findFirst({
-      where: { id: request.params.siteId, userId: request.user.id },
+      where: { id: request.params.siteId },
       include: { widgets: { orderBy: { priority: 'asc' } } },
     });
     if (!site) return reply.status(404).send({ error: 'Site not found' });
@@ -30,6 +41,7 @@ export default async function siteRoutes(app) {
 
   // Create site
   app.post('/', { preHandler: [app.authenticate] }, async (request, reply) => {
+    if (!isOwner(request.user)) return reply.status(403).send({ error: 'Forbidden' });
     const { name, slug, domain } = request.body || {};
     if (!name || typeof name !== 'string' || name.length > 200) {
       return reply.status(400).send({ error: 'Invalid name' });
@@ -52,9 +64,8 @@ export default async function siteRoutes(app) {
 
   // Update site
   app.put('/:siteId', { preHandler: [app.authenticate] }, async (request, reply) => {
-    const existing = await app.prisma.site.findFirst({
-      where: { id: request.params.siteId, userId: request.user.id },
-    });
+    if (!isOwner(request.user)) return reply.status(403).send({ error: 'Forbidden' });
+    const existing = await app.prisma.site.findFirst({ where: { id: request.params.siteId } });
     if (!existing) return reply.status(404).send({ error: 'Site not found' });
 
     const { name, domain } = request.body;
@@ -71,9 +82,8 @@ export default async function siteRoutes(app) {
 
   // Delete site
   app.delete('/:siteId', { preHandler: [app.authenticate] }, async (request, reply) => {
-    const existing = await app.prisma.site.findFirst({
-      where: { id: request.params.siteId, userId: request.user.id },
-    });
+    if (!isOwner(request.user)) return reply.status(403).send({ error: 'Forbidden' });
+    const existing = await app.prisma.site.findFirst({ where: { id: request.params.siteId } });
     if (!existing) return reply.status(404).send({ error: 'Site not found' });
 
     await app.prisma.site.delete({ where: { id: request.params.siteId } });
@@ -85,9 +95,10 @@ export default async function siteRoutes(app) {
     const { siteId } = request.params;
     const { days = 30, widgetId } = request.query;
 
-    const existing = await app.prisma.site.findFirst({
-      where: { id: siteId, userId: request.user.id },
-    });
+    const denied = await requireSiteAccess(request, reply, siteId);
+    if (denied || reply.sent) return;
+
+    const existing = await app.prisma.site.findFirst({ where: { id: siteId } });
     if (!existing) return reply.status(404).send({ error: 'Site not found' });
 
     const since = new Date();
