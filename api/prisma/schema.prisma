@@ -35,12 +35,27 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  role      UserRole @default(EDITOR)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   sites     Site[]
   templates Template[]
   mediaFolders MediaFolder[]
   mediaFiles   MediaFile[]
+  memberships SiteMembership[]
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  EDITOR
+}
+
+enum SiteRole {
+  ADMIN
+  EDITOR
+  VIEWER
 }
 
 model Site {
@@ -56,6 +71,22 @@ model Site {
   widgets        Widget[]
   experiments    Experiment[]
   analytics      AnalyticsEvent[]
+  memberships    SiteMembership[]
+}
+
+model SiteMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  siteId    String
+  role      SiteRole @default(EDITOR)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, siteId])
+  @@index([userId])
+  @@index([siteId])
 }
 
 model Widget {

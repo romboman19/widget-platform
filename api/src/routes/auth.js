@@ -13,7 +13,7 @@ export default async function authRoutes(app) {
     }
 
     const user = await app.prisma.user.findUnique({ where: { email } });
-    if (!user) {
+    if (!user || !user.isActive) {
       // Constant-time: still hash to prevent timing attacks
       await bcrypt.hash('dummy', 12);
       return reply.status(401).send({ error: 'Invalid credentials' });
@@ -24,15 +24,15 @@ export default async function authRoutes(app) {
       return reply.status(401).send({ error: 'Invalid credentials' });
     }
 
-    const token = app.jwt.sign({ id: user.id, email: user.email });
-    return { token, user: { id: user.id, email: user.email, name: user.name } };
+    const token = app.jwt.sign({ id: user.id, email: user.email, role: user.role });
+    return { token, user: { id: user.id, email: user.email, name: user.name, role: user.role, isActive: user.isActive } };
   });
 
   // ─── Get current user ───
   app.get('/me', { preHandler: [app.authenticate] }, async (request) => {
     const user = await app.prisma.user.findUnique({
       where: { id: request.user.id },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true },
     });
     if (!user) throw { statusCode: 401, message: 'User not found' };
     return user;

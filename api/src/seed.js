@@ -13,9 +13,17 @@ export async function seed(prisma) {
         email: adminEmail,
         password: hash,
         name: 'Admin',
+        role: 'OWNER',
+        isActive: true,
       },
     });
     console.log(`✅ Admin user created: ${adminEmail}`);
+  } else if (existing.role !== 'OWNER' || existing.isActive !== true) {
+    await prisma.user.update({
+      where: { id: existing.id },
+      data: { role: 'OWNER', isActive: true },
+    });
+    console.log(`✅ Admin user promoted to OWNER: ${adminEmail}`);
   }
 
   // Seed global templates
