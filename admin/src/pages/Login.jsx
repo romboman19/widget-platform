@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Github, Star } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.jsx';
+
+const GITHUB_REPO_URL = 'https://github.com/romboman19/widget-platform';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -41,6 +44,15 @@ export default function Login() {
             {loading ? 'Вхід...' : 'Увійти'}
           </button>
         </form>
+
+        <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-3 text-sm">
+          <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-slate-600 hover:text-slate-900">
+            <Github size={16} /> GitHub
+          </a>
+          <a href={`${GITHUB_REPO_URL}/stargazers`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-700">
+            <Star size={16} /> Star
+          </a>
+        </div>
       </div>
     </div>
   );
