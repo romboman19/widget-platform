@@ -47,7 +47,9 @@ export default function Analytics() {
 
   // Totals
   const totals = {};
-  (data.totals || []).forEach(t => { totals[t.event] = (t._count && typeof t._count === 'object') ? t._count._all : t._count; });
+  (data.totals || []).forEach(t => {
+    totals[t.event] = t?._count?.id ?? t?._count?._all ?? t?._count ?? 0;
+  });
 
   const topChannels = data.topChannels || [];
 
