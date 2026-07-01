@@ -109,8 +109,11 @@
     const data = { siteId, widgetId, event, channel, page: location.href, device: DEVICE, meta };
     const trackUrl = BASE_URL + '/api/analytics/track?siteId=' + encodeURIComponent(siteId);
     const payload = JSON.stringify(data);
-    navigator.sendBeacon?.(trackUrl, new Blob([payload], { type: 'text/plain;charset=UTF-8' }))
-      || fetch(trackUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, keepalive: true, credentials: 'omit', mode: 'no-cors' });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(trackUrl, new Blob([payload], { type: 'text/plain;charset=UTF-8' }));
+      return;
+    }
+    fetch(trackUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, credentials: 'omit', mode: 'no-cors' }).catch(() => {});
   }
 
   function matchRules(rules) {
