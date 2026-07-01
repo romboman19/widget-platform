@@ -664,7 +664,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                           channelType={ch.type}
                         />
                       </div>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-1 self-center pl-1">
                         <button
                           type="button"
                           disabled={chIndex === 0}
@@ -676,7 +676,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                             next[btnIndex] = { ...btn, channels: newChannels };
                             update('config.buttons', next);
                           }}
-                          className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded border border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
                           title="Перемістити вище"
                         >
                           <ArrowUp size={14} />
@@ -692,7 +692,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                             next[btnIndex] = { ...btn, channels: newChannels };
                             update('config.buttons', next);
                           }}
-                          className="p-1 text-slate-400 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded border border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
                           title="Перемістити нижче"
                         >
                           <ArrowDown size={14} />
@@ -704,7 +704,7 @@ function FloatingMenuConfig({ cfg, pos, triggers, update, api, siteId }) {
                             next[btnIndex] = { ...btn, channels: newChannels };
                             update("config.buttons", next);
                           }}
-                          className="p-1 text-slate-400 hover:text-red-500"
+                          className="inline-flex items-center justify-center w-7 h-7 rounded border border-slate-200 bg-white text-slate-400 hover:text-red-500 hover:border-red-200"
                           title="Видалити канал"
                         >
                           <X size={14} />
