@@ -394,13 +394,13 @@
  .wp-btn-icon { display:inline-flex; align-items:center; justify-content:center; width:auto; height:auto; max-width:100%; max-height:100%; flex:0 0 auto; flex-shrink:0; line-height:0; overflow:visible; }
  .wp-btn-icon img, .wp-btn-icon svg, .wp-btn-icon i, .wp-btn-icon span { object-fit:contain; display:block; flex:0 0 auto; flex-shrink:0; }
  /* Per-button icon attention animations (animate the icon, not the button) */
- .wp-icon-pulse { animation-name: wp-kf-pulse; animation-timing-function: ease; animation-iteration-count: infinite; }
- .wp-icon-shake { animation-name: wp-kf-shake; animation-timing-function: ease; animation-iteration-count: infinite; }
- .wp-icon-wobble { animation-name: wp-kf-wobble; animation-timing-function: ease; animation-iteration-count: infinite; }
- .wp-icon-spin { animation-name: wp-kf-spin; animation-timing-function: linear; animation-iteration-count: infinite; }
- .wp-icon-swing { animation-name: wp-kf-swing; animation-timing-function: ease; animation-iteration-count: infinite; }
- .wp-icon-bounce { animation-name: wp-kf-bounce; animation-timing-function: ease; animation-iteration-count: infinite; }
- .wp-icon-tada { animation-name: wp-kf-tada; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-pulse { animation-name: wp-kf-pulse; animation-duration: 1.4s; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-shake { animation-name: wp-kf-shake; animation-duration: 1.4s; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-wobble { animation-name: wp-kf-wobble; animation-duration: 1.4s; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-spin { animation-name: wp-kf-spin; animation-duration: 1.4s; animation-timing-function: linear; animation-iteration-count: infinite; }
+ .wp-icon-swing { animation-name: wp-kf-swing; animation-duration: 1.4s; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-bounce { animation-name: wp-kf-bounce; animation-duration: 1.4s; animation-timing-function: ease; animation-iteration-count: infinite; }
+ .wp-icon-tada { animation-name: wp-kf-tada; animation-duration: 1.4s; animation-timing-function: ease; animation-iteration-count: infinite; }
  @keyframes wp-slide-in-right { from { opacity:0; transform: translateX(60%); } to { opacity:1; transform: translateX(0); } }
  @keyframes wp-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
  @keyframes wp-kf-pulse {
