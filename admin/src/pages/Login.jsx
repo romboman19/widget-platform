@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Github, Star } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth.jsx';
+import BrandLogo from '../components/BrandLogo.jsx';
 
 const GITHUB_REPO_URL = 'https://github.com/romboman19/widget-platform';
 
@@ -28,9 +29,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
-        <h1 className="text-2xl font-bold mb-6 text-center text-slate-800">🔧 Widget Platform</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-white to-blue-50 p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 w-full max-w-md">
+        <BrandLogo className="mb-6 justify-center" />
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder="Email" required
