@@ -452,7 +452,7 @@
       .wp-floating-btn-v2 { display: flex; align-items: center; justify-content: center; }
       .wp-floating-btn-v2 svg { color: #fff; }
       .wp-floating-btn-v2 { overflow: hidden; }
-      .wp-floating-menu { position: fixed; display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
+      .wp-floating-menu { display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
       .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; visibility: hidden; transition: opacity .25s, transform .25s, visibility 0s .25s; }
       .wp-channel-btn { width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; }
       .wp-channel-btn:hover { transform: scale(1.15); }
