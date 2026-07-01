@@ -1500,7 +1500,6 @@
       // Wrapper fills the button (for centering); the icon itself is sized to _iconSize (iconScale%).
       const iconWrap = document.createElement('span');
       iconWrap.className = 'wp-btn-icon';
-      iconWrap.style.all = 'initial';
       iconWrap.style.display = 'inline-flex';
       iconWrap.style.alignItems = 'center';
       iconWrap.style.justifyContent = 'center';
