@@ -83,6 +83,7 @@ enum WidgetType {
   POPUP_BANNER
   STICKY_BAR
   SIDE_TAB
+  CUSTOM_IFRAME
 }
 
 model AnalyticsEvent {

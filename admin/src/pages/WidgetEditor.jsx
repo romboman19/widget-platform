@@ -281,6 +281,7 @@ export default function WidgetEditor() {
           {widget.type === 'POPUP_BANNER' && <PopupBannerConfig cfg={cfg} triggers={triggers} update={update} />}
           {widget.type === 'STICKY_BAR' && <StickyBarConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
           {widget.type === 'SIDE_TAB' && <SideTabConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
+          {widget.type === 'CUSTOM_IFRAME' && <CustomIframeConfig cfg={cfg} pos={pos} triggers={triggers} update={update} />}
 
           {/* Display rules */}
           <RulesConfig rules={rules} update={update} />
@@ -1349,6 +1350,89 @@ function TriggersConfig({ triggers, update, simple = false }) {
         )}
       </div>
     </Section>
+  );
+}
+
+function CustomIframeConfig({ cfg, pos, triggers, update }) {
+  return (
+    <>
+      <Section title="Custom iframe">
+        <Field label="URL iframe" hint="Тільки https:// адреси">
+          <Input value={cfg.src || ''} onChange={v => update('config.src', v)} placeholder="https://example.com/embed" />
+        </Field>
+        <Field label="Title">
+          <Input value={cfg.title || ''} onChange={v => update('config.title', v)} placeholder="Custom iframe" />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Ширина (px)">
+            <Input type="number" value={cfg.width || 360} onChange={v => update('config.width', parseInt(v) || 360)} />
+          </Field>
+          <Field label="Висота (px)">
+            <Input type="number" value={cfg.height || 520} onChange={v => update('config.height', parseInt(v) || 520)} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Радіус кутів (px)">
+            <Input type="number" value={cfg.borderRadius || 12} onChange={v => update('config.borderRadius', parseInt(v) || 0)} />
+          </Field>
+          <Field label="Колір фону">
+            <ColorPicker value={cfg.backgroundColor || '#ffffff'} onChange={v => update('config.backgroundColor', v)} />
+          </Field>
+        </div>
+        <Field label="Sandbox режим" hint="strict = найсуворіший, safe = рекомендовано, relaxed = для складних embed">
+          <Select
+            value={cfg.sandboxMode || 'safe'}
+            onChange={v => update('config.sandboxMode', v)}
+            options={[
+              { value: 'strict', label: 'Strict' },
+              { value: 'safe', label: 'Safe' },
+              { value: 'relaxed', label: 'Relaxed' },
+            ]}
+          />
+        </Field>
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={cfg.allowFullscreen || false}
+            onChange={e => update('config.allowFullscreen', e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300"
+          />
+          Дозволити fullscreen
+        </label>
+      </Section>
+
+      <Section title="Розміщення">
+        <Field label="Позиція">
+          <Select value={pos.corner || 'bottom-right'} onChange={v => update('position.corner', v)} options={CORNERS} />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Відступ X (px)">
+            <Input type="number" value={pos.offsetX ?? 20} onChange={v => update('position.offsetX', parseInt(v) || 20)} />
+          </Field>
+          <Field label="Відступ Y (px)">
+            <Input type="number" value={pos.offsetY ?? 20} onChange={v => update('position.offsetY', parseInt(v) || 20)} />
+          </Field>
+        </div>
+      </Section>
+
+      <Section title="Показ">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Затримка (сек)">
+            <Input type="number" value={triggers.delay ?? 5} onChange={v => update('triggers.delay', parseInt(v) || 0)} />
+          </Field>
+          <Field label="Частота">
+            <Select
+              value={triggers.frequency || 'once'}
+              onChange={v => update('triggers.frequency', v)}
+              options={[
+                { value: 'once', label: 'Один раз' },
+                { value: 'every', label: 'Кожного разу' },
+              ]}
+            />
+          </Field>
+        </div>
+      </Section>
+    </>
   );
 }
 

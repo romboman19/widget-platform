@@ -1166,6 +1166,66 @@
     }
   }
 
+  function renderCustomIframe(widget) {
+    const cfg = widget.config || {};
+    const pos = widget.position || {};
+    const triggers = widget.triggers || {};
+    const corner = pos.corner || 'bottom-right';
+    const posStyle = {};
+    if (corner.includes('bottom')) posStyle.bottom = (pos.offsetY || 20) + 'px';
+    if (corner.includes('top')) posStyle.top = (pos.offsetY || 20) + 'px';
+    if (corner.includes('right')) posStyle.right = (pos.offsetX || 20) + 'px';
+    if (corner.includes('left')) posStyle.left = (pos.offsetX || 20) + 'px';
+
+    const sandboxMap = {
+      strict: '',
+      safe: 'allow-scripts allow-forms',
+      relaxed: 'allow-scripts allow-forms allow-popups allow-same-origin',
+    };
+
+    const wrapper = el('div', {
+      class: 'wp-widget wp-custom-iframe',
+      style: {
+        position: 'fixed',
+        zIndex: widget.zIndex || 999999,
+        ...posStyle,
+        width: (cfg.width || 360) + 'px',
+        height: (cfg.height || 520) + 'px',
+        background: cfg.backgroundColor || '#ffffff',
+        borderRadius: (cfg.borderRadius || 12) + 'px',
+        overflow: 'hidden',
+        boxShadow: '0 8px 28px rgba(0,0,0,.22)',
+      },
+    });
+
+    const attrs = {
+      src: cfg.src,
+      title: cfg.title || 'Custom iframe',
+      loading: 'lazy',
+      referrerpolicy: 'strict-origin-when-cross-origin',
+      style: {
+        width: '100%',
+        height: '100%',
+        border: '0',
+        background: cfg.backgroundColor || '#ffffff',
+      },
+    };
+    const sandboxValue = sandboxMap[cfg.sandboxMode || 'safe'];
+    if (sandboxValue !== undefined) attrs.sandbox = sandboxValue;
+    if (cfg.allowFullscreen) attrs.allowfullscreen = 'true';
+
+    const frame = el('iframe', attrs);
+    wrapper.appendChild(frame);
+
+    const show = () => {
+      document.body.appendChild(wrapper);
+      track('view', widget.id);
+    };
+
+    if (triggers.delay) setTimeout(show, triggers.delay * 1000);
+    else show();
+  }
+
   // ─── A/B Testing utilities ───
   function getABVariant(experiment) {
     const cookieKey = 'wp_ab_' + experiment.id;
@@ -1555,6 +1615,7 @@
       case 'POPUP_CALLBACK': renderPopupCallback(widget); break;
       case 'STICKY_BAR': renderStickyBar(widget); break;
       case 'SIDE_TAB': renderSideTab(widget); break;
+      case 'CUSTOM_IFRAME': renderCustomIframe(widget); break;
     }
   }
 
