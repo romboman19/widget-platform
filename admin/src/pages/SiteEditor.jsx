@@ -213,14 +213,16 @@ export default function SiteEditor() {
               className="flex items-center gap-1 px-3 py-1.5 text-sm bg-slate-50 text-slate-600 rounded-lg hover:bg-slate-100">
               <BarChart3 size={14} /> Аналітика
             </Link>
-            <button onClick={() => setEditing(!editing)}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
-              <Pencil size={14} /> Редагувати
-            </button>
+            {user?.role === 'OWNER' ? (
+              <button onClick={() => setEditing(!editing)}
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100">
+                <Pencil size={14} /> Редагувати
+              </button>
+            ) : null}
           </div>
         </div>
 
-        {editing && (
+        {user?.role === 'OWNER' && editing && (
           <div className="space-y-3 mt-4 pt-4 border-t border-slate-100">
             <div>
               <label className="text-sm text-slate-500">Назва</label>
