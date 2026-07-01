@@ -35,8 +35,6 @@
 
 ### FLOATING_MENU — деталі
 
-![Widget button presentation](./tmp/widget-gif/widget-presentation.gif)
-
 - **Multi-button режим** — кілька кнопок (toggle/menu/direct)
 - **Per-button налаштування** — розмір (px), масштаб іконки (%), колір фону, прозорість
 - **Per-channel налаштування** — кожен канал має власний розмір, масштаб, колір
