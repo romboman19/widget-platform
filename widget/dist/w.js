@@ -445,16 +445,33 @@
         .wp-widget * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
       }
       
-      .wp-widget * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-      .wp-floating-btn { position: fixed; width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
+      .wp-widget, .wp-widget * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1; letter-spacing: normal; text-transform: none; }
+      .wp-widget button, .wp-widget img, .wp-widget svg, .wp-widget span, .wp-widget div, .wp-widget iframe {
+        max-width: none;
+        min-width: 0;
+        margin: 0;
+        transform-origin: center center;
+      }
+      .wp-widget button {
+        -webkit-appearance: none;
+        appearance: none;
+        background-image: none;
+        writing-mode: horizontal-tb;
+        text-indent: 0;
+      }
+      .wp-widget img, .wp-widget svg {
+        display: block;
+        flex: 0 0 auto;
+      }
+      .wp-floating-btn { position: fixed; width: 56px; height: 56px; min-width: 56px; max-width: 56px; min-height: 56px; max-height: 56px; border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; transition: transform .2s, box-shadow .2s; }
       .wp-floating-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(0,0,0,.3); }
       .wp-floating-btn svg { width: 26px; height: 26px; color: #fff; }
-      .wp-floating-btn-v2 { display: flex; align-items: center; justify-content: center; }
+      .wp-floating-btn-v2 { display: inline-flex; align-items: center; justify-content: center; padding: 0; margin: 0; aspect-ratio: 1 / 1; flex: 0 0 auto; }
       .wp-floating-btn-v2 svg { color: #fff; }
       .wp-floating-btn-v2 { overflow: hidden; }
       .wp-floating-menu { display: flex; flex-direction: column; gap: 10px; transition: opacity .25s, transform .25s, visibility 0s; visibility: visible; }
       .wp-floating-menu.hidden { opacity: 0; transform: translateY(10px); pointer-events: none; visibility: hidden; transition: opacity .25s, transform .25s, visibility 0s .25s; }
-      .wp-channel-btn { width: 46px; height: 46px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; }
+      .wp-channel-btn { width: 46px; height: 46px; min-width: 46px; max-width: 46px; min-height: 46px; max-height: 46px; aspect-ratio: 1 / 1; border-radius: 50%; border: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: transform .15s; position: relative; padding: 0; margin: 0; flex: 0 0 auto; overflow: hidden; }
       .wp-channel-btn:hover { transform: scale(1.15); }
       .wp-channel-btn svg { width: 22px; height: 22px; color: #fff; }
       .wp-channel-btn .wp-tooltip { position: absolute; right: 56px; top: 50%; transform: translateY(-50%); background: #333; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 13px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .15s; }
