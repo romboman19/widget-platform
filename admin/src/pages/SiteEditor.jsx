@@ -11,6 +11,7 @@ const WIDGET_TYPE_LABELS = {
   POPUP_BANNER: '🎯 Popup банер',
   STICKY_BAR: '📌 Sticky bar',
   SIDE_TAB: '📎 Вкладка збоку',
+  CUSTOM_IFRAME: '🪟 Custom iframe',
 };
 
 const WIDGET_TYPES = Object.keys(WIDGET_TYPE_LABELS);
@@ -52,6 +53,16 @@ const DEFAULT_CONFIGS = {
     text: "Зв'язатися",
     action: 'callback',
     url: '',
+  },
+  CUSTOM_IFRAME: {
+    src: 'https://example.com/embed',
+    title: 'Custom iframe',
+    width: 360,
+    height: 520,
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    sandboxMode: 'safe',
+    allowFullscreen: false,
   },
 };
 
@@ -100,8 +111,9 @@ export default function SiteEditor() {
         config: DEFAULT_CONFIGS[type] || {},
         position: type === 'FLOATING_MENU' ? { corner: 'bottom-right', offsetX: 20, offsetY: 20 } :
                   type === 'STICKY_BAR' ? { placement: 'bottom' } :
-                  type === 'SIDE_TAB' ? { side: 'right', offsetY: 50 } : null,
-        triggers: ['POPUP_BANNER', 'POPUP_CALLBACK'].includes(type) ? { delay: 5, frequency: 'once' } : null,
+                  type === 'SIDE_TAB' ? { side: 'right', offsetY: 50 } :
+                  type === 'CUSTOM_IFRAME' ? { corner: 'bottom-right', offsetX: 20, offsetY: 20 } : null,
+        triggers: ['POPUP_BANNER', 'POPUP_CALLBACK', 'CUSTOM_IFRAME'].includes(type) ? { delay: 5, frequency: 'once' } : null,
       },
     });
     navigate(`/sites/${siteId}/widgets/${widget.id}`);

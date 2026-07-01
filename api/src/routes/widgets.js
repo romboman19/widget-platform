@@ -21,13 +21,37 @@ export default async function widgetRoutes(app) {
   }
 
   // ─── Validate and sanitize config (SSRF protection for webhookUrl) ───
-  function validateConfig(config) {
+  function validateConfig(config, type = null) {
     if (!config || typeof config !== 'object') return config;
     const sanitized = sanitizeDeep(config);
     // Validate webhook URL if present
     if (sanitized.webhookUrl) {
       if (!isAllowedWebhookUrl(sanitized.webhookUrl)) {
         throw { statusCode: 400, message: 'Invalid webhook URL — must be external HTTPS URL' };
+      }
+    }
+    if (type === 'CUSTOM_IFRAME') {
+      if (!sanitized.src) {
+        throw { statusCode: 400, message: 'CUSTOM_IFRAME: src is required' };
+      }
+      let parsed;
+      try {
+        parsed = new URL(sanitized.src);
+      } catch {
+        throw { statusCode: 400, message: 'CUSTOM_IFRAME: invalid src URL' };
+      }
+      if (parsed.protocol !== 'https:') {
+        throw { statusCode: 400, message: 'CUSTOM_IFRAME: only https:// src is allowed' };
+      }
+      const allowedSandbox = ['strict', 'safe', 'relaxed'];
+      if (sanitized.sandboxMode && !allowedSandbox.includes(sanitized.sandboxMode)) {
+        throw { statusCode: 400, message: 'CUSTOM_IFRAME: invalid sandboxMode' };
+      }
+      if (sanitized.width && (isNaN(parseInt(sanitized.width)) || parseInt(sanitized.width) < 120 || parseInt(sanitized.width) > 1600)) {
+        throw { statusCode: 400, message: 'CUSTOM_IFRAME: invalid width' };
+      }
+      if (sanitized.height && (isNaN(parseInt(sanitized.height)) || parseInt(sanitized.height) < 120 || parseInt(sanitized.height) > 1600)) {
+        throw { statusCode: 400, message: 'CUSTOM_IFRAME: invalid height' };
       }
     }
     return sanitized;
@@ -75,7 +99,7 @@ export default async function widgetRoutes(app) {
         siteId: site.id,
         type,
         name: (name || type).slice(0, 200),
-        config: validateConfig(config) || {},
+        config: validateConfig(config, type) || {},
         rules: rules ? sanitizeDeep(rules) : null,
         position: position ? sanitizeDeep(position) : null,
         triggers: triggers ? sanitizeDeep(triggers) : null,
@@ -104,7 +128,7 @@ export default async function widgetRoutes(app) {
       where: { id: request.params.widgetId },
       data: {
         ...(name !== undefined && { name: String(name).slice(0, 200) }),
-        ...(config !== undefined && { config: validateConfig(normalizedConfig) }),
+        ...(config !== undefined && { config: validateConfig(normalizedConfig, widget.type) }),
         ...(rules !== undefined && { rules: rules ? sanitizeDeep(rules) : null }),
         ...(position !== undefined && { position: position ? sanitizeDeep(position) : null }),
         ...(triggers !== undefined && { triggers: triggers ? sanitizeDeep(triggers) : null }),
