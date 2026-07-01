@@ -4,9 +4,9 @@ export default function BrandLogo({ compact = false, dark = false, className = '
   return (
     <div className={`flex items-center gap-3 ${className}`.trim()}>
       <img
-        src="/brand/logo.svg"
+        src={compact ? '/brand/widget-platform-icon.png' : '/brand/widget-platform-brand.png'}
         alt="Widget Platform"
-        className={compact ? 'h-9 w-9 rounded-xl' : 'h-12 w-12 rounded-2xl'}
+        className={compact ? 'h-9 w-9 rounded-xl object-contain' : 'h-12 w-auto object-contain'}
       />
       <div className="leading-none">
         <div className={`font-extrabold tracking-tight ${compact ? 'text-lg' : 'text-2xl'} ${dark ? 'text-white' : 'text-slate-950'}`}>
