@@ -12,26 +12,21 @@ export default async function analyticsRoutes(app) {
     }
   }
 
-  // ─── Track event ───
-  app.post('/track', async (request, reply) => {
-    const { siteId, widgetId, event, channel, page, device, meta } = request.body || {};
+  async function saveTrack(payload, request) {
+    const { siteId, widgetId, event, channel, page, device } = payload || {};
 
-    // Validate required fields
     if (!siteId || typeof siteId !== 'string' || siteId.length > 50) {
-      return reply.status(400).send({ error: 'Invalid siteId' });
+      return { ok: false, status: 400, site: null };
     }
     if (!isValidEvent(event)) {
-      return reply.status(400).send({ error: 'Invalid event type' });
+      return { ok: false, status: 400, site: null };
     }
 
-    // Validate siteId exists (prevents fake siteId spam)
     const site = await app.prisma.site.findUnique({ where: { id: siteId }, select: { id: true, domain: true } });
     if (!site) {
-      return reply.status(404).send({ error: 'Site not found' });
+      return { ok: false, status: 404, site: null };
     }
-    applyCorsForSite(reply, request.headers.origin, site);
 
-    // Fire and forget with sanitized data
     app.prisma.analyticsEvent.create({
       data: {
         siteId,
@@ -42,12 +37,29 @@ export default async function analyticsRoutes(app) {
         device: ['desktop', 'mobile'].includes(device) ? device : null,
         ip: request.headers['x-real-ip'] || request.ip,
         userAgent: (request.headers['user-agent'] || '').slice(0, 500) || null,
-        // Don't store arbitrary meta from public endpoint
         meta: null,
       },
     }).catch(err => app.log.error('Analytics write failed:', err));
 
+    return { ok: true, status: 200, site };
+  }
+
+  // ─── Track event ───
+  app.post('/track', async (request, reply) => {
+    const result = await saveTrack(request.body || {}, request);
+    if (result.site) applyCorsForSite(reply, request.headers.origin, result.site);
+    if (!result.ok) return reply.status(result.status).send({ error: 'Track failed' });
     return { ok: true };
+  });
+
+  app.get('/pixel.gif', async (request, reply) => {
+    const result = await saveTrack(request.query || {}, request);
+    const gif = Buffer.from('R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64');
+    reply.header('Content-Type', 'image/gif');
+    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    reply.header('Pragma', 'no-cache');
+    reply.header('Expires', '0');
+    return reply.status(200).send(gif);
   });
 
   // ─── Form submission ───
