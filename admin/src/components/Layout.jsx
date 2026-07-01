@@ -3,6 +3,7 @@ import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
 import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users, Github, Star } from 'lucide-react';
 import CreateSiteModal from './CreateSiteModal.jsx';
+import BrandLogo from './BrandLogo.jsx';
 
 const GITHUB_REPO_URL = 'https://github.com/romboman19/widget-platform';
 
@@ -29,7 +30,7 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-slate-900 text-white flex flex-col">
         <div className="p-4 border-b border-slate-700">
-          <h1 className="text-lg font-bold tracking-tight">🔧 Widget Platform</h1>
+          <BrandLogo compact dark />
         </div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">

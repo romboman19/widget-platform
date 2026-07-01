@@ -1,6 +1,27 @@
-# Widget Platform — Self-hosted конструктор віджетів
+# Widget Platform — branded self-hosted конструктор віджетів
 
 Повноцінна self-hosted платформа для керування контактними віджетами на сайтах. Аналог SaaS-сервісів Chaty/Buttonizer, але для власного хостингу.
+
+## Брендинг
+
+Проєкт оновлено під бренд **Widget Platform** з фірмовим знаком `W`.
+
+### Брендові активи
+- `admin/public/brand/logo.svg` — основний векторний логотип для UI, favicon і PWA-style іконок
+- `admin/public/brand/widget-platform-logo.jpg` — наданий icon-only logo reference
+- `admin/public/brand/widget-platform-brand-board.jpg` — брендборд з lockup, dark/light usage і палітрою
+
+### Брендові кольори
+- `#2563FF` — primary blue
+- `#1D4ED8` — deep blue
+- `#0B1220` — dark base
+- `#FFFFFF` — white
+
+### Де використовується
+- favicon адмінки
+- форма логіну
+- sidebar / кабінет
+- візуальна ідентичність admin UI
 
 ## Ліцензія
 

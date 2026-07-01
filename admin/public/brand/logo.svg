@@ -1,0 +1,18 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wpBlue" x1="82" y1="88" x2="340" y2="452" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563FF"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="wpBlueLight" x1="188" y1="162" x2="278" y2="314" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5FA8FF"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="#FFFFFF"/>
+  <path d="M93 120H182L255 264L328 120H417L301 392C290 418 274 433 247 433H215L93 120Z" fill="url(#wpBlue)"/>
+  <path d="M189 171H262L311 254L264 338L189 171Z" fill="url(#wpBlueLight)" opacity="0.9"/>
+  <circle cx="214" cy="309" r="17" fill="#FFFFFF"/>
+  <circle cx="256" cy="309" r="17" fill="#FFFFFF"/>
+  <circle cx="298" cy="309" r="17" fill="#FFFFFF"/>
+</svg>
