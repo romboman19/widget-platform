@@ -383,8 +383,8 @@
  .wp-attention-bounce { animation: wp-kf-bounce 1.2s ease infinite; }
  .wp-attention-tada { animation: wp-kf-tada 1.4s ease infinite; }
  /* Icon wrapper inside a floating button (for per-button icon animations & carousel) */
- .wp-btn-icon { display:inline-flex; align-items:center; justify-content:center; width:auto; height:auto; max-width:100%; max-height:100%; flex:0 0 auto; line-height:0; }
- .wp-btn-icon img, .wp-btn-icon svg, .wp-btn-icon i, .wp-btn-icon span { object-fit:contain; display:block; flex:0 0 auto; }
+ .wp-btn-icon { display:inline-flex; align-items:center; justify-content:center; width:auto; height:auto; max-width:100%; max-height:100%; flex:0 0 auto; flex-shrink:0; line-height:0; overflow:visible; }
+ .wp-btn-icon img, .wp-btn-icon svg, .wp-btn-icon i, .wp-btn-icon span { object-fit:contain; display:block; flex:0 0 auto; flex-shrink:0; }
  /* Per-button icon attention animations (animate the icon, not the button) */
  .wp-icon-pulse { animation-name: wp-kf-pulse; animation-timing-function: ease; animation-iteration-count: infinite; }
  .wp-icon-shake { animation-name: wp-kf-shake; animation-timing-function: ease; animation-iteration-count: infinite; }
@@ -1492,6 +1492,13 @@
       // Wrapper fills the button (for centering); the icon itself is sized to _iconSize (iconScale%).
       const iconWrap = document.createElement('span');
       iconWrap.className = 'wp-btn-icon';
+      iconWrap.style.width = _iconSize + 'px';
+      iconWrap.style.height = _iconSize + 'px';
+      iconWrap.style.minWidth = _iconSize + 'px';
+      iconWrap.style.maxWidth = _iconSize + 'px';
+      iconWrap.style.minHeight = _iconSize + 'px';
+      iconWrap.style.maxHeight = _iconSize + 'px';
+      iconWrap.style.flex = `0 0 ${_iconSize}px`;
       const sizeIcon = () => {
         const el = iconWrap.querySelector('img, svg, i, span');
         if (el) {
@@ -1501,6 +1508,11 @@
           } else {
             el.style.width = _iconSize + 'px';
             el.style.height = _iconSize + 'px';
+            el.style.minWidth = _iconSize + 'px';
+            el.style.maxWidth = _iconSize + 'px';
+            el.style.minHeight = _iconSize + 'px';
+            el.style.maxHeight = _iconSize + 'px';
+            el.style.flex = `0 0 ${_iconSize}px`;
           }
         }
       };
