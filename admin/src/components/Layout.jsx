@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users } from 'lucide-react';
+import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users, Github, Star } from 'lucide-react';
 import CreateSiteModal from './CreateSiteModal.jsx';
+
+const GITHUB_REPO_URL = 'https://github.com/romboman19/widget-platform';
 
 export default function Layout() {
   const { api, logout, user } = useAuth();
@@ -64,7 +66,15 @@ export default function Layout() {
           ) : null}
         </nav>
 
-        <div className="p-3 border-t border-slate-700">
+        <div className="p-3 border-t border-slate-700 space-y-2">
+          <div className="px-3 py-2 rounded-lg bg-slate-800/60 text-xs text-slate-300 space-y-2">
+            <a href={GITHUB_REPO_URL} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-white">
+              <Github size={14} /> Репозиторій
+            </a>
+            <a href={`${GITHUB_REPO_URL}/stargazers`} target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-white">
+              <Star size={14} /> Поставити зірку
+            </a>
+          </div>
           <button onClick={() => { logout(); navigate('/login'); }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 text-sm text-slate-400 w-full text-left">
             <LogOut size={16} /> Вийти

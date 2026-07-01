@@ -53,7 +53,7 @@ export default function Users() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-slate-800">Користувачі</h2>
-        <p className="text-sm text-slate-500 mt-1">Тільки власник платформи може додавати та вимикати користувачів.</p>
+        <p className="text-sm text-slate-500 mt-1">Тільки власник платформи може додавати та вимикати користувачів. Нові акаунти створюються як редактори.</p>
       </div>
 
       {error ? <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
@@ -64,11 +64,7 @@ export default function Users() {
           <input className="border rounded-lg px-3 py-2" placeholder="Ім'я" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <input className="border rounded-lg px-3 py-2" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <input className="border rounded-lg px-3 py-2" placeholder="Пароль" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          <select className="border rounded-lg px-3 py-2" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-            <option value="EDITOR">Редактор</option>
-            <option value="ADMIN">Адмін</option>
-            <option value="OWNER">Owner</option>
-          </select>
+          <div className="border rounded-lg px-3 py-2 bg-slate-50 text-slate-600 text-sm flex items-center">Роль: Редактор</div>
           <div className="md:col-span-2">
             <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Створити користувача</button>
           </div>
