@@ -17,12 +17,37 @@ export default function IconPicker({ value, onChange, api, channelType }) {
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Load folders and files when opened
   useEffect(() => {
     if (!isOpen) return;
     loadData();
   }, [isOpen, selectedFolder]);
+
+  // Resolve selected icon even outside the modal, so saved icons stay visible
+  useEffect(() => {
+    if (!value) {
+      setSelectedFile(null);
+      return;
+    }
+    const cached = files.find(f => f.id === value || f.slug === value);
+    if (cached) {
+      setSelectedFile(cached);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = await api('/media?includeDefaults=true');
+        const found = (all || []).find(f => f.id === value || f.slug === value) || null;
+        if (!cancelled) setSelectedFile(found);
+      } catch (e) {
+        if (!cancelled) setSelectedFile(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [value, files]);
 
   async function loadData() {
     setLoading(true);
@@ -50,9 +75,6 @@ export default function IconPicker({ value, onChange, api, channelType }) {
     f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     f.slug?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Get currently selected file info
-  const selectedFile = files.find(f => f.id === value || f.slug === value);
 
   if (!isOpen) {
     return (
@@ -157,8 +179,8 @@ export default function IconPicker({ value, onChange, api, channelType }) {
                 <button
                   key={file.id}
                   onClick={() => {
-                    // Use id for user files, slug for defaults
                     const iconId = file.isDefault ? file.slug : file.id;
+                    setSelectedFile(file);
                     onChange(iconId);
                     setIsOpen(false);
                   }}
