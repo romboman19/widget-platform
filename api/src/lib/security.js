@@ -71,6 +71,28 @@ export function isValidEvent(event) {
 }
 
 // ─── Application-level rate limiter (backup to nginx) ───
+export function normalizeSiteOrigin(value) {
+  if (!value || typeof value !== 'string') return null;
+  const raw = value.trim();
+  if (!raw) return null;
+  try {
+    const url = raw.startsWith('http://') || raw.startsWith('https://') ? new URL(raw) : new URL(`https://${raw}`);
+    return `${url.protocol}//${url.hostname}`.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+export function originMatchesSite(origin, siteDomain) {
+  const normalizedOrigin = normalizeSiteOrigin(origin);
+  const normalizedSite = normalizeSiteOrigin(siteDomain);
+  if (!normalizedOrigin || !normalizedSite) return false;
+  const originUrl = new URL(normalizedOrigin);
+  const siteUrl = new URL(normalizedSite);
+  if (originUrl.hostname === siteUrl.hostname) return true;
+  return originUrl.hostname === `www.${siteUrl.hostname}` || siteUrl.hostname === `www.${originUrl.hostname}`;
+}
+
 export function createRateLimiter(maxRequests, windowMs) {
   const hits = new Map();
   setInterval(() => {
