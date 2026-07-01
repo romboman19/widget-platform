@@ -383,8 +383,8 @@
  .wp-attention-bounce { animation: wp-kf-bounce 1.2s ease infinite; }
  .wp-attention-tada { animation: wp-kf-tada 1.4s ease infinite; }
  /* Icon wrapper inside a floating button (for per-button icon animations & carousel) */
- .wp-btn-icon { display:flex; align-items:center; justify-content:center; width:100%; height:100%; }
- .wp-btn-icon img, .wp-btn-icon svg { object-fit:contain; display:block; }
+ .wp-btn-icon { display:inline-flex; align-items:center; justify-content:center; width:auto; height:auto; max-width:100%; max-height:100%; flex:0 0 auto; line-height:0; }
+ .wp-btn-icon img, .wp-btn-icon svg, .wp-btn-icon i, .wp-btn-icon span { object-fit:contain; display:block; flex:0 0 auto; }
  /* Per-button icon attention animations (animate the icon, not the button) */
  .wp-icon-pulse { animation-name: wp-kf-pulse; animation-timing-function: ease; animation-iteration-count: infinite; }
  .wp-icon-shake { animation-name: wp-kf-shake; animation-timing-function: ease; animation-iteration-count: infinite; }
@@ -1378,11 +1378,26 @@
       }
       // Legacy: iconClass (FontAwesome)
       if (ch?.iconClass) {
-        return el('i', { class: ch.iconClass, style: { fontSize: size + 'px', color: btn.style?.iconColor || '#fff' } });
+        return el('i', { class: ch.iconClass, style: { fontSize: size + 'px', lineHeight: '1', color: btn.style?.iconColor || '#fff', display: 'block' } });
       }
       // Default: inline SVG by type
       const iconSvg = ICONS[ch?.type] || ICONS.custom;
-      return el('span', { style: { color: btn.style?.iconColor || '#fff' } }, iconSvg);
+      const wrap = document.createElement('span');
+      wrap.style.color = btn.style?.iconColor || '#fff';
+      wrap.style.display = 'inline-flex';
+      wrap.style.alignItems = 'center';
+      wrap.style.justifyContent = 'center';
+      wrap.style.width = size + 'px';
+      wrap.style.height = size + 'px';
+      wrap.style.lineHeight = '0';
+      wrap.innerHTML = iconSvg;
+      const svg = wrap.querySelector('svg');
+      if (svg) {
+        svg.style.width = size + 'px';
+        svg.style.height = size + 'px';
+        svg.style.display = 'block';
+      }
+      return wrap;
     }
 
     // State for menu buttons
@@ -1478,8 +1493,16 @@
       const iconWrap = document.createElement('span');
       iconWrap.className = 'wp-btn-icon';
       const sizeIcon = () => {
-        const el = iconWrap.querySelector('img, svg');
-        if (el) { el.style.width = _iconSize + 'px'; el.style.height = _iconSize + 'px'; }
+        const el = iconWrap.querySelector('img, svg, i, span');
+        if (el) {
+          if (el.tagName === 'I') {
+            el.style.fontSize = _iconSize + 'px';
+            el.style.lineHeight = '1';
+          } else {
+            el.style.width = _iconSize + 'px';
+            el.style.height = _iconSize + 'px';
+          }
+        }
       };
       const setIcon = (icon) => {
         iconWrap.innerHTML = '';
