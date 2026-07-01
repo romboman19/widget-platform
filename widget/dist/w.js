@@ -107,8 +107,9 @@
     // Skip tracking in preview mode
     if (window.__WIDGET_PREVIEW__) return;
     const data = { siteId, widgetId, event, channel, page: location.href, device: DEVICE, meta };
-    navigator.sendBeacon?.(BASE_URL + '/api/analytics/track', new Blob([JSON.stringify(data)], { type: 'application/json' }))
-      || fetch(BASE_URL + '/api/analytics/track', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, keepalive: true, credentials: 'omit' });
+    const trackUrl = BASE_URL + '/api/analytics/track?siteId=' + encodeURIComponent(siteId);
+    navigator.sendBeacon?.(trackUrl, new Blob([JSON.stringify(data)], { type: 'application/json' }))
+      || fetch(trackUrl, { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId }, keepalive: true, credentials: 'omit' });
   }
 
   function matchRules(rules) {
@@ -958,7 +959,7 @@
     }
 
     // ─── Send to analytics ───
-    fetch(BASE_URL + '/api/analytics/form', { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json' }, credentials: 'omit' });
+    fetch(BASE_URL + '/api/analytics/form?siteId=' + encodeURIComponent(siteId), { method: 'POST', body: JSON.stringify(data), headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId }, credentials: 'omit' });
 
     // ─── Send to webhook ───
     if (cfg.webhookUrl) {
