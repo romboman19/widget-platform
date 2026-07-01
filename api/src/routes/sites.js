@@ -15,11 +15,15 @@ export default async function siteRoutes(app) {
       include: { _count: { select: { widgets: { where: { enabled: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
-    // Add embed script to each site
+    // Add embed script to each site for owner only
     return sites.map(site => ({
       ...site,
-      embedScript: app.getEmbedScript(site.id),
-      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
+      ...(isOwner(request.user)
+        ? {
+            embedScript: app.getEmbedScript(site.id),
+            embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
+          }
+        : {}),
     }));
   });
 
@@ -34,8 +38,12 @@ export default async function siteRoutes(app) {
     if (!site) return reply.status(404).send({ error: 'Site not found' });
     return {
       ...site,
-      embedScript: app.getEmbedScript(site.id),
-      embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
+      ...(isOwner(request.user)
+        ? {
+            embedScript: app.getEmbedScript(site.id),
+            embedUrl: `${process.env.PUBLIC_URL || ''}/w.js?site=${site.id}`,
+          }
+        : {}),
     };
   });
 
