@@ -50,7 +50,7 @@ export default async function siteRoutes(app) {
   // Create site
   app.post('/', { preHandler: [app.authenticate] }, async (request, reply) => {
     if (!isOwner(request.user)) return reply.status(403).send({ error: 'Forbidden' });
-    const { name, slug, domain } = request.body || {};
+    const { name, slug, domain, members = [] } = request.body || {};
     if (!name || typeof name !== 'string' || name.length > 200) {
       return reply.status(400).send({ error: 'Invalid name' });
     }
@@ -60,9 +60,42 @@ export default async function siteRoutes(app) {
     if (domain && (typeof domain !== 'string' || domain.length > 253)) {
       return reply.status(400).send({ error: 'Invalid domain' });
     }
-    const site = await app.prisma.site.create({
-      data: { name, slug, domain, userId: request.user.id },
+    if (!Array.isArray(members)) {
+      return reply.status(400).send({ error: 'Members must be an array' });
+    }
+
+    const normalizedMembers = members
+      .filter((m) => m && typeof m.userId === 'string' && m.userId)
+      .map((m) => ({ userId: m.userId, role: ['ADMIN', 'EDITOR', 'VIEWER'].includes(m.role) ? m.role : 'EDITOR' }));
+
+    const uniqueUserIds = [...new Set(normalizedMembers.map((m) => m.userId).filter((id) => id !== request.user.id))];
+    if (uniqueUserIds.length) {
+      const existingUsers = await app.prisma.user.findMany({
+        where: { id: { in: uniqueUserIds }, isActive: true },
+        select: { id: true },
+      });
+      if (existingUsers.length !== uniqueUserIds.length) {
+        return reply.status(400).send({ error: 'One or more members are invalid or inactive' });
+      }
+    }
+
+    const site = await app.prisma.$transaction(async (tx) => {
+      const created = await tx.site.create({
+        data: { name, slug, domain, userId: request.user.id },
+      });
+
+      if (normalizedMembers.length) {
+        await tx.siteMembership.createMany({
+          data: normalizedMembers
+            .filter((m) => m.userId !== request.user.id)
+            .map((m) => ({ userId: m.userId, siteId: created.id, role: m.role })),
+          skipDuplicates: true,
+        });
+      }
+
+      return created;
     });
+
     return {
       ...site,
       embedScript: app.getEmbedScript(site.id),
