@@ -1,13 +1,19 @@
-import { sanitize, isValidPhone, isValidEvent, isAllowedWebhookUrl, createRateLimiter } from '../lib/security.js';
+import { sanitize, isValidPhone, isValidEvent, isAllowedWebhookUrl, createRateLimiter, originMatchesSite } from '../lib/security.js';
 
 const formLimiter = createRateLimiter(5, 60000);  // 5 forms per IP per minute
 
 export default async function analyticsRoutes(app) {
 
+  function applyCorsForSite(reply, requestOrigin, site) {
+    if (!requestOrigin || !site?.domain) return;
+    if (originMatchesSite(requestOrigin, site.domain)) {
+      reply.header('Access-Control-Allow-Origin', requestOrigin);
+      reply.header('Vary', 'Origin');
+    }
+  }
+
   // ─── Track event ───
   app.post('/track', async (request, reply) => {
-    reply.header('Access-Control-Allow-Origin', request.headers.origin || '*');
-
     const { siteId, widgetId, event, channel, page, device, meta } = request.body || {};
 
     // Validate required fields
@@ -19,10 +25,11 @@ export default async function analyticsRoutes(app) {
     }
 
     // Validate siteId exists (prevents fake siteId spam)
-    const site = await app.prisma.site.findUnique({ where: { id: siteId }, select: { id: true } });
+    const site = await app.prisma.site.findUnique({ where: { id: siteId }, select: { id: true, domain: true } });
     if (!site) {
       return reply.status(404).send({ error: 'Site not found' });
     }
+    applyCorsForSite(reply, request.headers.origin, site);
 
     // Fire and forget with sanitized data
     app.prisma.analyticsEvent.create({
@@ -45,8 +52,6 @@ export default async function analyticsRoutes(app) {
 
   // ─── Form submission ───
   app.post('/form', { preHandler: [formLimiter] }, async (request, reply) => {
-    reply.header('Access-Control-Allow-Origin', request.headers.origin || '*');
-
     const { siteId, widgetId, name, phone, page, device, message } = request.body || {};
 
     // Validate required fields
@@ -62,6 +67,7 @@ export default async function analyticsRoutes(app) {
     if (!site) {
       return reply.status(404).send({ error: 'Site not found' });
     }
+    applyCorsForSite(reply, request.headers.origin, site);
 
     const cleanName = sanitize(name)?.slice(0, 100) || '';
     const cleanPhone = sanitize(phone)?.slice(0, 20) || '';
@@ -116,8 +122,13 @@ export default async function analyticsRoutes(app) {
   // CORS preflight
   for (const path of ['/track', '/form']) {
     app.options(path, async (request, reply) => {
-      reply.header('Access-Control-Allow-Origin', request.headers.origin || '*');
-      reply.header('Access-Control-Allow-Methods', 'POST');
+      const siteId = request.query?.siteId || request.headers['x-site-id'] || request.body?.siteId;
+      let site = null;
+      if (siteId && typeof siteId === 'string') {
+        site = await app.prisma.site.findUnique({ where: { id: siteId }, select: { id: true, domain: true } });
+      }
+      applyCorsForSite(reply, request.headers.origin, site);
+      reply.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
       reply.header('Access-Control-Allow-Headers', 'Content-Type');
       reply.header('Access-Control-Max-Age', '86400');
       return reply.status(204).send();
