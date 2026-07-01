@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -41,6 +41,24 @@ export function AuthProvider({ children }) {
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   }, [token, logout]);
+
+  useEffect(() => {
+    if (!token) return;
+    if (user) return;
+    fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Unauthorized');
+        return res.json();
+      })
+      .then(setUser)
+      .catch(() => {
+        localStorage.removeItem('wp_token');
+        setToken(null);
+        setUser(null);
+      });
+  }, [token, user]);
 
   return (
     <AuthContext.Provider value={{ token, user, login, logout, api }}>

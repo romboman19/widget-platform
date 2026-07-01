@@ -1,20 +1,27 @@
 import { sanitizeDeep, isValidWidgetType, isAllowedWebhookUrl } from '../lib/security.js';
 import { normalizeFloatingMenuConfig, denormalizeFloatingMenuConfig } from '../lib/configNormalizer.js';
+import { requireSiteAccess } from '../lib/acl.js';
 
 export default async function widgetRoutes(app) {
 
   // ─── Helper: verify site ownership ───
   async function verifySite(request, reply) {
+    const denied = await requireSiteAccess(request, reply, request.params.siteId);
+    if (denied || reply.sent) return null;
+
     const site = await app.prisma.site.findFirst({
-      where: { id: request.params.siteId, userId: request.user.id },
+      where: { id: request.params.siteId },
     });
     if (!site) { reply.status(404).send({ error: 'Site not found' }); return null; }
     return site;
   }
 
   async function verifyWidget(request, reply) {
+    const denied = await requireSiteAccess(request, reply, request.params.siteId);
+    if (denied || reply.sent) return null;
+
     const widget = await app.prisma.widget.findFirst({
-      where: { id: request.params.widgetId, site: { id: request.params.siteId, userId: request.user.id } },
+      where: { id: request.params.widgetId, siteId: request.params.siteId },
     });
     if (!widget) { reply.status(404).send({ error: 'Widget not found' }); return null; }
     return widget;

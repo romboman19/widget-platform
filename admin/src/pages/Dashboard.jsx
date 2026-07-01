@@ -4,6 +4,7 @@ import { Globe, BarChart3, Settings, Copy, Check, Code } from 'lucide-react';
 
 export default function Dashboard() {
   const { sites } = useOutletContext();
+  const isOwner = sites.some(site => !!site.embedScript);
   const [copiedId, setCopiedId] = useState(null);
 
   const copyToClipboard = (text, siteId) => {
@@ -34,24 +35,25 @@ export default function Dashboard() {
               </div>
               <p className="text-sm text-slate-400 mb-3">{site.domain}</p>
               
-              {/* Embed Script Section */}
-              <div className="bg-slate-50 rounded-lg p-3 mb-4 border border-slate-100">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                    <Code size={12} /> Код для вставки
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(site.embedScript, site.id)}
-                    className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700"
-                  >
-                    {copiedId === site.id ? <Check size={12} /> : <Copy size={12} />}
-                    {copiedId === site.id ? 'Скопійовано!' : 'Копіювати'}
-                  </button>
+              {site.embedScript ? (
+                <div className="bg-slate-50 rounded-lg p-3 mb-4 border border-slate-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-slate-500 flex items-center gap-1">
+                      <Code size={12} /> Код для вставки
+                    </span>
+                    <button
+                      onClick={() => copyToClipboard(site.embedScript, site.id)}
+                      className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700"
+                    >
+                      {copiedId === site.id ? <Check size={12} /> : <Copy size={12} />}
+                      {copiedId === site.id ? 'Скопійовано!' : 'Копіювати'}
+                    </button>
+                  </div>
+                  <code className="block bg-slate-800 text-green-400 p-2 rounded text-xs overflow-x-auto">
+                    {site.embedScript}
+                  </code>
                 </div>
-                <code className="block bg-slate-800 text-green-400 p-2 rounded text-xs overflow-x-auto">
-                  {site.embedScript}
-                </code>
-              </div>
+              ) : null}
 
               <div className="flex gap-2">
                 <Link to={`/sites/${site.id}`}

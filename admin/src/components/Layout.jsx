@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { LayoutDashboard, Globe, BarChart3, LogOut, Plus, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users } from 'lucide-react';
 
 export default function Layout() {
   const { api, logout, user } = useAuth();
@@ -44,6 +44,15 @@ export default function Layout() {
             <FolderOpen size={18} /> Бібліотека файлів
           </Link>
 
+          {user?.role === 'OWNER' ? (
+            <>
+              <div className="mt-4 mb-2 px-3 text-xs text-slate-400 uppercase tracking-wider">Налаштування</div>
+              <Link to="/settings/users" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 text-sm">
+                <Users size={18} /> Користувачі
+              </Link>
+            </>
+          ) : null}
+
           <div className="mt-4 mb-2 px-3 text-xs text-slate-400 uppercase tracking-wider">Сайти</div>
           {sites.map(site => (
             <Link key={site.id} to={`/sites/${site.id}`}
@@ -52,10 +61,12 @@ export default function Layout() {
               <span className="ml-auto text-xs text-slate-400">{site._count?.widgets || 0}</span>
             </Link>
           ))}
-          <button onClick={createSite}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 text-sm text-slate-400 w-full text-left">
-            <Plus size={16} /> Додати сайт
-          </button>
+          {user?.role === 'OWNER' ? (
+            <button onClick={createSite}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 text-sm text-slate-400 w-full text-left">
+              <Plus size={16} /> Додати сайт
+            </button>
+          ) : null}
         </nav>
 
         <div className="p-3 border-t border-slate-700">
