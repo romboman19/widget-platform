@@ -1357,7 +1357,7 @@
     function renderButtonIcon(btn, ch, size) {
       // New format: iconUrl from resolved config
       if (ch?.iconUrl) {
-        return el('img', { src: ch.iconUrl, style: { width: size + 'px', height: size + 'px', objectFit: 'contain' } });
+        return el('img', { src: ch.iconUrl, style: { width: size + 'px', height: size + 'px', objectFit: 'contain', display: 'block', flex: '0 0 auto' } });
       }
       // Legacy: iconClass (FontAwesome)
       if (ch?.iconClass) {
@@ -1425,10 +1425,11 @@
           const isOpen = menuStates[btnIndex];
           
           if (menuEl) {
-            menuEl.classList.toggle('hidden', isOpen);
-            menuStates[btnIndex] = !isOpen;
+            const nextOpen = !isOpen;
+            menuEl.classList.toggle('hidden', !nextOpen);
+            menuStates[btnIndex] = nextOpen;
             
-            if (!isOpen) {
+            if (nextOpen) {
               // Open the menu ABOVE the top-most button of the whole stack so it never
               // overlaps the other buttons (they stay visible below).
               const wrapperEl = menuEl.parentElement;
@@ -1542,9 +1543,16 @@
           const _chBg = ch.bgTransparent ? 'transparent' : (ch.bgColor || ch.color || CHANNEL_COLORS[ch.type] || '#333');
           const channelStyle = applyShapeStyles({
             cursor: 'pointer',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
+            flex: '0 0 auto',
+            padding: '0',
+            minWidth: _chSize + 'px',
+            maxWidth: _chSize + 'px',
+            minHeight: _chSize + 'px',
+            maxHeight: _chSize + 'px',
+            aspectRatio: '1 / 1',
             background: _chBg,
             boxShadow: ch.bgTransparent ? 'none' : '0 2px 8px rgba(0,0,0,.2)',
             overflow: 'hidden',
