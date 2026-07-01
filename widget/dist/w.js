@@ -407,8 +407,16 @@
  0% { transform: scale(1); } 25% { transform: scale(1.15); } 50% { transform: scale(1); } 100% { transform: scale(1); }
  }
  @keyframes wp-kf-shake {
- 0% { transform: translateX(0); } 8% { transform: translateX(-3px); } 16% { transform: translateX(3px); }
- 24% { transform: translateX(-3px); } 32% { transform: translateX(3px); } 40% { transform: translateX(0); } 100% { transform: translateX(0); }
+ 0% { transform: translateX(0); }
+ 8% { transform: translateX(-6px); }
+ 16% { transform: translateX(6px); }
+ 24% { transform: translateX(-5px); }
+ 32% { transform: translateX(5px); }
+ 40% { transform: translateX(-4px); }
+ 48% { transform: translateX(4px); }
+ 56% { transform: translateX(-2px); }
+ 64% { transform: translateX(2px); }
+ 72%, 100% { transform: translateX(0); }
  }
  @keyframes wp-kf-wobble {
  0% { transform: rotate(0deg); } 10% { transform: rotate(-10deg); } 20% { transform: rotate(8deg); }
