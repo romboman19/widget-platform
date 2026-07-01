@@ -1240,6 +1240,32 @@
     if (corner.includes('right')) posStyle.right = (pos.offsetX || 20) + 'px';
     if (corner.includes('left')) posStyle.left = (pos.offsetX || 20) + 'px';
 
+    function applyShapeStyles(base, size, shapeCfg) {
+      const type = shapeCfg?.type || 'circle';
+      const radius = shapeCfg?.borderRadius;
+      base.width = size + 'px';
+      base.height = size + 'px';
+      switch (type) {
+        case 'circle':
+          base.borderRadius = '50%';
+          break;
+        case 'square':
+          base.borderRadius = radius ? radius + 'px' : '0';
+          break;
+        case 'rounded':
+          base.borderRadius = radius ? radius + 'px' : '12px';
+          break;
+        case 'oval':
+          base.width = Math.round(size * 1.4) + 'px';
+          base.borderRadius = '9999px';
+          break;
+        default:
+          base.borderRadius = '50%';
+          break;
+      }
+      return base;
+    }
+
     // Helper: get button styles based on shape
     function getButtonStyles(btnStyle, isMain) {
       const base = {
@@ -1253,39 +1279,18 @@
         transition: 'transform .2s, box-shadow .2s',
       };
       
-      // sizePx (new) overrides preset; fallback to preset, then default
       const presetSize = btnStyle?.size === 'sm' ? 48 : btnStyle?.size === 'lg' ? 64 : 56;
       const size = isMain ? (btnStyle?.sizePx || presetSize) : 46;
       
-      base.width = size + 'px';
-      base.height = size + 'px';
       base._size = size;
       base.background = btnStyle?.bgTransparent ? 'transparent' : (btnStyle?.bgColor || cfg.color || '#1f93ff');
       if (btnStyle?.bgTransparent) base.boxShadow = 'none';
       
-      // Border
       if (shape.borderWidth) {
         base.border = shape.borderWidth + 'px solid ' + (shape.borderColor || '#fff');
       }
       
-      // Border radius based on shape type
-      switch (shape.type) {
-        case 'circle':
-          base.borderRadius = '50%';
-          break;
-        case 'square':
-          base.borderRadius = shape.borderRadius ? shape.borderRadius + 'px' : '0';
-          break;
-        case 'rounded':
-          base.borderRadius = shape.borderRadius ? shape.borderRadius + 'px' : '12px';
-          break;
-        case 'oval':
-          base.borderRadius = '50%';
-          base.width = (size * 1.4) + 'px';
-          break;
-      }
-      
-      return base;
+      return applyShapeStyles(base, size, shape);
     }
 
     // Helper: render icon
@@ -1475,21 +1480,19 @@
           const _chScale = (ch.iconScale || 48) / 100;
           const _chIconSize = Math.round(_chSize * _chScale);
           const _chBg = ch.bgTransparent ? 'transparent' : (ch.bgColor || ch.color || CHANNEL_COLORS[ch.type] || '#333');
+          const channelStyle = applyShapeStyles({
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: _chBg,
+            boxShadow: ch.bgTransparent ? 'none' : '0 2px 8px rgba(0,0,0,.2)',
+            overflow: 'hidden',
+            border: shape.borderWidth ? shape.borderWidth + 'px solid ' + (shape.borderColor || '#fff') : 'none',
+          }, _chSize, shape);
           const channelBtn = el('button', {
             class: 'wp-channel-btn',
-            style: {
-              width: _chSize + 'px',
-              height: _chSize + 'px',
-              borderRadius: shape.type === 'circle' ? '50%' : (shape.borderRadius || 8) + 'px',
-              border: shape.borderWidth ? shape.borderWidth + 'px solid ' + (shape.borderColor || '#fff') : 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: _chBg,
-              boxShadow: ch.bgTransparent ? 'none' : '0 2px 8px rgba(0,0,0,.2)',
-              overflow: 'hidden',
-            },
+            style: channelStyle,
           }, [
             renderButtonIcon(btn, ch, _chIconSize),
             el('span', { class: 'wp-tooltip' }, ch.label || ch.type),
