@@ -252,9 +252,9 @@ export default function WidgetEditor() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="space-y-4">
         {/* Settings */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="space-y-4">
           {/* General */}
           <Section title="Загальні">
             <Field label="Назва (для себе)">
@@ -286,7 +286,6 @@ export default function WidgetEditor() {
           {/* Display rules */}
           <RulesConfig rules={rules} update={update} />
         </div>
-
       </div>
 
       {/* Preview — full width below settings */}
