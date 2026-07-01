@@ -12,21 +12,26 @@ export default async function analyticsRoutes(app) {
     }
   }
 
-  async function persistTrack(app, payload, request) {
-    const { siteId, widgetId, event, channel, page, device } = payload || {};
+  // ─── Track event ───
+  app.post('/track', async (request, reply) => {
+    const { siteId, widgetId, event, channel, page, device, meta } = request.body || {};
 
+    // Validate required fields
     if (!siteId || typeof siteId !== 'string' || siteId.length > 50) {
-      return { status: 400, body: { error: 'Invalid siteId' } };
+      return reply.status(400).send({ error: 'Invalid siteId' });
     }
     if (!isValidEvent(event)) {
-      return { status: 400, body: { error: 'Invalid event type' } };
+      return reply.status(400).send({ error: 'Invalid event type' });
     }
 
+    // Validate siteId exists (prevents fake siteId spam)
     const site = await app.prisma.site.findUnique({ where: { id: siteId }, select: { id: true, domain: true } });
     if (!site) {
-      return { status: 404, body: { error: 'Site not found' } };
+      return reply.status(404).send({ error: 'Site not found' });
     }
+    applyCorsForSite(reply, request.headers.origin, site);
 
+    // Fire and forget with sanitized data
     app.prisma.analyticsEvent.create({
       data: {
         siteId,
@@ -37,33 +42,13 @@ export default async function analyticsRoutes(app) {
         device: ['desktop', 'mobile'].includes(device) ? device : null,
         ip: request.headers['x-real-ip'] || request.ip,
         userAgent: (request.headers['user-agent'] || '').slice(0, 500) || null,
+        // Don't store arbitrary meta from public endpoint
         meta: null,
       },
     }).catch(err => app.log.error('Analytics write failed:', err));
 
-    return { status: 200, body: { ok: true }, site };
-  }
-
-  // ─── Track event ───
-  app.post('/track', async (request, reply) => {
-    const result = await persistTrack(app, request.body || {}, request);
-    if (result.site) applyCorsForSite(reply, request.headers.origin, result.site);
-    return reply.status(result.status).send(result.body);
+    return { ok: true };
   });
-
-  app.get('/pixel.gif', async (request, reply) => {
-    const result = await persistTrack(app, request.query || {}, request);
-    const gif = Buffer.from('R0lGODlhAQABAPAAAAAAAAAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==', 'base64');
-    reply.header('Content-Type', 'image/gif');
-    reply.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    reply.header('Content-Length', String(gif.length));
-    if (result.status !== 200) return reply.status(200).send(gif);
-    return reply.status(200).send(gif);
-  });
-
-  app.post('/track', async (request, reply) => {
-    const { siteId, widgetId, event, channel, page, device, meta } = request.body || {};
-
 
   // ─── Form submission ───
   app.post('/form', { preHandler: [formLimiter] }, async (request, reply) => {

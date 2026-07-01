@@ -106,17 +106,14 @@
   function track(event, widgetId, channel, meta) {
     // Skip tracking in preview mode
     if (window.__WIDGET_PREVIEW__) return;
-    const qs = new URLSearchParams({
-      siteId,
-      ...(widgetId ? { widgetId } : {}),
-      ...(event ? { event } : {}),
-      ...(channel ? { channel } : {}),
-      page: location.href,
-      device: DEVICE,
-    });
-    const img = new Image();
-    img.referrerPolicy = 'strict-origin-when-cross-origin';
-    img.src = BASE_URL + '/api/analytics/pixel.gif?' + qs.toString();
+    const data = { siteId, widgetId, event, channel, page: location.href, device: DEVICE, meta };
+    const trackUrl = BASE_URL + '/api/analytics/track?siteId=' + encodeURIComponent(siteId);
+    const payload = JSON.stringify(data);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(trackUrl, new Blob([payload], { type: 'text/plain;charset=UTF-8' }));
+      return;
+    }
+    fetch(trackUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, credentials: 'omit', mode: 'no-cors' }).catch(() => {});
   }
 
   function matchRules(rules) {
