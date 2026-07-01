@@ -4,7 +4,7 @@ export default function BrandLogo({ compact = false, dark = false, className = '
   return (
     <div className={`flex items-center gap-3 ${className}`.trim()}>
       <img
-        src={compact ? '/brand/widget-platform-icon.png' : '/brand/widget-platform-brand.png'}
+        src={compact ? '/brand/widget-platform-icon.png' : '/brand/widget-platform-logo.jpg'}
         alt="Widget Platform"
         className={compact ? 'h-9 w-9 rounded-xl object-contain' : 'h-12 w-auto object-contain'}
       />
