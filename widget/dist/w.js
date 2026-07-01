@@ -112,7 +112,6 @@
     navigator.sendBeacon?.(trackUrl, new Blob([payload], { type: 'text/plain;charset=UTF-8' }))
       || fetch(trackUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=UTF-8' }, keepalive: true, credentials: 'omit', mode: 'no-cors' });
   }
-  }
 
   function matchRules(rules) {
     if (!rules) return true;
