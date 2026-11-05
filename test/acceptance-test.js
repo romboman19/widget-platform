@@ -64,8 +64,8 @@ async function runTest() {
     
     // Try to login with demo account or create one
     // Note: In real scenario, user should be pre-created
-    await page.fill('input[type="email"]', 'admin@example.com');
-    await page.fill('input[type="password"]', 'admin123');
+    await page.fill('input[type="email"]', process.env.ADMIN_EMAIL);
+    await page.fill('input[type="password"]', process.env.ADMIN_PASSWORD);
     await page.click('button[type="submit"]');
     
     // Wait for redirect to sites list

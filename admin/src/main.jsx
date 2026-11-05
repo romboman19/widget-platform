@@ -10,6 +10,7 @@ import WidgetEditor from './pages/WidgetEditor.jsx';
 import Analytics from './pages/Analytics.jsx';
 import MediaLibrary from './pages/MediaLibrary.jsx';
 import Users from './pages/Users.jsx';
+import Account from './pages/Account.jsx';
 import Layout from './components/Layout.jsx';
 
 function ProtectedRoute({ children }) {
@@ -30,6 +31,7 @@ function App() {
             <Route path="sites/:siteId/analytics" element={<Analytics />} />
             <Route path="media" element={<MediaLibrary />} />
             <Route path="settings/users" element={<Users />} />
+            <Route path="account" element={<Account />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

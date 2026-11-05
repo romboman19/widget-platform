@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users, Github, Star } from 'lucide-react';
+import { LayoutDashboard, Globe, LogOut, Plus, FolderOpen, Users, Github, Star, KeyRound } from 'lucide-react';
 import CreateSiteModal from './CreateSiteModal.jsx';
 import BrandLogo from './BrandLogo.jsx';
 
@@ -76,6 +76,9 @@ export default function Layout() {
               <Star size={16} /> Star
             </a>
           </div>
+          <Link to="/account" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 text-sm text-slate-300">
+            <KeyRound size={16} /> <span className="truncate">{user?.email || 'Мій акаунт'}</span>
+          </Link>
           <button onClick={() => { logout(); navigate('/login'); }}
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 text-sm text-slate-400 w-full text-left">
             <LogOut size={16} /> Вийти

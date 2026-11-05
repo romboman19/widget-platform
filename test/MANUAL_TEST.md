@@ -1,7 +1,7 @@
 # Simple manual test steps
 
 1. Open https://widget.hunter.rv.ua/login
-2. Login with: <owner email> / <password from secrets manager>
+2. Log in with the owner account (credentials are not stored in the repository)
 3. Click 'Додати сайт' (sidebar)
 4. Fill: Name='Test Site', Slug='test-{timestamp}', Domain='test.com'
 5. Click 'Створити'
