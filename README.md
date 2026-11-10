@@ -270,8 +270,31 @@ Embed код:
   "sideOffset": 5,
   "bottomOffset": 5,
   "fontScale": 100,
+  "barPaddingY": 10,
+  "barPaddingX": 20,
+  "barGap": 14,
+  "button": {
+    "fontFamily": "Arial, sans-serif",
+    "fontSize": 13,
+    "fontWeight": "600",
+    "textColor": "#ffffff",
+    "paddingY": 6,
+    "paddingX": 16,
+    "borderRadius": 6
+  },
   "design": { "fontFamily": "Arial", "fontSize": null, "borderRadius": 9 }
 }
+```
+
+`design` та `barPadding*` стосуються самого бару, `button` — тільки кнопки.
+
+### Правила сторінок (`rules.urlRules`)
+Правила об'єднуються через «АБО». `target`: `url` (за замовч.), `breadcrumbs` (хлібні крихти — JSON-LD BreadcrumbList або DOM, можна вказати `selector`), `title` (H1, og:title або `<title>`). `type`: `contains` | `exact` | `regex` (для крихт і назви — без урахування регістру).
+```json
+{ "urlRules": [
+  { "target": "breadcrumbs", "type": "contains", "value": "Смартфони" },
+  { "target": "title", "type": "contains", "value": "iPhone" }
+] }
 ```
 
 ### Triggers

@@ -1163,7 +1163,18 @@ function StickyBarConfig({ cfg, pos, triggers, update }) {
  <Input type="number" value={cfg.sideOffset ?? 0} onChange={v => update('config.sideOffset', parseInt(v) || 0)} />
  </Field>
  </div>
- <Field label="Розмір шрифту">
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Внутр. відступ бару ↕ (px)" hint="Зверху і знизу (за замовч. 10)">
+ <Input type="number" value={cfg.barPaddingY ?? ''} onChange={v => update('config.barPaddingY', v === '' ? null : (parseInt(v) || 0))} />
+ </Field>
+ <Field label="Внутр. відступ бару ↔ (px)" hint="Зліва і справа (за замовч. 20)">
+ <Input type="number" value={cfg.barPaddingX ?? ''} onChange={v => update('config.barPaddingX', v === '' ? null : (parseInt(v) || 0))} />
+ </Field>
+ </div>
+ <Field label="Відстань між текстом і кнопкою (px)" hint="За замовч. 14">
+ <Input type="number" value={cfg.barGap ?? ''} onChange={v => update('config.barGap', v === '' ? null : (parseInt(v) || 0))} />
+ </Field>
+ <Field label="Розмір шрифту бару">
  <div className="flex items-center gap-3">
  <input
  type="range"
@@ -1178,11 +1189,55 @@ function StickyBarConfig({ cfg, pos, triggers, update }) {
  </div>
  </Field>
  </Section>
+ <StickyButtonConfig cfg={cfg} update={update} />
  <AnimationConfig cfg={cfg} update={update} />
  </Section>
  <DesignConfig cfg={cfg} update={update} />
  <TriggersConfig triggers={triggers} update={update} simple={true} />
  </>
+ );
+}
+
+// ─── STICKY BAR BUTTON (separate font & paddings) ───
+function StickyButtonConfig({ cfg, update }) {
+ const b = cfg.button || {};
+ return (
+ <Section title="Кнопка: шрифт і відступи">
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Шрифт кнопки">
+ <Select value={b.fontFamily || ''} onChange={v => update('config.button.fontFamily', v)} options={FONT_FAMILIES} />
+ </Field>
+ <Field label="Колір тексту кнопки">
+ <ColorPicker value={b.textColor || '#ffffff'} onChange={v => update('config.button.textColor', v)} />
+ </Field>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Розмір шрифту (px)" hint="За замовч. 13">
+ <Input type="number" value={b.fontSize ?? ''} onChange={v => update('config.button.fontSize', parseInt(v) || null)} />
+ </Field>
+ <Field label="Жирність">
+ <Select value={b.fontWeight || ''} onChange={v => update('config.button.fontWeight', v)}
+ options={[
+ { value: '', label: 'За замовч. (600)' },
+ { value: '400', label: 'Звичайний (400)' },
+ { value: '500', label: 'Середній (500)' },
+ { value: '600', label: 'Напівжирний (600)' },
+ { value: '700', label: 'Жирний (700)' },
+ ]} />
+ </Field>
+ </div>
+ <div className="grid grid-cols-2 gap-3">
+ <Field label="Відступ ↕ (px)" hint="Зверху і знизу (за замовч. 6)">
+ <Input type="number" value={b.paddingY ?? ''} onChange={v => update('config.button.paddingY', v === '' ? null : (parseInt(v) || 0))} />
+ </Field>
+ <Field label="Відступ ↔ (px)" hint="Зліва і справа (за замовч. 16)">
+ <Input type="number" value={b.paddingX ?? ''} onChange={v => update('config.button.paddingX', v === '' ? null : (parseInt(v) || 0))} />
+ </Field>
+ </div>
+ <Field label="Заокруглення кнопки (px)" hint="За замовч. 6">
+ <Input type="number" value={b.borderRadius ?? ''} onChange={v => update('config.button.borderRadius', v === '' ? null : (parseInt(v) || 0))} />
+ </Field>
+ </Section>
  );
 }
 
@@ -1476,7 +1531,7 @@ function RulesConfig({ rules, update }) {
   const devices = rules.devices || [];
 
   function addUrlRule() {
-    update('rules.urlRules', [...urlRules, { type: 'contains', value: '' }]);
+    update('rules.urlRules', [...urlRules, { target: 'url', type: 'contains', value: '' }]);
   }
   function removeUrlRule(i) {
     update('rules.urlRules', urlRules.filter((_, idx) => idx !== i));
@@ -1522,23 +1577,41 @@ function RulesConfig({ rules, update }) {
         </div>
       </Field>
 
-      <Field label="URL-правила" hint="Якщо не задано — показується на всіх сторінках">
+      <Field label="Правила сторінок" hint="Показується, якщо виконується хоча б одне правило. Якщо не задано — на всіх сторінках">
         <div className="space-y-2">
-          {urlRules.map((rule, i) => (
-            <div key={i} className="flex gap-2">
-              <Select value={rule.type} onChange={v => updateUrlRule(i, 'type', v)}
-                options={[
-                  { value: 'contains', label: 'Містить' },
-                  { value: 'exact', label: 'Точний шлях' },
-                  { value: 'regex', label: 'Regex' },
-                ]} />
-              <Input value={rule.value} onChange={v => updateUrlRule(i, 'value', v)}
-                placeholder={rule.type === 'regex' ? '/catalog/.*' : '/catalog'} />
-              <button onClick={() => removeUrlRule(i)} className="p-2 text-slate-400 hover:text-red-500">
-                <X size={16} />
-              </button>
+          {urlRules.map((rule, i) => {
+            const target = rule.target || 'url';
+            const placeholder = target === 'breadcrumbs' ? 'Напр.: Ноутбуки'
+              : target === 'title' ? 'Напр.: iPhone'
+              : rule.type === 'regex' ? '/catalog/.*' : '/catalog';
+            return (
+            <div key={i} className="space-y-1">
+              <div className="flex gap-2">
+                <Select value={target} onChange={v => updateUrlRule(i, 'target', v)}
+                  options={[
+                    { value: 'url', label: '🔗 URL' },
+                    { value: 'breadcrumbs', label: '🍞 Хлібні крихти' },
+                    { value: 'title', label: '🏷 Назва (H1 / title)' },
+                  ]} />
+                <Select value={rule.type} onChange={v => updateUrlRule(i, 'type', v)}
+                  options={[
+                    { value: 'contains', label: 'Містить' },
+                    { value: 'exact', label: target === 'url' ? 'Точний шлях' : 'Точно дорівнює' },
+                    { value: 'regex', label: 'Regex' },
+                  ]} />
+                <Input value={rule.value} onChange={v => updateUrlRule(i, 'value', v)}
+                  placeholder={placeholder} />
+                <button onClick={() => removeUrlRule(i)} className="p-2 text-slate-400 hover:text-red-500">
+                  <X size={16} />
+                </button>
+              </div>
+              {target === 'breadcrumbs' && (
+                <Input value={rule.selector || ''} onChange={v => updateUrlRule(i, 'selector', v)}
+                  placeholder="CSS-селектор крихт (необов'язково, напр. .breadcrumbs) — інакше визначається автоматично" />
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
         <button onClick={addUrlRule}
           className="mt-2 flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg">

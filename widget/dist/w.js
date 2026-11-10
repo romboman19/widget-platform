@@ -128,19 +128,96 @@
     // Device filter
     if (rules.devices && !rules.devices.includes(DEVICE)) return false;
 
-    // URL filter
+    // Page filter (URL / breadcrumbs / page title). Rules are OR-ed.
     if (rules.urlRules?.length) {
-      const url = location.href;
-      const path = location.pathname;
-      return rules.urlRules.some(r => {
-        if (r.type === 'contains') return url.includes(r.value);
-        if (r.type === 'exact') return path === r.value;
-        if (r.type === 'regex') {
-          if (!r.value || r.value.length > 200) return false;
-          try { return new RegExp(r.value).test(url); } catch { return false; }
-        }
-        return true;
+      return rules.urlRules.some(matchPageRule);
+    }
+    return true;
+  }
+
+  function normText(s) {
+    return String(s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  }
+
+  function matchText(candidates, type, value) {
+    if (!value) return false;
+    if (type === 'regex') {
+      if (value.length > 200) return false;
+      let re;
+      try { re = new RegExp(value, 'i'); } catch { return false; }
+      return candidates.some(c => re.test(c));
+    }
+    const v = normText(value);
+    if (type === 'exact') return candidates.some(c => normText(c) === v);
+    return candidates.some(c => normText(c).includes(v));
+  }
+
+  const BREADCRUMB_SELECTORS = [
+    '[itemtype*="BreadcrumbList"]',
+    'nav[aria-label*="breadcrumb" i]',
+    'nav[aria-label*="крихт" i]',
+    '.breadcrumb', '.breadcrumbs', '#breadcrumb', '#breadcrumbs',
+    '.woocommerce-breadcrumb', '.b-breadcrumbs', '.bread-crumbs', '.breadcrumbs-list',
+    '[class*="breadcrumb"]', '[class*="bread-crumb"]', '[class*="breadcrumbs"]',
+  ];
+
+  function getBreadcrumbTexts(customSelector) {
+    const items = [];
+    // 1) JSON-LD BreadcrumbList (works even if breadcrumbs are hidden visually)
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(s => {
+      try {
+        const walk = (node) => {
+          if (!node || typeof node !== 'object') return;
+          if (Array.isArray(node)) return node.forEach(walk);
+          if (node['@type'] === 'BreadcrumbList' && Array.isArray(node.itemListElement)) {
+            node.itemListElement.forEach(it => {
+              const name = it?.name || it?.item?.name;
+              if (name) items.push(String(name));
+            });
+          }
+          if (node['@graph']) walk(node['@graph']);
+        };
+        walk(JSON.parse(s.textContent));
+      } catch {}
+    });
+    // 2) DOM breadcrumbs
+    let selectors = BREADCRUMB_SELECTORS;
+    if (customSelector) selectors = [customSelector];
+    for (const sel of selectors) {
+      let nodes;
+      try { nodes = document.querySelectorAll(sel); } catch { continue; }
+      nodes.forEach(n => {
+        if (n.closest('.wp-widget')) return;
+        const links = n.querySelectorAll('a, li, span[itemprop="name"]');
+        if (links.length) links.forEach(a => { const t = a.textContent; if (t && t.trim()) items.push(t); });
+        if (n.textContent) items.push(n.textContent); // full trail as one string
       });
+      if (customSelector || nodes.length) break;
+    }
+    return items;
+  }
+
+  function getTitleTexts() {
+    const items = [];
+    document.querySelectorAll('h1').forEach(h => {
+      if (!h.closest('.wp-widget') && h.textContent.trim()) items.push(h.textContent);
+    });
+    const og = document.querySelector('meta[property="og:title"]');
+    if (og?.content) items.push(og.content);
+    if (document.title) items.push(document.title);
+    return items;
+  }
+
+  function matchPageRule(r) {
+    const target = r.target || 'url';
+    if (target === 'breadcrumbs') return matchText(getBreadcrumbTexts(r.selector), r.type, r.value);
+    if (target === 'title') return matchText(getTitleTexts(), r.type, r.value);
+    // URL (legacy behaviour)
+    if (r.type === 'contains') return location.href.includes(r.value);
+    if (r.type === 'exact') return location.pathname === r.value;
+    if (r.type === 'regex') {
+      if (!r.value || r.value.length > 200) return false;
+      try { return new RegExp(r.value).test(location.href); } catch { return false; }
     }
     return true;
   }
@@ -509,7 +586,7 @@
       .wp-sticky-bar.bottom { bottom: 0; }
       .wp-sticky-bar-close { background: none; border: none; cursor: pointer; margin-left: 8px; }
       .wp-sticky-bar-close svg { width: 16px; height: 16px; }
-      .wp-sticky-btn { padding: 6px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+      .wp-sticky-btn { padding: 6px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; line-height: 1.2; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; height: auto; }
       .wp-side-tab { position: fixed; writing-mode: vertical-rl; text-orientation: mixed; padding: 14px 8px; border-radius: 8px 0 0 8px; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: -2px 0 8px rgba(0,0,0,.15); border: none; transition: transform .2s; }
       .wp-side-tab:hover { transform: translateX(-3px); }
       .wp-banner-img { width: 100%; border-radius: 8px; margin-bottom: 16px; }
@@ -1131,6 +1208,27 @@
     if (fontScale !== 100) {
       stickyStyle.fontSize = `calc(14px * ${fontScale / 100})`;
     }
+    // Bar inner padding (independent from the button)
+    if (cfg.barPaddingY != null && cfg.barPaddingY !== '') {
+      stickyStyle.paddingTop = cfg.barPaddingY + 'px';
+      stickyStyle.paddingBottom = cfg.barPaddingY + 'px';
+    }
+    if (cfg.barPaddingX != null && cfg.barPaddingX !== '') {
+      stickyStyle.paddingLeft = cfg.barPaddingX + 'px';
+      stickyStyle.paddingRight = cfg.barPaddingX + 'px';
+    }
+    if (cfg.barGap != null && cfg.barGap !== '') stickyStyle.gap = cfg.barGap + 'px';
+
+    // Button styles — configured separately from the bar
+    const b = cfg.button || {};
+    const btnStyle = { background: color, color: b.textColor || '#fff' };
+    if (b.fontFamily) btnStyle.fontFamily = b.fontFamily;
+    else if (cfg.design && cfg.design.fontFamily) btnStyle.fontFamily = cfg.design.fontFamily;
+    if (b.fontSize) btnStyle.fontSize = b.fontSize + 'px';
+    if (b.fontWeight) btnStyle.fontWeight = b.fontWeight;
+    if (b.paddingY != null && b.paddingY !== '') { btnStyle.paddingTop = b.paddingY + 'px'; btnStyle.paddingBottom = b.paddingY + 'px'; }
+    if (b.paddingX != null && b.paddingX !== '') { btnStyle.paddingLeft = b.paddingX + 'px'; btnStyle.paddingRight = b.paddingX + 'px'; }
+    if (b.borderRadius != null && b.borderRadius !== '') btnStyle.borderRadius = b.borderRadius + 'px';
       const bar = el('div', {
         class: 'wp-widget wp-sticky-bar ' + placement,
         style: stickyStyle,
@@ -1138,7 +1236,7 @@
       el('span', {}, cfg.text || ''),
       cfg.buttonText ? el('button', {
         class: 'wp-sticky-btn',
-        style: { background: color, color: '#fff' },
+        style: btnStyle,
         onClick: () => { track('click', widget.id, 'sticky_bar'); if (cfg.buttonUrl) window.open(cfg.buttonUrl, cfg.buttonTarget || '_self'); },
       }, cfg.buttonText) : null,
       el('button', {
